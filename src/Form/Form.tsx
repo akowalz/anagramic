@@ -1,12 +1,20 @@
+import "./Form.css";
+
 type FormProps = {
   inputValue: string;
   setInputValue: React.Dispatch<React.SetStateAction<string>>;
-  setLetters: React.Dispatch<React.SetStateAction<string>>;
+  setLetters: React.Dispatch<React.SetStateAction<string[]>>;
 };
 
-function Form({ inputValue, setInputValue, setLetters }: FormProps) {
+export default function Form({
+  inputValue,
+  setInputValue,
+  setLetters,
+}: FormProps) {
   const submit = () => {
-    setLetters(inputValue.toUpperCase());
+    if (inputValue === "") return;
+
+    setLetters(inputValue.toUpperCase().split(""));
   };
 
   return (
@@ -23,5 +31,3 @@ function Form({ inputValue, setInputValue, setLetters }: FormProps) {
     </form>
   );
 }
-
-export default Form;

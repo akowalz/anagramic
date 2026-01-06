@@ -1,10 +1,16 @@
 import "./Tile.css";
 import { useState } from "react";
 
-type Props = { letter: string };
+type Pos = { x: number; y: number };
 
-export default function Tile({ letter }: Props) {
-  const [pos, setPos] = useState({ x: 0, y: 0 });
+type Props = {
+  letter: string;
+  id: number;
+  pos: Pos;
+  onMove: (id: number, x: number, y: number) => void;
+};
+
+export default function Tile({ letter, pos, id, onMove }: Props) {
   const [dragging, setDragging] = useState(false);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
@@ -21,10 +27,7 @@ export default function Tile({ letter }: Props) {
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging) return;
 
-    setPos({
-      x: e.clientX - offset.x,
-      y: e.clientY - offset.y,
-    });
+    onMove(id, e.clientX - offset.x, e.clientY - offset.y);
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {

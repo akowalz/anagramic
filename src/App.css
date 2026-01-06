@@ -25,36 +25,3 @@
   gap: 10px;
   flex: 1;
 }
-
-.form {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.form-label {
-  font-size: 1.2em;
-  margin-bottom: 4px;
-}
-
-.form input {
-  width: 90%;
-  border: none;
-  text-align: center;
-  font-size: 1.8em;
-  text-transform: uppercase;
-  font-family: monospace;
-  margin-bottom: 8px;
-}
-
-button {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-style: italic;
-  background-color: white;
-  border-color: grey;
-
-
-}

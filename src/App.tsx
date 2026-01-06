@@ -1,15 +1,13 @@
-import { useState } from "react";
 import "./App.css";
-import Tile from "./Tile/Tile";
+
+import { useState } from "react";
+import TileCanvas from "./TileCanvas/TileCanvas";
+
 import Form from "./Form/Form";
 
 function App() {
   const [inputValue, setInputValue] = useState("");
-  const [letters, setLetters] = useState("");
-
-  const letterTiles = letters
-    .split("")
-    .map((letter) => <Tile letter={letter.toUpperCase()} />);
+  const [letters, setLetters] = useState<string[]>([]);
 
   return (
     <>
@@ -18,7 +16,7 @@ function App() {
       </div>
 
       <div id="main-container">
-        {letters === "" && (
+        {letters.length === 0 && (
           <Form
             inputValue={inputValue}
             setInputValue={setInputValue}
@@ -26,7 +24,7 @@ function App() {
           />
         )}
 
-        {letters !== "" && <div id="canvas">{letterTiles}</div>}
+        {letters.length > 0 && <TileCanvas letters={letters} />}
       </div>
     </>
   );
