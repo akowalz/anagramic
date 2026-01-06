@@ -4,28 +4,33 @@ import "./TileCanvas.css";
 
 type TileCanvasProps = {
   letters: string[];
+  resetLetters: () => void;
 };
 
+type Pos = { x: number; y: number };
+
 type TileData = {
-  x: number;
-  y: number;
+  pos: Pos;
   letter: string;
   id: number;
 };
 
-export default function TileCanvas({ letters }: TileCanvasProps) {
+export default function TileCanvas({ letters, resetLetters }: TileCanvasProps) {
+  function resetTiles() {
+    setTileData(initialTileData(letters));
+  }
+
   function initialTileData(letters: string[]) {
     return letters.map((letter, index) => ({
       id: index,
+      pos: { x: 0, y: 0 },
       letter,
-      x: 0,
-      y: 0,
     }));
   }
 
-  const handleMoveTile = (id: number, x: number, y: number) => {
+  const handleMoveTile = (id: number, newPos: Pos) => {
     setTileData((tiles) =>
-      tiles.map((tile) => (tile.id === id ? { ...tile, x, y } : tile))
+      tiles.map((tile) => (tile.id === id ? { ...tile, pos: newPos } : tile))
     );
   };
 
@@ -44,11 +49,19 @@ export default function TileCanvas({ letters }: TileCanvasProps) {
       <Tile
         letter={letter.toUpperCase()}
         id={index}
-        pos={{ x: dataForTile.x, y: dataForTile.y }}
+        pos={{ ...dataForTile.pos }}
         onMove={handleMoveTile}
       />
     );
   });
 
-  return <div className="tile-canvas">{tiles}</div>;
+  return (
+    <>
+      <div className="tile-canvas">{tiles}</div>
+      <div className="canvas-actions">
+        <button onClick={() => resetTiles()}>Reset</button>
+        <button onClick={() => resetLetters()}>New Letters</button>
+      </div>
+    </>
+  );
 }

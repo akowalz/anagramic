@@ -7,7 +7,7 @@ type Props = {
   letter: string;
   id: number;
   pos: Pos;
-  onMove: (id: number, x: number, y: number) => void;
+  onMove: (id: number, pos: Pos) => void;
 };
 
 export default function Tile({ letter, pos, id, onMove }: Props) {
@@ -27,7 +27,7 @@ export default function Tile({ letter, pos, id, onMove }: Props) {
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging) return;
 
-    onMove(id, e.clientX - offset.x, e.clientY - offset.y);
+    onMove(id, { x: e.clientX - offset.x, y: e.clientY - offset.y });
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {

@@ -9,6 +9,11 @@ function App() {
   const [inputValue, setInputValue] = useState("");
   const [letters, setLetters] = useState<string[]>([]);
 
+  const resetLetters = () => {
+    setInputValue("");
+    setLetters([]);
+  };
+
   return (
     <>
       <div id="header">
@@ -24,7 +29,9 @@ function App() {
           />
         )}
 
-        {letters.length > 0 && <TileCanvas letters={letters} />}
+        {letters.length > 0 && (
+          <TileCanvas letters={letters} resetLetters={resetLetters} />
+        )}
       </div>
     </>
   );

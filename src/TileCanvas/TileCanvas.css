@@ -3,3 +3,12 @@
   flex-direction: row;
   gap: 10px;
 }
+
+.canvas-actions {
+  display: flex;
+  gap: 12px;
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+}
