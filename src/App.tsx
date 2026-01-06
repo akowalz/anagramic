@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./App.css";
-import Tile from "./Components/Tile";
+import Tile from "./Tile/Tile";
+import Form from "./Form/Form";
 
 function App() {
   const [inputValue, setInputValue] = useState("");
@@ -8,25 +9,25 @@ function App() {
 
   const letterTiles = letters
     .split("")
-    .map((letter) => <Tile letter={letter} />);
+    .map((letter) => <Tile letter={letter.toUpperCase()} />);
 
   return (
     <>
       <div id="header">
         <h1>Anagrams App</h1>
       </div>
-      {letters === "" && (
-        <div className="form">
-          <h2>Enter fodder letters</h2>
-          <input
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-          />
 
-          <button onClick={() => setLetters(inputValue)}>Submit</button>
-        </div>
-      )}
-      {letters !== "" && <div id="canvas">{letterTiles}</div>}
+      <div id="main-container">
+        {letters === "" && (
+          <Form
+            inputValue={inputValue}
+            setInputValue={setInputValue}
+            setLetters={setLetters}
+          />
+        )}
+
+        {letters !== "" && <div id="canvas">{letterTiles}</div>}
+      </div>
     </>
   );
 }
