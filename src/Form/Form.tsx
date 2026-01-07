@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import "./Form.css";
 
 type FormProps = {
@@ -11,6 +12,12 @@ export default function Form({
   setInputValue,
   setLetters,
 }: FormProps) {
+  useEffect(() => {
+    const input = document.getElementById("fodder-input");
+    if (!input) return;
+    input.focus();
+  }, []);
+
   const submit = () => {
     if (inputValue === "") return;
 
@@ -21,6 +28,8 @@ export default function Form({
     <form className="form" onSubmit={() => submit()}>
       <div className="form-label">Enter fodder letters:</div>
       <input
+        name="fodder"
+        id="fodder-input"
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
       />

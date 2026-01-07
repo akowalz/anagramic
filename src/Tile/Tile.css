@@ -5,15 +5,19 @@
   width: 40px;
   border-radius: 4px;
   font-size: 2em;
-  border: 3px solid black;
+  border: 3px solid var(--darkest);
+  background-color: white;
+  box-shadow: 2px 2px 0 black;
   display: grid;
   place-items: center;
   touch-action: none;
   user-select: none;
   cursor: grab;
-  background-color: white;
 }
 
 .letter-tile:active {
   cursor: grabbing;
+  box-shadow: 4px 4px 0 black;
+  font-weight: bold;
+  z-index: 999;
 }

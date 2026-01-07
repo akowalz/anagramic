@@ -17,7 +17,7 @@ function App() {
   return (
     <>
       <div id="header">
-        <h1>Anagrams App</h1>
+        <h1>annagrams app</h1>
       </div>
 
       <div id="main-container">
