@@ -36,11 +36,12 @@ button {
   font-style: italic;
   background-color: white;
   border-color: var(--dark);
-  color: var(--darkest)
+  color: var(--darkest);
+  box-shadow: 2px 2px 0 black;
 }
 
 button:hover {
   cursor: pointer;
-  background-color: var(--light);
+  background-color: var(--lighter);
   color: var(--darkest);
 }

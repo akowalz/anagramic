@@ -26,7 +26,7 @@ export default function Form({
 
   return (
     <form className="form" onSubmit={() => submit()}>
-      <div className="form-label">Enter fodder letters:</div>
+      <div className="form-label">Enter letters to anagram:</div>
       <input
         name="fodder"
         id="fodder-input"
