@@ -67,9 +67,12 @@ export default function TileCanvas({ letters, resetLetters }: TileCanvasProps) {
   return (
     <>
       <div className="tile-canvas">{tiles}</div>
-      <div className="canvas-actions">
-        <button onClick={() => resetTiles()}>Reset</button>
-        <button onClick={() => resetLetters()}>New Letters</button>
+      <div className="canvas-footer">
+        <div className="tooltip">Drag and drop to rearrange letters</div>
+        <div className="canvas-actions">
+          <button onClick={() => resetTiles()}>Reset</button>
+          <button onClick={() => resetLetters()}>New Letters</button>
+        </div>
       </div>
     </>
   );

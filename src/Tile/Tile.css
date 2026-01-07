@@ -13,6 +13,8 @@
   touch-action: none;
   user-select: none;
   cursor: grab;
+
+  transition: transform 150ms ease-out;
 }
 
 .letter-tile:hover {
@@ -24,6 +26,7 @@
 }
 
 .letter-tile:active {
+  transition: none;
   cursor: grabbing;
   background-color: var(--white);
   box-shadow: 4px 4px 0 black;
