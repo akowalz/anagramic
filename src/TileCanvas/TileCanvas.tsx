@@ -12,10 +12,13 @@ type Pos = { x: number; y: number };
 type TileData = {
   pos: Pos;
   letter: string;
+  zIndex: number;
   id: number;
 };
 
 export default function TileCanvas({ letters, resetLetters }: TileCanvasProps) {
+  const [tileData, setTileData] = useState<TileData[]>([]);
+
   function resetTiles() {
     setTileData(initialTileData(letters));
   }
@@ -24,17 +27,22 @@ export default function TileCanvas({ letters, resetLetters }: TileCanvasProps) {
     return letters.map((letter, index) => ({
       id: index,
       pos: { x: 0, y: 0 },
+      zIndex: 0,
       letter,
     }));
   }
 
   const handleMoveTile = (id: number, newPos: Pos) => {
+    const currentMaxZIndex = Math.max(...tileData.map((t) => t.zIndex));
+
     setTileData((tiles) =>
-      tiles.map((tile) => (tile.id === id ? { ...tile, pos: newPos } : tile))
+      tiles.map((tile) =>
+        tile.id === id
+          ? { ...tile, pos: newPos, zIndex: currentMaxZIndex + 1 }
+          : tile
+      )
     );
   };
-
-  const [tileData, setTileData] = useState<TileData[]>([]);
 
   useEffect(() => {
     setTileData(initialTileData(letters));
@@ -50,6 +58,7 @@ export default function TileCanvas({ letters, resetLetters }: TileCanvasProps) {
         letter={letter.toUpperCase()}
         id={index}
         pos={{ ...dataForTile.pos }}
+        zIndex={dataForTile.zIndex}
         onMove={handleMoveTile}
       />
     );
