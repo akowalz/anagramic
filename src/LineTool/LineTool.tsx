@@ -6,9 +6,24 @@ type Props = {
   resetLetters: () => void;
 };
 
+type LineLetter = {
+  id: string;
+  letter: string;
+};
+
+const TILE_WIDTH = 42;
+
 export default function LineTool({ letters, resetLetters }: Props) {
-  const [userLetters, setUserLetters] = useState<string[]>(letters);
+  const [userLetters, setUserLetters] = useState<LineLetter[]>(
+    initializeLetters(letters)
+  );
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  function initializeLetters(letters: string[]): LineLetter[] {
+    return letters.map((letter) => {
+      return { id: Math.random().toString(36).substring(3, 9), letter };
+    });
+  }
 
   function onClickLetter(index: number) {
     if (activeIndex !== null) {
@@ -20,7 +35,7 @@ export default function LineTool({ letters, resetLetters }: Props) {
   }
 
   function resetTiles() {
-    setUserLetters(letters);
+    setUserLetters(initializeLetters(letters));
   }
 
   function swap(indexA: number, indexB: number) {
@@ -42,13 +57,14 @@ export default function LineTool({ letters, resetLetters }: Props) {
         {userLetters.map((letter, index) => {
           return (
             <div
-              className={`line-tool-letter ${
-                index === activeIndex ? "active" : ""
-              } ${index + 1 === activeIndex ? "left-of-active" : ""}`}
-              key={index}
+              className={`
+                line-tool-letter 
+                ${index === activeIndex ? "active" : ""}
+                ${index + 1 === activeIndex ? "left-of-active" : ""}`}
+              key={letter.id}
               onClick={() => onClickLetter(index)}
             >
-              {letter}
+              {letter.letter}
             </div>
           );
         })}
