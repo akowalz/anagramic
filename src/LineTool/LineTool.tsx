@@ -1,3 +1,6 @@
+import { type Transition } from "motion/react";
+import * as motion from "motion/react-client";
+
 import { useState } from "react";
 import "./LineTool.css";
 
@@ -10,8 +13,6 @@ type LineLetter = {
   id: string;
   letter: string;
 };
-
-const TILE_WIDTH = 42;
 
 export default function LineTool({ letters, resetLetters }: Props) {
   const [userLetters, setUserLetters] = useState<LineLetter[]>(
@@ -51,26 +52,33 @@ export default function LineTool({ letters, resetLetters }: Props) {
     setActiveIndex(null);
   }
 
+  const spring: Transition = {
+    type: "spring",
+    damping: 50,
+    stiffness: 1000,
+  };
+
   return (
     <>
       <div className="line-tool-container">
         {userLetters.map((letter, index) => {
           return (
-            <div
+            <motion.li
               className={`
                 line-tool-letter 
                 ${index === activeIndex ? "active" : ""}
                 ${index + 1 === activeIndex ? "left-of-active" : ""}`}
               key={letter.id}
               onClick={() => onClickLetter(index)}
+              transition={spring}
+              layout
             >
               {letter.letter}
-            </div>
+            </motion.li>
           );
         })}
       </div>
       <div className="canvas-footer">
-        <div>{activeIndex}</div>
         <div className="tooltip">Tap to swap positions of letters</div>
         <div className="canvas-actions">
           <button onClick={() => resetTiles()}>Reset</button>
