@@ -1,5 +1,12 @@
 .letter-tile {
   position: relative;
+  place-items: center;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+  transition: transform 150ms ease-out;
+
+  /* TODO: Extract shared tile styles */
   font-family: monospace;
   height: 40px;
   width: 40px;
@@ -9,12 +16,6 @@
   background-color: white;
   box-shadow: 2px 2px 0 black;
   display: grid;
-  place-items: center;
-  touch-action: none;
-  user-select: none;
-  cursor: grab;
-
-  transition: transform 150ms ease-out;
 }
 
 .letter-tile:hover {

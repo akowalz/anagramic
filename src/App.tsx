@@ -2,15 +2,16 @@ import "./App.css";
 
 import { useState, type JSX } from "react";
 import TileCanvas from "./TileCanvas/TileCanvas";
+import LineTool from "./LineTool/LineTool";
 
 import Form from "./Form/Form";
 
 type Tool = "Tiles" | "Line";
 
 function App() {
-  const [inputValue, setInputValue] = useState("");
-  const [letters, setLetters] = useState<string[]>([]);
-  const [tool, setTool] = useState<Tool>("Tiles");
+  const [inputValue, setInputValue] = useState("LETTERS");
+  const [letters, setLetters] = useState<string[]>("LETTERS".split(""));
+  const [tool, setTool] = useState<Tool>("Line");
 
   const resetLetters = () => {
     setInputValue("");
@@ -33,7 +34,7 @@ function App() {
         return <TileCanvas letters={letters} resetLetters={resetLetters} />;
 
       case "Line":
-        return <div>Line tool</div>;
+        return <LineTool letters={letters} />;
 
       default:
         throw `unknown tool ${tool}`;
@@ -45,6 +46,13 @@ function App() {
       <div id="header">
         <h1>annagram thing</h1>
       </div>
+
+      {letters.length !== 0 && (
+        <div id="tool-select">
+          <button onClick={() => setTool("Tiles")}>Tiles</button>
+          <button onClick={() => setTool("Line")}>Line</button>
+        </div>
+      )}
 
       <div id="main-container">{getContainerView()}</div>
     </>
