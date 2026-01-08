@@ -39,7 +39,7 @@ export default function Tile({ letter, pos, id, zIndex, onMove }: Props) {
 
   return (
     <div
-      className="letter-tile"
+      className={`letter-tile ${dragging ? "dragging" : ""}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}

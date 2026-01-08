@@ -21,14 +21,10 @@
   background-color: var(--lighter);
 }
 
-.letter-tile:hover:active {
-  background-color: white;
-}
-
-.letter-tile:active {
+.letter-tile.dragging {
   transition: none;
+  background-color: var(--lighter);
   cursor: grabbing;
-  background-color: var(--white);
   box-shadow: 4px 4px 0 black;
   font-weight: bold;
   z-index: 999;

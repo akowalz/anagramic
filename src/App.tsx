@@ -17,7 +17,7 @@ function App() {
   return (
     <>
       <div id="header">
-        <h1>annagrams app</h1>
+        <h1>annagram thing</h1>
       </div>
 
       <div id="main-container">
