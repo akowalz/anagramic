@@ -3,9 +3,10 @@ import "./LineTool.css";
 
 type Props = {
   letters: string[];
+  resetLetters: () => void;
 };
 
-export default function LineTool({ letters }: Props) {
+export default function LineTool({ letters, resetLetters }: Props) {
   const [userLetters, setUserLetters] = useState<string[]>(letters);
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
@@ -33,10 +34,6 @@ export default function LineTool({ letters }: Props) {
 
     setUserLetters([...newUserLetters]);
     setActiveIndex(null);
-  }
-
-  function resetLetters() {
-    return;
   }
 
   return (

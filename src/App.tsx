@@ -34,7 +34,7 @@ function App() {
         return <TileCanvas letters={letters} resetLetters={resetLetters} />;
 
       case "Line":
-        return <LineTool letters={letters} />;
+        return <LineTool letters={letters} resetLetters={resetLetters} />;
 
       default:
         throw `unknown tool ${tool}`;
