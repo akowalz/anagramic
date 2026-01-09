@@ -1,12 +1,25 @@
+/* Global reset / app lock */
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--app-bg);
+}
+
+/* App root */
+#root {
+  height: 100dvh;
+  box-sizing: border-box;
+  color: var(--darkest);
+  padding: env(safe-area-inset-top)
+           env(safe-area-inset-right)
+           env(safe-area-inset-bottom)
+           env(safe-area-inset-left);
+}
+
+/* Global theme + typography */
 :root {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  font-weight: 400;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
   /* Colors */
   --darkest: #2d232e;
   --darker: #474448;
@@ -14,34 +27,45 @@
   --light: #e0ddcf;
   --lighter: #f2f2f2;
   --lighest: #f1f0ea;
+
+  /* App background alias */
+  --app-bg: var(--lighter);
+
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: 400;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  margin: 0;
-}
-
-#root {
-  background-color: var(--lighter);
-  color: var(--darkest)
-}
-
+/* Links */
 a:hover {
-  color: var(--darker)
+  color: var(--darker);
 }
 
+/* Buttons */
 button {
   font-weight: bold;
+  font-size: 0.9em;
   padding: 8px 12px;
   border-radius: 4px;
   font-style: italic;
-  background-color: white;
-  border-color: var(--dark);
+  background: white;
   color: var(--darkest);
+  border: 1px solid var(--dark);
   box-shadow: 2px 2px 0 black;
 }
 
 button:hover {
   cursor: pointer;
-  background-color: var(--lighter);
+  background: var(--lighter);
   color: var(--darkest);
+}
+
+/* No selecting text anywhere */
+* {
+  user-select: none;
+  -webkit-user-select: none; /* iOS Safari */
 }
