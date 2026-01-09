@@ -24,6 +24,10 @@ export default function Form({
     setLetters(inputValue.toUpperCase().split(""));
   };
 
+  function onInputChange(str: string) {
+    setInputValue(str.replace(/[^a-z]/gi, ""));
+  }
+
   return (
     <form className="form" onSubmit={() => submit()}>
       <div className="form-label">Enter letters to anagram:</div>
@@ -31,7 +35,7 @@ export default function Form({
         name="fodder"
         id="fodder-input"
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        onChange={(e) => onInputChange(e.target.value)}
       />
 
       <button type="submit" onClick={() => submit()}>

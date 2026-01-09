@@ -5,6 +5,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 10px;
+  padding: 5vw;
 }
 
 /* TODO: refactor shared footer */
