@@ -1,19 +1,19 @@
 .line-tool-container {
   margin-bottom: 15vh;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  width: 100%;
   height: 100%;
+  width: 100%;
   gap: 0px;
+  line-height: 1;
+  font-size: clamp(12px, 8vw, 2em);
 }
 
-.line-tool-letter {
-  /* TODO: Extract shared tile styles */
-  font-family: monospace;
-  height: 40px;
-  width: 40px;
-  font-size: 2em;
+.line-tool-tile {
+  aspect-ratio: 1 / 1;
+  flex-basis: 40px;
+  min-width: 0;
   border: 3px solid var(--darkest);
   background-color: white;
   place-items: center;
@@ -21,13 +21,14 @@
   border-radius: 4px;
   margin-left: -3px;
   box-shadow: 1px 1px 0 black;
+  font-family: monospace;
 }
 
-.line-tool-letter:hover {
+.line-tool-tile:hover {
   background-color: var(--lighter);
 }
 
-.line-tool-letter.active {
+.line-tool-tile.active {
   border-color: orange;
   box-shadow: 1px 1px 0 orange;
   background-color: var(--lighter);
@@ -36,6 +37,7 @@
 
 /* TODO: refactor shared footer */
 .canvas-footer {
+  width: 100%;
   position: fixed;
   bottom: 24px;
   left: 50%;

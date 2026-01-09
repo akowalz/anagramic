@@ -9,9 +9,9 @@ import Form from "./Form/Form";
 type Tool = "Tiles" | "Line";
 
 function App() {
-  const [inputValue, setInputValue] = useState("LETTERS");
-  const [letters, setLetters] = useState<string[]>("LETTERS".split(""));
-  const [tool, setTool] = useState<Tool>("Line");
+  const [inputValue, setInputValue] = useState("");
+  const [letters, setLetters] = useState<string[]>([]);
+  const [tool, setTool] = useState<Tool>("Tiles");
 
   const resetLetters = () => {
     setInputValue("");
@@ -31,10 +31,10 @@ function App() {
 
     return (
       <>
-        <div style={{ display: tool === "Tiles" ? "" : "none" }}>
+        <div className={`tool-container ${tool === "Tiles" ? "" : "hidden"}`}>
           <TileCanvas letters={letters} resetLetters={resetLetters} />
         </div>
-        <div style={{ display: tool === "Line" ? "" : "none" }}>
+        <div className={`tool-container ${tool === "Line" ? "" : "hidden"}`}>
           <LineTool letters={letters} resetLetters={resetLetters} />
         </div>
       </>

@@ -76,7 +76,7 @@ export default function LineTool({ letters, resetLetters }: Props) {
           return (
             <motion.li
               className={`
-                line-tool-letter 
+                line-tool-tile
                 ${index === activeIndex ? "active" : ""}
               `}
               key={letter.id}
