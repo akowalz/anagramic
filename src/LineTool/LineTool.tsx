@@ -11,6 +11,7 @@ type Props = {
 
 type LineLetter = {
   id: string;
+  pos: number;
   letter: string;
 };
 
@@ -21,8 +22,12 @@ export default function LineTool({ letters, resetLetters }: Props) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   function initializeLetters(letters: string[]): LineLetter[] {
-    return letters.map((letter) => {
-      return { id: Math.random().toString(36).substring(3, 9), letter };
+    return letters.map((letter, index) => {
+      return {
+        id: Math.random().toString(36).substring(3, 9),
+        pos: index,
+        letter,
+      };
     });
   }
 
@@ -33,10 +38,6 @@ export default function LineTool({ letters, resetLetters }: Props) {
     }
 
     setActiveIndex(index);
-  }
-
-  function resetTiles() {
-    setUserLetters(initializeLetters(letters));
   }
 
   function swap(indexA: number, indexB: number) {
@@ -50,6 +51,16 @@ export default function LineTool({ letters, resetLetters }: Props) {
 
     setUserLetters([...newUserLetters]);
     setActiveIndex(null);
+  }
+
+  function resetPositions() {
+    setActiveIndex(null);
+    setUserLetters([...userLetters.sort((a, b) => a.pos - b.pos)]);
+  }
+
+  function shuffleTiles() {
+    setActiveIndex(null);
+    setUserLetters([...userLetters.sort(() => Math.random() - 0.5)]);
   }
 
   const spring: Transition = {
@@ -81,7 +92,8 @@ export default function LineTool({ letters, resetLetters }: Props) {
       <div className="canvas-footer">
         <div className="tooltip">Tap to swap positions of letters</div>
         <div className="canvas-actions">
-          <button onClick={() => resetTiles()}>Reset</button>
+          <button onClick={() => resetPositions()}>Reset</button>
+          <button onClick={() => shuffleTiles()}>Shuffle</button>
           <button onClick={() => resetLetters()}>New Letters</button>
         </div>
       </div>
