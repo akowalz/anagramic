@@ -29,16 +29,16 @@ function App() {
       );
     }
 
-    switch (tool) {
-      case "Tiles":
-        return <TileCanvas letters={letters} resetLetters={resetLetters} />;
-
-      case "Line":
-        return <LineTool letters={letters} resetLetters={resetLetters} />;
-
-      default:
-        throw `unknown tool ${tool}`;
-    }
+    return (
+      <>
+        <div style={{ display: tool === "Tiles" ? "" : "none" }}>
+          <TileCanvas letters={letters} resetLetters={resetLetters} />
+        </div>
+        <div style={{ display: tool === "Line" ? "" : "none" }}>
+          <LineTool letters={letters} resetLetters={resetLetters} />
+        </div>
+      </>
+    );
   }
 
   return (
