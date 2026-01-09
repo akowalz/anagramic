@@ -71,7 +71,7 @@ export default function LineTool({ letters, resetLetters }: Props) {
 
   return (
     <>
-      <div className="line-tool-container">
+      <div className="line-tool-container" onClick={() => setActiveIndex(null)}>
         {userLetters.map((letter, index) => {
           return (
             <motion.li
@@ -80,7 +80,10 @@ export default function LineTool({ letters, resetLetters }: Props) {
                 ${index === activeIndex ? "active" : ""}
               `}
               key={letter.id}
-              onClick={() => onClickLetter(index)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClickLetter(index);
+              }}
               transition={spring}
               layout
             >
