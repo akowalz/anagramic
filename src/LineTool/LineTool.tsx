@@ -67,7 +67,7 @@ export default function LineTool({ letters, resetLetters }: Props) {
               className={`
                 line-tool-letter 
                 ${index === activeIndex ? "active" : ""}
-                ${index + 1 === activeIndex ? "left-of-active" : ""}`}
+              `}
               key={letter.id}
               onClick={() => onClickLetter(index)}
               transition={spring}
