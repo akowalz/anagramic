@@ -3,15 +3,18 @@ import "./App.css";
 import { useState, type JSX } from "react";
 import TileCanvas from "./TileCanvas/TileCanvas";
 import LineTool from "./LineTool/LineTool";
+import WheelTool from "./WheelTool/WheelTool";
 
 import Form from "./Form/Form";
 
-type Tool = "Tiles" | "Line";
+type Tool = "Tiles" | "Line" | "Wheel";
 
 function App() {
   const [inputValue, setInputValue] = useState("");
-  const [letters, setLetters] = useState<string[]>([]);
-  const [tool, setTool] = useState<Tool>("Tiles");
+  // const [letters, setLetters] = useState<string[]>([]);
+  const [letters, setLetters] = useState<string[]>("ABCDEFGH".split(""));
+  // const [tool, setTool] = useState<Tool>("Tiles");
+  const [tool, setTool] = useState<Tool>("Wheel");
 
   const resetLetters = () => {
     setInputValue("");
@@ -37,6 +40,9 @@ function App() {
         <div className={`tool-container ${tool === "Line" ? "" : "hidden"}`}>
           <LineTool letters={letters} resetLetters={resetLetters} />
         </div>
+        <div className={`tool-container ${tool === "Wheel" ? "" : "hidden"}`}>
+          <WheelTool letters={letters} resetLetters={resetLetters} />
+        </div>
       </>
     );
   }
@@ -51,6 +57,7 @@ function App() {
         <div id="tool-select">
           <button onClick={() => setTool("Tiles")}>Tiles</button>
           <button onClick={() => setTool("Line")}>Line</button>
+          <button onClick={() => setTool("Wheel")}>Wheel</button>
         </div>
       )}
 
