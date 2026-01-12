@@ -25,3 +25,33 @@
   box-shadow: 1px 1px 0 black;
   font-family: monospace;
 }
+
+.wheel-tool-tile:hover {
+  background-color: var(--lighter);
+}
+
+.wheel-tool-tile.active {
+  border-color: orange;
+  box-shadow: 1px 1px 0 orange;
+  background-color: var(--lighter);
+  z-index: 999;
+}
+
+.canvas-footer {
+  width: 100%;
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+}
+
+.canvas-actions {
+  display: flex;
+  gap: 12px;
+}
