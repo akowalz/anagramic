@@ -22,9 +22,10 @@ h1 {
   display: flex;
   justify-content: center;
   gap: 12px;
+  margin-bottom: 8px;
 }
 
-#main-container {
+#tool-container {
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -43,8 +44,11 @@ h1 {
   display: none;
 }
 
-
-#canvas {
-  gap: 10px;
-  flex: 1;
+.tool-footer {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+  padding: 12px;
 }

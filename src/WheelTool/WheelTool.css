@@ -16,9 +16,6 @@
 
 .wheel-tool-tile {
   position: absolute;
-  left: 0%;
-  top: 100%;
-
   translate: -50% -50%;
   
   /* General styles */
@@ -43,23 +40,4 @@
   box-shadow: 1px 1px 0 orange;
   background-color: var(--lighter);
   z-index: 999;
-}
-
-.canvas-footer {
-  width: 100%;
-  position: fixed;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
-}
-
-.canvas-actions {
-  display: flex;
-  gap: 12px;
 }

@@ -34,7 +34,6 @@ export default function Tile({ letter, pos, id, zIndex, onMove }: Props) {
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     e.currentTarget.releasePointerCapture(e.pointerId);
     setDragging(false);
-    console.log(`Now at (${pos.x}, ${pos.y})`);
   };
 
   return (

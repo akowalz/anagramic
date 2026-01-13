@@ -1,11 +1,12 @@
 import "./WheelTool.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as motion from "motion/react-client";
 import type { Transition } from "motion";
+import type { ToolActions } from "../Types/ToolActions";
 
 type Props = {
   letters: string[];
-  resetLetters: () => void;
+  registerActions: (actions: ToolActions) => void;
 };
 
 type Coord = {
@@ -43,7 +44,7 @@ function positionToStyle(position: Position) {
   };
 }
 
-export default function WheelTool({ letters, resetLetters }: Props) {
+export default function WheelTool({ letters, registerActions }: Props) {
   function initializeLetters(letters: string[]): LineLetter[] {
     return letters.map((letter, index) => {
       return {
@@ -59,6 +60,23 @@ export default function WheelTool({ letters, resetLetters }: Props) {
   );
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
+  function resetPositions() {
+    setActiveIndex(null);
+    setUserLetters([...userLetters.sort((a, b) => a.pos - b.pos)]);
+  }
+
+  function shuffleTiles() {
+    setActiveIndex(null);
+    setUserLetters([...userLetters.sort(() => Math.random() - 0.5)]);
+  }
+
+  useEffect(() => {
+    registerActions({
+      reset: () => resetPositions(),
+      shuffle: () => shuffleTiles(),
+    });
+  }, []);
+
   function onClickLetter(index: number) {
     if (activeIndex !== null) {
       swap(activeIndex, index);
@@ -66,11 +84,6 @@ export default function WheelTool({ letters, resetLetters }: Props) {
     }
 
     setActiveIndex(index);
-  }
-
-  function resetPositions() {
-    setActiveIndex(null);
-    setUserLetters([...userLetters.sort((a, b) => a.pos - b.pos)]);
   }
 
   function swap(indexA: number, indexB: number) {
@@ -84,11 +97,6 @@ export default function WheelTool({ letters, resetLetters }: Props) {
 
     setUserLetters([...newUserLetters]);
     setActiveIndex(null);
-  }
-
-  function shuffleTiles() {
-    setActiveIndex(null);
-    setUserLetters([...userLetters.sort(() => Math.random() - 0.5)]);
   }
 
   const spring: Transition = {
@@ -134,15 +142,6 @@ export default function WheelTool({ letters, resetLetters }: Props) {
               </motion.li>
             );
           })}
-        </div>
-      </div>
-
-      <div className="canvas-footer">
-        <div className="tooltip">Tap to swap positions of letters</div>
-        <div className="canvas-actions">
-          <button onClick={() => resetPositions()}>Reset</button>
-          <button onClick={() => shuffleTiles()}>Shuffle</button>
-          <button onClick={() => resetLetters()}>New Letters</button>
         </div>
       </div>
     </>

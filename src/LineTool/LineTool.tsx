@@ -1,12 +1,13 @@
 import { type Transition } from "motion/react";
 import * as motion from "motion/react-client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "./LineTool.css";
+import type { ToolActions } from "../Types/ToolActions";
 
 type Props = {
   letters: string[];
-  resetLetters: () => void;
+  registerActions: (actions: ToolActions) => void;
 };
 
 type LineLetter = {
@@ -15,11 +16,28 @@ type LineLetter = {
   letter: string;
 };
 
-export default function LineTool({ letters, resetLetters }: Props) {
+export default function LineTool({ letters, registerActions }: Props) {
   const [userLetters, setUserLetters] = useState<LineLetter[]>(
     initializeLetters(letters)
   );
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+  function resetPositions() {
+    setActiveIndex(null);
+    setUserLetters([...userLetters.sort((a, b) => a.pos - b.pos)]);
+  }
+
+  function shuffleTiles() {
+    setActiveIndex(null);
+    setUserLetters([...userLetters.sort(() => Math.random() - 0.5)]);
+  }
+
+  useEffect(() => {
+    registerActions({
+      reset: () => resetPositions(),
+      shuffle: () => shuffleTiles(),
+    });
+  }, []);
 
   function initializeLetters(letters: string[]): LineLetter[] {
     return letters.map((letter, index) => {
@@ -53,16 +71,6 @@ export default function LineTool({ letters, resetLetters }: Props) {
     setActiveIndex(null);
   }
 
-  function resetPositions() {
-    setActiveIndex(null);
-    setUserLetters([...userLetters.sort((a, b) => a.pos - b.pos)]);
-  }
-
-  function shuffleTiles() {
-    setActiveIndex(null);
-    setUserLetters([...userLetters.sort(() => Math.random() - 0.5)]);
-  }
-
   const spring: Transition = {
     type: "spring",
     damping: 50,
@@ -91,14 +99,6 @@ export default function LineTool({ letters, resetLetters }: Props) {
             </motion.li>
           );
         })}
-      </div>
-      <div className="canvas-footer">
-        <div className="tooltip">Tap to swap positions of letters</div>
-        <div className="canvas-actions">
-          <button onClick={() => resetPositions()}>Reset</button>
-          <button onClick={() => shuffleTiles()}>Shuffle</button>
-          <button onClick={() => resetLetters()}>New Letters</button>
-        </div>
       </div>
     </>
   );

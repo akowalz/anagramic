@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import Tile from "../Tile/Tile";
 import "./TileCanvas.css";
+import { type ToolActions } from "../Types/ToolActions";
 
 type TileCanvasProps = {
   letters: string[];
-  resetLetters: () => void;
+  registerActions: (actions: ToolActions) => void;
 };
 
 type Pos = { x: number; y: number };
@@ -16,21 +17,24 @@ type TileData = {
   id: number;
 };
 
-export default function TileCanvas({ letters, resetLetters }: TileCanvasProps) {
+export default function TileCanvas({
+  letters,
+  registerActions,
+}: TileCanvasProps) {
   const [tileData, setTileData] = useState<TileData[]>([]);
 
   function resetTiles() {
     setTileData(initialTileData(letters));
   }
 
-  function initialTileData(letters: string[]) {
+  const initialTileData = (letters: string[]) => {
     return letters.map((letter, index) => ({
       id: index,
       pos: { x: 0, y: 0 },
       zIndex: 0,
       letter,
     }));
-  }
+  };
 
   const handleMoveTile = (id: number, newPos: Pos) => {
     const currentMaxZIndex = Math.max(...tileData.map((t) => t.zIndex));
@@ -46,6 +50,10 @@ export default function TileCanvas({ letters, resetLetters }: TileCanvasProps) {
 
   useEffect(() => {
     setTileData(initialTileData(letters));
+
+    registerActions({
+      reset: () => resetTiles(),
+    });
   }, [letters]);
 
   const tiles = letters.map((letter, index) => {
@@ -57,6 +65,7 @@ export default function TileCanvas({ letters, resetLetters }: TileCanvasProps) {
       <Tile
         letter={letter.toUpperCase()}
         id={index}
+        key={dataForTile.id}
         pos={{ ...dataForTile.pos }}
         zIndex={dataForTile.zIndex}
         onMove={handleMoveTile}
@@ -64,16 +73,5 @@ export default function TileCanvas({ letters, resetLetters }: TileCanvasProps) {
     );
   });
 
-  return (
-    <>
-      <div className="tile-canvas">{tiles}</div>
-      <div className="canvas-footer">
-        <div className="tooltip">Drag and drop to rearrange letters</div>
-        <div className="canvas-actions">
-          <button onClick={() => resetTiles()}>Reset</button>
-          <button onClick={() => resetLetters()}>New Letters</button>
-        </div>
-      </div>
-    </>
-  );
+  return <div className="tile-canvas">{tiles}</div>;
 }
