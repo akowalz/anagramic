@@ -1,9 +1,17 @@
 .wheel-tool-container {
   width: 100%;
   height: 100%;
-  background-color: lightgray;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   font-size: clamp(12px, 8vw, 2em);
+}
+
+.wheel-boundary {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1/1;
+  background-color: var(--lightest);
 }
 
 .wheel-tool-tile {

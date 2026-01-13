@@ -1,6 +1,7 @@
+import "./WheelTool.css";
 import { useState } from "react";
 import * as motion from "motion/react-client";
-import "./WheelTool.css";
+import type { Transition } from "motion";
 
 type Props = {
   letters: string[];
@@ -113,25 +114,27 @@ export default function WheelTool({ letters, resetLetters }: Props) {
         className="wheel-tool-container"
         onClick={() => setActiveIndex(null)}
       >
-        {userLetters.map((letter, index) => {
-          return (
-            <motion.li
-              className={`wheel-tool-tile ${
-                index === activeIndex ? "active" : ""
-              }`}
-              key={letter.id}
-              style={tileStyles[index]}
-              onClick={(e) => {
-                e.stopPropagation();
-                onClickLetter(index);
-              }}
-              transition={spring}
-              layout
-            >
-              {letter.letter}
-            </motion.li>
-          );
-        })}
+        <div className="wheel-boundary">
+          {userLetters.map((letter, index) => {
+            return (
+              <motion.li
+                className={`wheel-tool-tile ${
+                  index === activeIndex ? "active" : ""
+                }`}
+                key={letter.id}
+                style={tileStyles[index]}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClickLetter(index);
+                }}
+                transition={spring}
+                layout
+              >
+                {letter.letter}
+              </motion.li>
+            );
+          })}
+        </div>
       </div>
 
       <div className="canvas-footer">
