@@ -121,13 +121,15 @@ function App() {
 
       <div id="tool-container">{getContainerView()}</div>
 
-      <div className="tool-footer">
-        {currentToolActions.reset && <button onClick={reset}>Reset</button>}
-        {currentToolActions.shuffle && (
-          <button onClick={shuffle}>Shuffle</button>
-        )}
-        <button onClick={() => newLetters()}>New Letters</button>
-      </div>
+      {letters.length !== 0 && (
+        <div className="tool-footer">
+          {currentToolActions.reset && <button onClick={reset}>Reset</button>}
+          {currentToolActions.shuffle && (
+            <button onClick={shuffle}>Shuffle</button>
+          )}
+          <button onClick={() => newLetters()}>New Letters</button>
+        </div>
+      )}
     </>
   );
 }

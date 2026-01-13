@@ -1,6 +1,6 @@
 #root {
   text-align: center;
-  height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
 }
