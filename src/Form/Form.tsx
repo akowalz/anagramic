@@ -29,8 +29,9 @@ export default function Form({
   }
 
   return (
-    <form className="form" onSubmit={() => submit()}>
+    <form className="form" onSubmit={() => submit()} autoComplete="off">
       <div className="form-label">Enter letters to anagram:</div>
+
       <input
         name="fodder"
         id="fodder-input"

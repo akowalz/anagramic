@@ -4,7 +4,26 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin-bottom: 15vh;
+}
+
+.form::after {
+  content: "";
+  position: absolute;
+  width: 2px;
+  height: 1.8em;
+  background: var(--darkest);
+  transform: translateY(-30%);
+  animation: blink 1s steps(1) infinite;
+}
+
+.form:focus-within::after {
+  display: none;
+}
+
+@keyframes blink {
+  0%   { opacity: 1; }
+  50%  { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 .form-label {
@@ -14,6 +33,7 @@
 }
 
 .form input {
+  position: relative;
   width: 90%;
   border: none;
   border-bottom: 2px solid var(--dark);
