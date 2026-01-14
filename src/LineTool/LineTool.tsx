@@ -1,5 +1,4 @@
 import { Reorder, type Transition } from "motion/react";
-import * as motion from "motion/react-client";
 
 import { useEffect, useState } from "react";
 import "./LineTool.css";
