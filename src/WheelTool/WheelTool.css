@@ -48,8 +48,8 @@
 }
 
 .wheel-tool-tile.active {
-  border-color: var(--hightlight);
-  box-shadow: 1px 1px 0 var(--hightlight);
+  border-color: var(--highlight);
+  box-shadow: 1px 1px 0 var(--highlight);
   background-color: var(--lighter);
   z-index: 999;
 }
