@@ -22,13 +22,9 @@
   font-family: monospace;
 }
 
-.line-tool-tile:hover {
-  background-color: var(--lighter);
-}
-
 .line-tool-tile.active {
-  border-color: orange;
-  box-shadow: 1px 1px 0 orange;
+  border-color: var(--highlight);
+  box-shadow: 1px 1px 0 var(--highlight);
   background-color: var(--lighter);
   z-index: 999 !important;
 }

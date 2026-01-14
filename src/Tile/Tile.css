@@ -18,8 +18,10 @@
   display: grid;
 }
 
-.letter-tile:hover {
-  background-color: var(--lighter);
+@media(hover: hover) {
+  .letter-tile:hover {
+    background-color: var(--lighter);
+  }
 }
 
 .letter-tile.dragging {

@@ -77,37 +77,43 @@ export default function LineTool({ letters, registerActions }: Props) {
     stiffness: 1000,
   };
 
+  function onReorder(args: LineLetter[]) {
+    setActiveIndex(null);
+    setUserLetters(args);
+  }
+
   return (
     <>
-      <div className="line-tool-container" onClick={() => setActiveIndex(null)}>
-        <Reorder.Group
-          axis="x"
-          values={userLetters}
-          onReorder={setUserLetters}
-          className="line-tool-container"
-        >
-          {userLetters.map((letter, index) => {
-            return (
-              <Reorder.Item
-                value={letter}
-                className={`
+      <Reorder.Group
+        axis="x"
+        as="div"
+        onClick={() => setActiveIndex(null)}
+        values={userLetters}
+        onReorder={onReorder}
+        className="line-tool-container"
+      >
+        {userLetters.map((letter, index) => {
+          return (
+            <Reorder.Item
+              as="div"
+              value={letter}
+              className={`
                   line-tool-tile
                   ${index === activeIndex ? "active" : ""}
                 `}
-                key={letter.id}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onClickLetter(index);
-                }}
-                transition={spring}
-                layout
-              >
-                {letter.letter}
-              </Reorder.Item>
-            );
-          })}
-        </Reorder.Group>
-      </div>
+              key={letter.id}
+              onClick={(e) => {
+                e.stopPropagation();
+                onClickLetter(index);
+              }}
+              transition={spring}
+              layout
+            >
+              {letter.letter}
+            </Reorder.Item>
+          );
+        })}
+      </Reorder.Group>
     </>
   );
 }

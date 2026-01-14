@@ -27,6 +27,7 @@ body {
   --light: #e0ddcf;
   --lighter: #f2f2f2;
   --lighest: #f1f0ea;
+  --highlight: orange;
 
   /* App background alias */
   --app-bg: var(--lighter);
@@ -41,8 +42,10 @@ body {
 }
 
 /* Links */
-a:hover {
-  color: var(--darker);
+@media(hover :hover) { 
+  a:hover {
+    color: var(--darker);
+  }
 }
 
 /* Buttons */
@@ -58,10 +61,12 @@ button {
   box-shadow: 2px 2px 0 black;
 }
 
-button:hover {
-  cursor: pointer;
-  background: var(--lighter);
-  color: var(--darkest);
+@media(hover: hover) {
+  button:hover {
+    cursor: pointer;
+    background: var(--lighter);
+    color: var(--darkest);
+  }
 }
 
 /* No selecting text anywhere */

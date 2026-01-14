@@ -28,8 +28,8 @@ function App() {
 
   const tooltips = {
     Tiles: "Drag and drop to rearrange letters",
-    Line: "Tap to swap positions of letters",
-    Wheel: "Tap to swap positions of letters",
+    Line: "Drag to move letters, tap to swap letters",
+    Wheel: "Tap to swap letters",
   };
 
   function setActionsForTool(tool: Tool, actions: ToolActions) {

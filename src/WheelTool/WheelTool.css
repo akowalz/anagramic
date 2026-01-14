@@ -47,13 +47,9 @@
   font-family: monospace;
 }
 
-.wheel-tool-tile:hover {
-  background-color: var(--lighter);
-}
-
 .wheel-tool-tile.active {
-  border-color: orange;
-  box-shadow: 1px 1px 0 orange;
+  border-color: var(--hightlight);
+  box-shadow: 1px 1px 0 var(--hightlight);
   background-color: var(--lighter);
   z-index: 999;
 }
