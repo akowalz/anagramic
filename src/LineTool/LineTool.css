@@ -30,5 +30,5 @@
   border-color: orange;
   box-shadow: 1px 1px 0 orange;
   background-color: var(--lighter);
-  z-index: 999;
+  z-index: 999 !important;
 }

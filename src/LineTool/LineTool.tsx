@@ -1,4 +1,4 @@
-import { type Transition } from "motion/react";
+import { Reorder, type Transition } from "motion/react";
 import * as motion from "motion/react-client";
 
 import { useEffect, useState } from "react";
@@ -80,25 +80,33 @@ export default function LineTool({ letters, registerActions }: Props) {
   return (
     <>
       <div className="line-tool-container" onClick={() => setActiveIndex(null)}>
-        {userLetters.map((letter, index) => {
-          return (
-            <motion.li
-              className={`
-                line-tool-tile
-                ${index === activeIndex ? "active" : ""}
-              `}
-              key={letter.id}
-              onClick={(e) => {
-                e.stopPropagation();
-                onClickLetter(index);
-              }}
-              transition={spring}
-              layout
-            >
-              {letter.letter}
-            </motion.li>
-          );
-        })}
+        <Reorder.Group
+          axis="x"
+          values={userLetters}
+          onReorder={setUserLetters}
+          className="line-tool-container"
+        >
+          {userLetters.map((letter, index) => {
+            return (
+              <Reorder.Item
+                value={letter}
+                className={`
+                  line-tool-tile
+                  ${index === activeIndex ? "active" : ""}
+                `}
+                key={letter.id}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onClickLetter(index);
+                }}
+                transition={spring}
+                layout
+              >
+                {letter.letter}
+              </Reorder.Item>
+            );
+          })}
+        </Reorder.Group>
       </div>
     </>
   );
