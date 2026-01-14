@@ -109,10 +109,9 @@ export default function WheelTool({ letters, registerActions }: Props) {
     const TWO_PI = Math.PI * 2;
     const theta = TWO_PI / letters.length;
 
-    const scale = 0.5;
+    const y = Math.cos(theta * index);
+    const x = Math.sin(theta * index);
 
-    const y = Math.cos(theta * index) * (scale + 0.05);
-    const x = Math.sin(theta * index) * scale;
     return positionToStyle(coordToPosition({ x, y }));
   });
 

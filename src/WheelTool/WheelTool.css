@@ -1,17 +1,34 @@
+:root {
+  --wheel-tile-width: 40px;
+  --wheel-outline-width: calc(var(--wheel-tile-width) * 1.33)
+}
+
 .wheel-tool-container {
   width: 100%;
   height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   font-size: clamp(12px, 8vw, 2em);
 }
 
 .wheel-boundary {
   position: relative;
-  width: 100%;
+  width: 70%;
   aspect-ratio: 1/1;
-  background-color: var(--lightest);
+}
+
+.wheel-boundary::before {
+  content: "";
+  position: absolute;
+  width: calc(100% - var(--wheel-outline-width));
+  aspect-ratio: 1/1;
+  border: var(--wheel-outline-width) solid lightgrey;
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .wheel-tool-tile {
@@ -20,13 +37,12 @@
   
   /* General styles */
   aspect-ratio: 1 / 1;
-  height: 40px;
+  height: var(--wheel-tile-width);
   border: 3px solid var(--darkest);
   background-color: white;
   place-items: center;
   display: grid;
   border-radius: 4px;
-  margin-left: -3px;
   box-shadow: 1px 1px 0 black;
   font-family: monospace;
 }
