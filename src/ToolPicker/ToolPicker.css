@@ -1,0 +1,25 @@
+#tool-picker {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+#tool-picker > span {
+  font-weight: bold;
+}
+
+#tool-picker button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+#tool-picker svg {
+  shape-rendering: crispEdges;
+  margin-left: 8px;
+  height: 20px;
+  width: 20px;
+}

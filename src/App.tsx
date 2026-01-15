@@ -2,13 +2,13 @@ import "./App.css";
 
 import { useMemo, useState, type JSX } from "react";
 import { type ToolActions } from "./Types/ToolActions";
+import { type Tool } from "./Types/Tool";
 
 import TileCanvas from "./TileCanvas/TileCanvas";
 import LineTool from "./LineTool/LineTool";
 import WheelTool from "./WheelTool/WheelTool";
 import Form from "./Form/Form";
-
-type Tool = "Tiles" | "Line" | "Wheel";
+import ToolPicker from "./ToolPicker/ToolPicker";
 
 type ActionsForTools = {
   [K in Tool]: ToolActions | undefined;
@@ -110,11 +110,7 @@ function App() {
 
       {letters.length !== 0 && (
         <div id="main-navigation">
-          <div id="tool-select">
-            <button onClick={() => setTool("Tiles")}>Tiles</button>
-            <button onClick={() => setTool("Line")}>Line</button>
-            <button onClick={() => setTool("Wheel")}>Wheel</button>
-          </div>
+          <ToolPicker activeTool={tool} setTool={setTool} />
           <div className="tooltip">{tooltips[tool]}</div>
         </div>
       )}

@@ -26,8 +26,8 @@ body {
   --dark: #534b52;
   --light: #e0ddcf;
   --lighter: #f2f2f2;
-  --lighest: #f1f0ea;
-  --highlight: orange;
+  --lightest: #f1f0ea;
+  --highlight: steelblue;
 
   /* App background alias */
   --app-bg: var(--lighter);
@@ -50,8 +50,8 @@ body {
 
 /* Buttons */
 button {
-  font-weight: bold;
-  font-size: 0.9em;
+  font-weight: 600;
+  font-size: 1.1em;
   padding: 8px 12px;
   border-radius: 4px;
   font-style: italic;
@@ -59,6 +59,11 @@ button {
   color: var(--darkest);
   border: 1px solid var(--dark);
   box-shadow: 2px 2px 0 black;
+}
+
+button.active {
+  border-color: var(--highlight);
+  box-shadow: 2px 2px var(--highlight);
 }
 
 @media(hover: hover) {
