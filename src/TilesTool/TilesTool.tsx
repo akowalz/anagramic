@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import Tile from "../Tile/Tile";
-import "./TileCanvas.css";
+import "./TilesTool.css";
 import { type ToolActions } from "../Types/ToolActions";
 
-type TileCanvasProps = {
+type Props = {
   letters: string[];
   registerActions: (actions: ToolActions) => void;
 };
@@ -17,16 +17,7 @@ type TileData = {
   id: number;
 };
 
-export default function TileCanvas({
-  letters,
-  registerActions,
-}: TileCanvasProps) {
-  const [tileData, setTileData] = useState<TileData[]>([]);
-
-  function resetTiles() {
-    setTileData(initialTileData(letters));
-  }
-
+export default function TileTool({ letters, registerActions }: Props) {
   const initialTileData = (letters: string[]) => {
     return letters.map((letter, index) => ({
       id: index,
@@ -35,6 +26,13 @@ export default function TileCanvas({
       letter,
     }));
   };
+  const [tileData, setTileData] = useState<TileData[]>(
+    initialTileData(letters)
+  );
+
+  function resetTiles() {
+    setTileData(initialTileData(letters));
+  }
 
   const handleMoveTile = (id: number, newPos: Pos) => {
     const currentMaxZIndex = Math.max(...tileData.map((t) => t.zIndex));
@@ -49,12 +47,10 @@ export default function TileCanvas({
   };
 
   useEffect(() => {
-    setTileData(initialTileData(letters));
-
     registerActions({
       reset: () => resetTiles(),
     });
-  }, [letters]);
+  }, []);
 
   const tiles = letters.map((letter, index) => {
     if (tileData.length === 0) return;

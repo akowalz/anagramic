@@ -4,7 +4,7 @@ import { useMemo, useState, type JSX } from "react";
 import { type ToolActions } from "./Types/ToolActions";
 import { type Tool } from "./Types/Tool";
 
-import TileCanvas from "./TileCanvas/TileCanvas";
+import TilesTool from "./TilesTool/TilesTool";
 import LineTool from "./LineTool/LineTool";
 import WheelTool from "./WheelTool/WheelTool";
 import Form from "./Form/Form";
@@ -75,7 +75,7 @@ function App() {
     return (
       <>
         <div className={`tool-container ${tool === "Tiles" ? "" : "hidden"}`}>
-          <TileCanvas
+          <TilesTool
             letters={letters}
             registerActions={(actions: ToolActions) =>
               setActionsForTool("Tiles", actions)
