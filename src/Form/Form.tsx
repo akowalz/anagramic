@@ -29,7 +29,14 @@ export default function Form({
   }
 
   return (
-    <form className="form" onSubmit={() => submit()} autoComplete="off">
+    <form
+      className="form"
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit();
+      }}
+      autoComplete="off"
+    >
       <div className="form-label">Enter letters to anagram:</div>
 
       <input

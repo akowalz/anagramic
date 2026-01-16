@@ -27,7 +27,7 @@ body {
   --light: #e0ddcf;
   --lighter: #f2f2f2;
   --lightest: #f1f0ea;
-  --highlight: steelblue;
+  --highlight: orange;
 
   /* App background alias */
   --app-bg: var(--lighter);
@@ -62,8 +62,9 @@ button {
 }
 
 button.active {
-  border-color: var(--highlight);
-  box-shadow: 2px 2px var(--highlight);
+  background: var(--lighter);
+  border: 2px solid var(--dark);
+  box-shadow: inset 1px 1px 0 var(--darker)
 }
 
 @media(hover: hover) {
