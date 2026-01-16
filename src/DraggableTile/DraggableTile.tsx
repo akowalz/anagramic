@@ -1,4 +1,4 @@
-import "./Tile.css"
+import "./DraggableTile.css"
 import { useState } from "react"
 
 type Pos = { x: number; y: number }
@@ -11,7 +11,13 @@ type Props = {
   onMove: (id: number, pos: Pos) => void
 }
 
-export default function Tile({ letter, pos, id, zIndex, onMove }: Props) {
+export default function DraggableTile({
+  letter,
+  pos,
+  id,
+  zIndex,
+  onMove,
+}: Props) {
   const [dragging, setDragging] = useState(false)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
 
@@ -38,14 +44,14 @@ export default function Tile({ letter, pos, id, zIndex, onMove }: Props) {
 
   return (
     <div
-      className={`letter-tile ${dragging ? "dragging" : ""}`}
+      className={`tile draggable-tile ${dragging ? "dragging" : ""}`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       style={{
         transform: `translate(${pos.x}px, ${pos.y}px)`,
-        zIndex: zIndex,
+        zIndex,
       }}
     >
       {letter}

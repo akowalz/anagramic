@@ -35,21 +35,10 @@
   position: absolute;
   translate: -50% -50%;
 
-  /* General styles */
-  aspect-ratio: 1 / 1;
+  width: var(--wheel-tile-width);
   height: var(--wheel-tile-width);
-  border: 3px solid var(--darkest);
-  background-color: white;
-  place-items: center;
-  display: grid;
-  border-radius: 4px;
-  box-shadow: 1px 1px 0 black;
-  font-family: monospace;
 }
 
 .wheel-tool-tile.active {
-  border-color: var(--highlight);
-  box-shadow: 1px 1px 0 var(--highlight);
-  background-color: var(--lighter);
   z-index: 999;
 }

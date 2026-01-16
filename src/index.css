@@ -24,7 +24,7 @@ body {
   --dark: #534b52;
   --light: #e0ddcf;
   --lighter: #f2f2f2;
-  --lightest: #f1f0ea;
+  --lightest: #f7f7f7;
   --highlight: orange;
 
   /* App background alias */
@@ -60,9 +60,9 @@ button {
 }
 
 button.active {
-  background: var(--lighter);
+  background: var(--lightest);
   border: 2px solid var(--dark);
-  box-shadow: inset 1px 1px 0 var(--darker);
+  box-shadow: none;
 }
 
 @media (hover: hover) {
@@ -77,4 +77,31 @@ button.active {
 * {
   user-select: none;
   -webkit-user-select: none; /* iOS Safari */
+}
+
+/* Base tile styles */
+.tile {
+  --border-color: var(--darkest);
+  --background-color: white;
+
+  display: grid;
+  place-items: center;
+
+  aspect-ratio: 1/1;
+  font-family: monospace;
+  border-radius: 4px;
+  background-color: var(--background-color);
+  box-shadow: 2px 2px 0 var(--border-color);
+  border: 3px solid var(--border-color);
+}
+
+.tile.active {
+  --border-color: var(--highlight);
+  --background-color: var(--lighter);
+}
+
+@media (hover: hover) {
+  .tile:hover {
+    --background-color: var(--lighter)
+  }
 }

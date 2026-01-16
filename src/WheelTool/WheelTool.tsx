@@ -125,7 +125,7 @@ export default function WheelTool({ letters, registerActions }: Props) {
           {userLetters.map((letter, index) => {
             return (
               <motion.li
-                className={`wheel-tool-tile ${
+                className={`tile wheel-tool-tile ${
                   index === activeIndex ? "active" : ""
                 }`}
                 key={letter.id}

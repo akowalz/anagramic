@@ -97,6 +97,7 @@ export default function LineTool({ letters, registerActions }: Props) {
               as="div"
               value={letter}
               className={`
+                  tile
                   line-tool-tile
                   ${index === activeIndex ? "active" : ""}
                 `}

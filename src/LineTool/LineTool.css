@@ -9,22 +9,13 @@
 }
 
 .line-tool-tile {
-  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
   flex-basis: 40px;
   min-width: 0;
-  border: 3px solid var(--darkest);
-  background-color: white;
-  place-items: center;
-  display: grid;
-  border-radius: 4px;
   margin-left: -3px;
-  box-shadow: 1px 1px 0 black;
-  font-family: monospace;
 }
 
 .line-tool-tile.active {
-  border-color: var(--highlight);
-  box-shadow: 1px 1px 0 var(--highlight);
-  background-color: var(--lighter);
   z-index: 999 !important;
 }

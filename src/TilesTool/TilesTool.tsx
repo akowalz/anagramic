@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import Tile from "../Tile/Tile"
+import Tile from "../DraggableTile/DraggableTile"
 import "./TilesTool.css"
 import { type ToolActions } from "../Types/ToolActions"
 
