@@ -15,6 +15,7 @@
 .wheel-boundary {
   position: relative;
   width: 70%;
+  max-width: 400px;
   aspect-ratio: 1/1;
 }
 
