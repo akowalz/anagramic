@@ -1,42 +1,42 @@
-import { Reorder, type Transition } from "motion/react";
+import { Reorder, type Transition } from "motion/react"
 
-import { useEffect, useState } from "react";
-import "./LineTool.css";
-import type { ToolActions } from "../Types/ToolActions";
+import { useEffect, useState } from "react"
+import "./LineTool.css"
+import type { ToolActions } from "../Types/ToolActions"
 
 type Props = {
-  letters: string[];
-  registerActions: (actions: ToolActions) => void;
-};
+  letters: string[]
+  registerActions: (actions: ToolActions) => void
+}
 
 type LineLetter = {
-  id: string;
-  pos: number;
-  letter: string;
-};
+  id: string
+  pos: number
+  letter: string
+}
 
 export default function LineTool({ letters, registerActions }: Props) {
   const [userLetters, setUserLetters] = useState<LineLetter[]>(
-    initializeLetters(letters)
-  );
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+    initializeLetters(letters),
+  )
+  const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
   function resetPositions() {
-    setActiveIndex(null);
-    setUserLetters([...userLetters.sort((a, b) => a.pos - b.pos)]);
+    setActiveIndex(null)
+    setUserLetters([...userLetters.sort((a, b) => a.pos - b.pos)])
   }
 
   function shuffleTiles() {
-    setActiveIndex(null);
-    setUserLetters([...userLetters.sort(() => Math.random() - 0.5)]);
+    setActiveIndex(null)
+    setUserLetters([...userLetters.sort(() => Math.random() - 0.5)])
   }
 
   useEffect(() => {
     registerActions({
       reset: () => resetPositions(),
       shuffle: () => shuffleTiles(),
-    });
-  }, []);
+    })
+  }, [])
 
   function initializeLetters(letters: string[]): LineLetter[] {
     return letters.map((letter, index) => {
@@ -44,41 +44,41 @@ export default function LineTool({ letters, registerActions }: Props) {
         id: Math.random().toString(36).substring(3, 9),
         pos: index,
         letter,
-      };
-    });
+      }
+    })
   }
 
   function onClickLetter(index: number) {
     if (activeIndex !== null) {
-      swap(activeIndex, index);
-      return;
+      swap(activeIndex, index)
+      return
     }
 
-    setActiveIndex(index);
+    setActiveIndex(index)
   }
 
   function swap(indexA: number, indexB: number) {
-    const newUserLetters = [...userLetters];
+    const newUserLetters = [...userLetters]
 
-    const letterA = userLetters[indexA];
-    const letterB = userLetters[indexB];
+    const letterA = userLetters[indexA]
+    const letterB = userLetters[indexB]
 
-    newUserLetters[indexB] = letterA;
-    newUserLetters[indexA] = letterB;
+    newUserLetters[indexB] = letterA
+    newUserLetters[indexA] = letterB
 
-    setUserLetters([...newUserLetters]);
-    setActiveIndex(null);
+    setUserLetters([...newUserLetters])
+    setActiveIndex(null)
   }
 
   const spring: Transition = {
     type: "spring",
     damping: 50,
     stiffness: 1000,
-  };
+  }
 
   function onReorder(args: LineLetter[]) {
-    setActiveIndex(null);
-    setUserLetters(args);
+    setActiveIndex(null)
+    setUserLetters(args)
   }
 
   return (
@@ -102,17 +102,17 @@ export default function LineTool({ letters, registerActions }: Props) {
                 `}
               key={letter.id}
               onClick={(e) => {
-                e.stopPropagation();
-                onClickLetter(index);
+                e.stopPropagation()
+                onClickLetter(index)
               }}
               transition={spring}
               layout
             >
               {letter.letter}
             </Reorder.Item>
-          );
+          )
         })}
       </Reorder.Group>
     </>
-  );
+  )
 }

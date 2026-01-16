@@ -1,65 +1,65 @@
-import "./App.css";
+import "./App.css"
 
-import { useMemo, useState, type JSX } from "react";
-import { type ToolActions } from "./Types/ToolActions";
-import { type Tool } from "./Types/Tool";
+import { useMemo, useState, type JSX } from "react"
+import { type ToolActions } from "./Types/ToolActions"
+import { type Tool } from "./Types/Tool"
 
-import TilesTool from "./TilesTool/TilesTool";
-import LineTool from "./LineTool/LineTool";
-import WheelTool from "./WheelTool/WheelTool";
-import Form from "./Form/Form";
-import ToolPicker from "./ToolPicker/ToolPicker";
+import TilesTool from "./TilesTool/TilesTool"
+import LineTool from "./LineTool/LineTool"
+import WheelTool from "./WheelTool/WheelTool"
+import Form from "./Form/Form"
+import ToolPicker from "./ToolPicker/ToolPicker"
 
 type ActionsForTools = {
-  [K in Tool]: ToolActions | undefined;
-};
+  [K in Tool]: ToolActions | undefined
+}
 
 function App() {
   const [toolActions, setToolActions] = useState<ActionsForTools>({
     Tiles: undefined,
     Line: undefined,
     Wheel: undefined,
-  });
+  })
 
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState("")
 
-  const [letters, setLetters] = useState<string[]>([]);
-  const [tool, setTool] = useState<Tool>("Tiles");
+  const [letters, setLetters] = useState<string[]>([])
+  const [tool, setTool] = useState<Tool>("Tiles")
 
   const tooltips = {
     Tiles: "Drag and drop to rearrange letters",
     Line: "Drag to move letters, tap to swap letters",
     Wheel: "Tap to swap letters",
-  };
+  }
 
   function setActionsForTool(tool: Tool, actions: ToolActions) {
-    setToolActions((prev) => ({ ...prev, [tool]: actions }));
+    setToolActions((prev) => ({ ...prev, [tool]: actions }))
   }
 
   const currentToolActions: ToolActions = useMemo(() => {
-    return toolActions[tool] || {};
-  }, [tool, toolActions]);
+    return toolActions[tool] || {}
+  }, [tool, toolActions])
 
   function reset(): void {
     if (!currentToolActions.reset) {
-      throw "attempted to call non-existed reset function";
+      throw "attempted to call non-existed reset function"
     }
 
-    currentToolActions.reset();
+    currentToolActions.reset()
   }
 
   function shuffle(): void {
     if (!currentToolActions.shuffle) {
-      throw "attempted to call non-existed shuffle function";
+      throw "attempted to call non-existed shuffle function"
     }
 
-    currentToolActions.shuffle();
+    currentToolActions.shuffle()
   }
 
   const newLetters = () => {
-    setInputValue("");
-    setLetters([]);
-  };
+    setInputValue("")
+    setLetters([])
+  }
 
   function getContainerView(): JSX.Element {
     if (letters.length === 0) {
@@ -69,7 +69,7 @@ function App() {
           setInputValue={setInputValue}
           setLetters={setLetters}
         />
-      );
+      )
     }
 
     return (
@@ -99,7 +99,7 @@ function App() {
           />
         </div>
       </>
-    );
+    )
   }
 
   return (
@@ -127,7 +127,7 @@ function App() {
         </div>
       )}
     </>
-  );
+  )
 }
 
-export default App;
+export default App

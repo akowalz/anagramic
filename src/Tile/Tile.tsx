@@ -1,40 +1,40 @@
-import "./Tile.css";
-import { useState } from "react";
+import "./Tile.css"
+import { useState } from "react"
 
-type Pos = { x: number; y: number };
+type Pos = { x: number; y: number }
 
 type Props = {
-  letter: string;
-  id: number;
-  pos: Pos;
-  zIndex: number;
-  onMove: (id: number, pos: Pos) => void;
-};
+  letter: string
+  id: number
+  pos: Pos
+  zIndex: number
+  onMove: (id: number, pos: Pos) => void
+}
 
 export default function Tile({ letter, pos, id, zIndex, onMove }: Props) {
-  const [dragging, setDragging] = useState(false);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false)
+  const [offset, setOffset] = useState({ x: 0, y: 0 })
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.setPointerCapture(e.pointerId);
+    e.currentTarget.setPointerCapture(e.pointerId)
 
-    setDragging(true);
+    setDragging(true)
     setOffset({
       x: e.clientX - pos.x,
       y: e.clientY - pos.y,
-    });
-  };
+    })
+  }
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!dragging) return;
+    if (!dragging) return
 
-    onMove(id, { x: e.clientX - offset.x, y: e.clientY - offset.y });
-  };
+    onMove(id, { x: e.clientX - offset.x, y: e.clientY - offset.y })
+  }
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
-    e.currentTarget.releasePointerCapture(e.pointerId);
-    setDragging(false);
-  };
+    e.currentTarget.releasePointerCapture(e.pointerId)
+    setDragging(false)
+  }
 
   return (
     <div
@@ -50,5 +50,5 @@ export default function Tile({ letter, pos, id, zIndex, onMove }: Props) {
     >
       {letter}
     </div>
-  );
+  )
 }

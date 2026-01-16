@@ -18,7 +18,7 @@
   display: grid;
 }
 
-@media(hover: hover) {
+@media (hover: hover) {
   .letter-tile:hover {
     background-color: var(--lighter);
   }

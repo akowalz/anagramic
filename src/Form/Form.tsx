@@ -1,11 +1,11 @@
-import { useEffect } from "react";
-import "./Form.css";
+import { useEffect } from "react"
+import "./Form.css"
 
 type FormProps = {
-  inputValue: string;
-  setInputValue: React.Dispatch<React.SetStateAction<string>>;
-  setLetters: React.Dispatch<React.SetStateAction<string[]>>;
-};
+  inputValue: string
+  setInputValue: React.Dispatch<React.SetStateAction<string>>
+  setLetters: React.Dispatch<React.SetStateAction<string[]>>
+}
 
 export default function Form({
   inputValue,
@@ -13,27 +13,27 @@ export default function Form({
   setLetters,
 }: FormProps) {
   useEffect(() => {
-    const input = document.getElementById("fodder-input");
-    if (!input) return;
-    input.focus();
-  }, []);
+    const input = document.getElementById("fodder-input")
+    if (!input) return
+    input.focus()
+  }, [])
 
   const submit = () => {
-    if (inputValue === "") return;
+    if (inputValue === "") return
 
-    setLetters(inputValue.toUpperCase().split(""));
-  };
+    setLetters(inputValue.toUpperCase().split(""))
+  }
 
   function onInputChange(str: string) {
-    setInputValue(str.replace(/[^a-z]/gi, ""));
+    setInputValue(str.replace(/[^a-z]/gi, ""))
   }
 
   return (
     <form
       className="form"
       onSubmit={(e) => {
-        e.preventDefault();
-        submit();
+        e.preventDefault()
+        submit()
       }}
       autoComplete="off"
     >
@@ -50,5 +50,5 @@ export default function Form({
         Let's anagram
       </button>
     </form>
-  );
+  )
 }

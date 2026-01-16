@@ -1,4 +1,4 @@
 export interface ToolActions {
-  shuffle?: () => void;
-  reset?: () => void;
+  shuffle?: () => void
+  reset?: () => void
 }

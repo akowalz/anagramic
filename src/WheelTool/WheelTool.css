@@ -1,6 +1,6 @@
 :root {
   --wheel-tile-width: 40px;
-  --wheel-outline-width: calc(var(--wheel-tile-width) * 1.33)
+  --wheel-outline-width: calc(var(--wheel-tile-width) * 1.33);
 }
 
 .wheel-tool-container {
@@ -34,7 +34,7 @@
 .wheel-tool-tile {
   position: absolute;
   translate: -50% -50%;
-  
+
   /* General styles */
   aspect-ratio: 1 / 1;
   height: var(--wheel-tile-width);
