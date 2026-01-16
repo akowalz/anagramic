@@ -90,6 +90,7 @@ export default function LineTool({ letters, registerActions }: Props) {
         values={userLetters}
         onReorder={onReorder}
         className="line-tool-container"
+        style={{ "--tile-count": userLetters.length } as React.CSSProperties}
       >
         {userLetters.map((letter, index) => {
           return (

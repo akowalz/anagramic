@@ -89,6 +89,7 @@ button.active {
 
   aspect-ratio: 1/1;
   font-family: monospace;
+  font-size: 32px;
   border-radius: 4px;
   background-color: var(--background-color);
   box-shadow: 2px 2px 0 var(--border-color);
