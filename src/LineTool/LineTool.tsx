@@ -11,7 +11,7 @@ type Props = {
 
 type LineLetter = {
   id: string
-  pos: number
+  initialPosition: number
   letter: string
 }
 
@@ -20,10 +20,13 @@ export default function LineTool({ letters, registerActions }: Props) {
     initializeLetters(letters),
   )
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
+  const [isDragging, setIsDragging] = useState<boolean>(false)
 
   function resetPositions() {
     setActiveIndex(null)
-    setUserLetters([...userLetters.sort((a, b) => a.pos - b.pos)])
+    setUserLetters([
+      ...userLetters.sort((a, b) => a.initialPosition - b.initialPosition),
+    ])
   }
 
   function shuffleTiles() {
@@ -42,13 +45,15 @@ export default function LineTool({ letters, registerActions }: Props) {
     return letters.map((letter, index) => {
       return {
         id: Math.random().toString(36).substring(3, 9),
-        pos: index,
+        initialPosition: index,
         letter,
       }
     })
   }
 
   function onClickLetter(index: number) {
+    if (isDragging) return
+
     if (activeIndex !== null) {
       swap(activeIndex, index)
       return
@@ -77,8 +82,8 @@ export default function LineTool({ letters, registerActions }: Props) {
   }
 
   function onReorder(args: LineLetter[]) {
-    setActiveIndex(null)
     setUserLetters(args)
+    setActiveIndex(null)
   }
 
   return (
@@ -107,6 +112,8 @@ export default function LineTool({ letters, registerActions }: Props) {
                 e.stopPropagation()
                 onClickLetter(index)
               }}
+              onDragStart={() => setIsDragging(true)}
+              onDragEnd={() => setIsDragging(false)}
               transition={spring}
               layout
             >
