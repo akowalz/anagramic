@@ -1,0 +1,17 @@
+.floating-tool-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.floating-tool-tile {
+  width: 40px;
+  position: absolute;
+  translate: -50% -50%;
+  transition: top 200ms linear;
+  transition: left 200ms linear;
+}

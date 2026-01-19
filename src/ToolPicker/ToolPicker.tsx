@@ -13,7 +13,8 @@ type Props = {
 }
 
 export default function ToolPicker({ activeTool, setTool }: Props) {
-  const allTools: Tool[] = ["Tiles", "Line", "Wheel"]
+  const allTools: Tool[] = ["Tiles", "Line", "Wheel", "Floating"]
+  // TODO: remove icons?
   const iconForTool = {
     Tiles: <TilesIcon />,
     Line: <LineIcon />,

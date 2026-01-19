@@ -4,11 +4,13 @@ import { useMemo, useState, type JSX } from "react"
 import { type ToolActions } from "./Types/ToolActions"
 import { type Tool } from "./Types/Tool"
 
+import Form from "./Form/Form"
+import ToolPicker from "./ToolPicker/ToolPicker"
+
 import TilesTool from "./TilesTool/TilesTool"
 import LineTool from "./LineTool/LineTool"
 import WheelTool from "./WheelTool/WheelTool"
-import Form from "./Form/Form"
-import ToolPicker from "./ToolPicker/ToolPicker"
+import FloatingTool from "./FloatingTool/FloatingTool"
 
 type ActionsForTools = {
   [K in Tool]: ToolActions | undefined
@@ -19,17 +21,19 @@ function App() {
     Tiles: undefined,
     Line: undefined,
     Wheel: undefined,
+    Floating: undefined,
   })
 
   const [inputValue, setInputValue] = useState("")
 
-  const [letters, setLetters] = useState<string[]>([])
-  const [tool, setTool] = useState<Tool>("Tiles")
+  const [letters, setLetters] = useState<string[]>(["A", "B", "C", "D"])
+  const [tool, setTool] = useState<Tool>("Floating")
 
   const tooltips = {
     Tiles: "Drag and drop to rearrange letters",
     Line: "Drag to move letters, tap to swap letters",
     Wheel: "Tap to swap letters",
+    Floating: "Let the letters watch over you and see if the anagram pops out",
   }
 
   function setActionsForTool(tool: Tool, actions: ToolActions) {
@@ -97,6 +101,11 @@ function App() {
               setActionsForTool("Wheel", actions)
             }
           />
+        </div>
+        <div
+          className={`tool-container ${tool === "Floating" ? "" : "hidden"}`}
+        >
+          <FloatingTool letters={letters} />
         </div>
       </>
     )

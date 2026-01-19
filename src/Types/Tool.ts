@@ -1,1 +1,1 @@
-export type Tool = "Tiles" | "Line" | "Wheel"
+export type Tool = "Tiles" | "Line" | "Wheel" | "Floating"
