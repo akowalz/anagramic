@@ -1,8 +1,11 @@
 import "./WheelTool.css"
-import { useEffect, useState } from "react"
+import type { ToolActions } from "../Types/ToolActions"
+import { useMoveableLetters } from "../hooks/useMoveableLetters"
+
+import { useEffect } from "react"
+
 import * as motion from "motion/react-client"
 import type { Transition } from "motion"
-import type { ToolActions } from "../Types/ToolActions"
 
 type Props = {
   letters: string[]
@@ -19,10 +22,10 @@ type Position = {
   left: number
 }
 
-type LineLetter = {
-  id: string
-  pos: number
-  letter: string
+const spring: Transition = {
+  type: "spring",
+  damping: 50,
+  stiffness: 1000,
 }
 
 function coordToPosition(coord: Coord) {
@@ -45,30 +48,14 @@ function positionToStyle(position: Position) {
 }
 
 export default function WheelTool({ letters, registerActions }: Props) {
-  function initializeLetters(letters: string[]): LineLetter[] {
-    return letters.map((letter, index) => {
-      return {
-        id: Math.random().toString(36).substring(3, 9),
-        pos: index,
-        letter,
-      }
-    })
-  }
-
-  const [userLetters, setUserLetters] = useState<LineLetter[]>(
-    initializeLetters(letters),
-  )
-  const [activeIndex, setActiveIndex] = useState<number | null>(null)
-
-  function resetPositions() {
-    setActiveIndex(null)
-    setUserLetters([...userLetters.sort((a, b) => a.pos - b.pos)])
-  }
-
-  function shuffleTiles() {
-    setActiveIndex(null)
-    setUserLetters([...userLetters.sort(() => Math.random() - 0.5)])
-  }
+  const {
+    tiles,
+    activeIndex,
+    setActiveIndex,
+    shuffleTiles,
+    resetPositions,
+    swapTiles,
+  } = useMoveableLetters(letters)
 
   useEffect(() => {
     registerActions({
@@ -77,32 +64,13 @@ export default function WheelTool({ letters, registerActions }: Props) {
     })
   }, [])
 
-  function onClickLetter(index: number) {
+  function onClickTile(index: number) {
     if (activeIndex !== null) {
-      swap(activeIndex, index)
+      swapTiles(activeIndex, index)
       return
     }
 
     setActiveIndex(index)
-  }
-
-  function swap(indexA: number, indexB: number) {
-    const newUserLetters = [...userLetters]
-
-    const letterA = userLetters[indexA]
-    const letterB = userLetters[indexB]
-
-    newUserLetters[indexB] = letterA
-    newUserLetters[indexA] = letterB
-
-    setUserLetters([...newUserLetters])
-    setActiveIndex(null)
-  }
-
-  const spring: Transition = {
-    type: "spring",
-    damping: 50,
-    stiffness: 1000,
   }
 
   const tileStyles = letters.map((_, index) => {
@@ -122,22 +90,22 @@ export default function WheelTool({ letters, registerActions }: Props) {
         onClick={() => setActiveIndex(null)}
       >
         <div className="wheel-boundary">
-          {userLetters.map((letter, index) => {
+          {tiles.map((tile, index) => {
             return (
               <motion.li
                 className={`tile wheel-tool-tile ${
                   index === activeIndex ? "active" : ""
                 }`}
-                key={letter.id}
+                key={tile.id}
                 style={tileStyles[index]}
                 onClick={(e) => {
                   e.stopPropagation()
-                  onClickLetter(index)
+                  onClickTile(index)
                 }}
                 transition={spring}
                 layout
               >
-                {letter.letter}
+                {tile.letter}
               </motion.li>
             )
           })}
