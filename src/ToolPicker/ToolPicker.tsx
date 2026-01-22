@@ -23,7 +23,6 @@ export default function ToolPicker({ activeTool, setTool }: Props) {
 
   return (
     <div id="tool-picker">
-      <span>Tools</span>
       {allTools.map((tool) => {
         return (
           <button
