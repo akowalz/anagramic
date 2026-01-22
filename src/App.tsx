@@ -33,7 +33,7 @@ function App() {
     Tiles: "Drag and drop to rearrange letters",
     Line: "Drag to move letters, tap to swap letters",
     Wheel: "Tap to swap letters",
-    Floating: "Let the letters watch over you and see if the anagram pops out",
+    Floating: "Let the letters wash over you, see if the anagram pops out",
   }
 
   function setActionsForTool(tool: Tool, actions: ToolActions) {

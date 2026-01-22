@@ -1,10 +1,6 @@
 import "./FloatingTool.css"
 import { useEffect, useState } from "react"
-import {
-  coordToPosition,
-  positionToStyle,
-  type Coord,
-} from "../lib/coordinate-plane"
+import { type Coord } from "../lib/coordinate-plane"
 
 type Props = {
   letters: string[]
@@ -18,28 +14,38 @@ type FloatingTile = {
 }
 
 function initializeTiles(letters: string[]): FloatingTile[] {
-  return letters.map((letter) => ({
-    letter,
-    coords: { x: Math.random(), y: Math.random() },
-    xDir: Math.random() * 0.1,
-    yDir: Math.random() * 0.1,
-  }))
+  // return [
+  //   { letter: "0,0", coords: { x: 0, y: 0 }, xDir: 0, yDir: 0 },
+  //   { letter: "1,1", coords: { x: 1, y: 1 }, xDir: 0, yDir: 0 },
+  //   { letter: "-1,-1", coords: { x: -1, y: -1 }, xDir: 0, yDir: 0 },
+  //   { letter: "1,-1", coords: { x: 1, y: -1 }, xDir: 0, yDir: 0 },
+  //   { letter: "-1,1", coords: { x: -1, y: 1 }, xDir: 0, yDir: 0 },
+  // ]
+  const SPEED = 0.0
+  return letters.map((letter) => {
+    const angle = Math.random() * Math.PI * 2
+
+    return {
+      letter,
+      coords: { x: Math.random(), y: Math.random() },
+      xDir: Math.cos(angle) * SPEED,
+      yDir: Math.sin(angle) * SPEED,
+    }
+  })
 }
 
 function updateTile(tile: FloatingTile): FloatingTile {
   const updatedTile = { ...tile }
 
-  let newX = tile.coords.x + tile.xDir
-  let newY = tile.coords.y + tile.yDir
+  const newX = tile.coords.x + tile.xDir
+  const newY = tile.coords.y + tile.yDir
 
-  if (newX > 1.0 || newX < -1.0) {
-    newX = tile.coords.x
-    updatedTile.xDir = updatedTile.xDir * -1
+  if (Math.abs(newX) > 1) {
+    updatedTile.xDir *= -1
   }
 
-  if (newY > 1.0 || newY < -1.0) {
-    newY = tile.coords.y
-    updatedTile.yDir = updatedTile.yDir * -1
+  if (Math.abs(newY) > 1) {
+    updatedTile.yDir *= -1
   }
 
   return {
@@ -50,8 +56,18 @@ function updateTile(tile: FloatingTile): FloatingTile {
   }
 }
 
+function coordToTranslate(coord: Coord) {
+  return {
+    translate: `
+      calc((50cqw - 20px) * ${coord.x})
+      calc((50cqh - 20px) * ${-1 * coord.y})
+    `,
+  }
+}
+
 export default function FloatingTool({ letters }: Props) {
   const [tiles, setTiles] = useState<FloatingTile[]>(initializeTiles(letters))
+  const FRAMERATE = 100
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -60,7 +76,7 @@ export default function FloatingTool({ letters }: Props) {
           return updateTile(tile)
         })
       })
-    }, 200)
+    }, FRAMERATE)
 
     return () => {
       clearInterval(intervalId)
@@ -74,7 +90,10 @@ export default function FloatingTool({ letters }: Props) {
           <div
             key={index}
             className="tile floating-tool-tile"
-            style={positionToStyle(coordToPosition(tile.coords))}
+            style={{
+              ...coordToTranslate(tile.coords),
+              transition: `translate ${FRAMERATE}ms linear`,
+            }}
           >
             {tile.letter}
           </div>
