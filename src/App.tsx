@@ -26,8 +26,8 @@ function App() {
 
   const [inputValue, setInputValue] = useState("")
 
-  const [letters, setLetters] = useState<string[]>(["A", "B", "C", "D"])
-  const [tool, setTool] = useState<Tool>("Floating")
+  const [letters, setLetters] = useState<string[]>([])
+  const [tool, setTool] = useState<Tool>("Tiles")
 
   const tooltips = {
     Tiles: "Drag and drop to rearrange letters",

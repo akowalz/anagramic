@@ -21,7 +21,7 @@ function initializeTiles(letters: string[]): FloatingTile[] {
   //   { letter: "1,-1", coords: { x: 1, y: -1 }, xDir: 0, yDir: 0 },
   //   { letter: "-1,1", coords: { x: -1, y: 1 }, xDir: 0, yDir: 0 },
   // ]
-  const SPEED = 0.0
+  const SPEED = 0.05
   return letters.map((letter) => {
     const angle = Math.random() * Math.PI * 2
 
