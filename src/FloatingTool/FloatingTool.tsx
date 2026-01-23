@@ -4,6 +4,7 @@ import { type Coord } from "../lib/coordinate-plane"
 
 type Props = {
   letters: string[]
+  active: boolean
 }
 
 type FloatingTile = {
@@ -21,6 +22,7 @@ function initializeTiles(letters: string[]): FloatingTile[] {
   //   { letter: "1,-1", coords: { x: 1, y: -1 }, xDir: 0, yDir: 0 },
   //   { letter: "-1,1", coords: { x: -1, y: 1 }, xDir: 0, yDir: 0 },
   // ]
+
   const SPEED = 0.05
   return letters.map((letter) => {
     const angle = Math.random() * Math.PI * 2
@@ -65,11 +67,13 @@ function coordToTranslate(coord: Coord) {
   }
 }
 
-export default function FloatingTool({ letters }: Props) {
+export default function FloatingTool({ letters, active }: Props) {
   const [tiles, setTiles] = useState<FloatingTile[]>(initializeTiles(letters))
   const FRAMERATE = 100
 
   useEffect(() => {
+    if (!active) return
+
     const intervalId = setInterval(() => {
       setTiles((prevTiles: FloatingTile[]) => {
         return prevTiles.map((tile) => {
@@ -81,24 +85,26 @@ export default function FloatingTool({ letters }: Props) {
     return () => {
       clearInterval(intervalId)
     }
-  }, [])
+  }, [active])
 
   return (
     <div className="floating-tool-container">
-      {tiles.map((tile: FloatingTile, index: number) => {
-        return (
-          <div
-            key={index}
-            className="tile floating-tool-tile"
-            style={{
-              ...coordToTranslate(tile.coords),
-              transition: `translate ${FRAMERATE}ms linear`,
-            }}
-          >
-            {tile.letter}
-          </div>
-        )
-      })}
+      <div className="floating-tool-box">
+        {tiles.map((tile: FloatingTile, index: number) => {
+          return (
+            <div
+              key={index}
+              className="tile floating-tool-tile"
+              style={{
+                ...coordToTranslate(tile.coords),
+                transition: `translate ${FRAMERATE}ms linear`,
+              }}
+            >
+              {tile.letter}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

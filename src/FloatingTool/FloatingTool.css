@@ -1,5 +1,17 @@
 .floating-tool-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.floating-tool-box {
   container-type: size;
+  background-color: var(--lightest);
+  border: 1px solid;
+  border-color: var(--dark);
+  border-radius: 4px;
   width: 100%;
   height: 100%;
   display: flex;
