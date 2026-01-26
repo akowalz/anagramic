@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { shuffle } from '../lib/shuffle'
 
 export type Tile = {
   id: string,
@@ -24,7 +25,7 @@ export function useMoveableLetters(letters: string[]) {
 
   function shuffleTiles() {
     setActiveIndex(null)
-    setTiles([...tiles.sort(() => Math.random() - 0.5)])
+    setTiles([...shuffle(tiles)])
   }
 
   function resetPositions() {
