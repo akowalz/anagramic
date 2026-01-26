@@ -117,7 +117,7 @@ function App() {
   return (
     <>
       <div id="header">
-        <h1>Anagram Helper</h1>
+        <h1>assistagram</h1>
       </div>
 
       {letters.length !== 0 && (

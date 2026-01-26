@@ -12,10 +12,10 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  max-height: 500px;
-  max-width: 500px;
   width: 100%;
-  height: 100%;
+  max-width: 500px;
+  height: auto;
+  aspect-ratio: 1/1;
   background-color: var(--lightest);
   border: 1px solid;
   border-color: var(--dark);
