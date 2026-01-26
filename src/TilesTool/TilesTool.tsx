@@ -50,18 +50,14 @@ export default function TileTool({ letters, registerActions }: Props) {
     })
   }, [])
 
-  const tiles = letters.map((letter, index) => {
-    if (tileData.length === 0) return
-
-    const dataForTile = tileData[index]
-
+  const tiles = tileData.map((tile) => {
     return (
       <Tile
-        letter={letter.toUpperCase()}
-        id={index}
-        key={dataForTile.id}
-        pos={{ ...dataForTile.pos }}
-        zIndex={dataForTile.zIndex}
+        letter={tile.letter.toUpperCase()}
+        id={tile.id}
+        key={tile.id}
+        pos={{ ...tile.pos }}
+        zIndex={tile.zIndex}
         onMove={handleMoveTile}
       />
     )

@@ -133,19 +133,19 @@ function App() {
         <div className="tool-footer">
           {currentToolActions.reset && (
             <button onClick={reset}>
-              Reset
               <ResetIcon />
+              Reset
             </button>
           )}
           {currentToolActions.shuffle && (
             <button onClick={shuffle}>
-              Shuffle
               <ShuffleIcon />
+              Shuffle
             </button>
           )}
           <button onClick={() => newLetters()}>
-            New Letters
             <BackIcon />
+            New Letters
           </button>
         </div>
       )}
