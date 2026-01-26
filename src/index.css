@@ -69,7 +69,8 @@ button {
 }
 
 button > svg {
-  margin-left: 4px;
+  margin-left: 6px;
+  height: 90%;
 }
 
 button.active {
