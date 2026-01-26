@@ -61,8 +61,8 @@ function updateTile(tile: FloatingTile): FloatingTile {
 function coordToTranslate(coord: Coord) {
   return {
     translate: `
-      calc((50cqw - 20px) * ${coord.x})
-      calc((50cqh - 20px) * ${-1 * coord.y})
+      calc((50cqw - 25px) * ${coord.x})
+      calc((50cqh - 25px) * ${-1 * coord.y})
     `,
   }
 }
