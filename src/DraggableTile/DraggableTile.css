@@ -3,7 +3,7 @@
   touch-action: none;
   user-select: none;
   cursor: grab;
-  transition: transform 150ms ease-out;
+  transition: transform 150ms linear;
 
   height: 40px;
   width: 40px;
