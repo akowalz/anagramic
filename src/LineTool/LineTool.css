@@ -8,25 +8,18 @@
 }
 
 .line-tool-tile {
-  --tile-size: 48px;
+  --tile-size: 44px;
+
   flex-basis: var(--tile-size);
   min-width: 0;
   margin-left: -3px;
-}
 
-.line-tool-tile .tile {
   font-size: min(
     calc((100vw - 2 * var(--tile-size)) / var(--tile-count)),
-    32px
+    36px
   );
 }
 
-.tile.active {
-  position: relative;
+.line-tool-tile.active {
   z-index: 999 !important;
-}
-
-.tile.dragging {
-  transition: transform 100ms linear;
-  transform: translateY(-5px)
 }
