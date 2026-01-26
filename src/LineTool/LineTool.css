@@ -8,18 +8,17 @@
 }
 
 .line-tool-tile {
-  --tile-size: 40px;
-  width: var(--tile-size);
+  --tile-size: 48px;
   flex-basis: var(--tile-size);
+  min-width: 0;
+  margin-left: -3px;
+}
 
-  /* If 32px tiles fit, use that. Otherwise, scale down */
+.line-tool-tile .tile {
   font-size: min(
     calc((100vw - 2 * var(--tile-size)) / var(--tile-count)),
     32px
   );
-
-  min-width: 0;
-  margin-left: -3px;
 }
 
 .tile.active {
