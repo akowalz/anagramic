@@ -3,7 +3,7 @@
   touch-action: none;
   user-select: none;
   cursor: grab;
-  transition: transform 10ms linear;
+  transition: transform 150ms ease-out;
 
   height: 40px;
   width: 40px;
@@ -13,5 +13,7 @@
   cursor: grabbing;
   background-color: var(--lighter);
   box-shadow: 4px 4px 0 black;
+  transition: none;
+  font-weight: bold;
   z-index: 999;
 }

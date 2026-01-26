@@ -1,5 +1,5 @@
 import "./DraggableTile.css"
-import { useMemo, useState } from "react"
+import { useState } from "react"
 
 type Pos = { x: number; y: number }
 
@@ -10,9 +10,6 @@ type Props = {
   zIndex: number
   onMove: (id: number, pos: Pos) => void
 }
-
-/* When dragging, pull the tile UP a bit for visual clarity */
-const VISUAL_DRAG_OFFSET_Y = 8
 
 export default function DraggableTile({
   letter,
@@ -45,11 +42,6 @@ export default function DraggableTile({
     setDragging(false)
   }
 
-  const translateValue = useMemo(() => {
-    const y = dragging ? pos.y - VISUAL_DRAG_OFFSET_Y : pos.y
-    return `translate(${pos.x}px, ${y}px)`
-  }, [dragging, pos])
-
   return (
     <div
       className={`tile draggable-tile ${dragging ? "dragging" : ""}`}
@@ -58,7 +50,7 @@ export default function DraggableTile({
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       style={{
-        transform: translateValue,
+        transform: `translate(${pos.x}px, ${pos.y}px)`,
         zIndex,
       }}
     >
