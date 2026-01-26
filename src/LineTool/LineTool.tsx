@@ -27,10 +27,8 @@ export default function LineTool({ letters, registerActions }: Props) {
     swapTiles,
   } = useMoveableLetters(letters)
 
-  // wont be in hook
-  const [isDragging, setIsDragging] = useState<boolean>(false)
+  const [dragId, setDragId] = useState<string | null>(null)
 
-  // maybe will be in hook?
   useEffect(() => {
     registerActions({
       reset: () => resetPositions(),
@@ -38,9 +36,8 @@ export default function LineTool({ letters, registerActions }: Props) {
     })
   }, [])
 
-  // could be in hook minus drag logic
   function onClickLetter(index: number) {
-    if (isDragging) return
+    if (dragId !== null) return
 
     if (activeIndex !== null) {
       swapTiles(activeIndex, index)
@@ -70,23 +67,27 @@ export default function LineTool({ letters, registerActions }: Props) {
           return (
             <Reorder.Item
               as="div"
+              className="line-tool-tile"
               value={tile}
-              className={`
-                  tile
-                  line-tool-tile
-                  ${index === activeIndex ? "active" : ""}
-                `}
               key={tile.id}
-              onClick={(e) => {
-                e.stopPropagation()
-                onClickLetter(index)
-              }}
-              onDragStart={() => setIsDragging(true)}
-              onDragEnd={() => setIsDragging(false)}
+              onDragStart={() => setDragId(tile.id)}
+              onDragEnd={() => setDragId(null)}
               transition={spring}
               layout
             >
-              {tile.letter}
+              <div
+                className={`
+                    tile
+                    ${index === activeIndex ? "active" : ""}
+                    ${dragId === tile.id ? "dragging" : ""}
+                  `}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onClickLetter(index)
+                }}
+              >
+                {tile.letter}
+              </div>
             </Reorder.Item>
           )
         })}

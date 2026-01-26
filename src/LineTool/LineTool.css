@@ -9,6 +9,7 @@
 
 .line-tool-tile {
   --tile-size: 40px;
+  width: var(--tile-size);
   flex-basis: var(--tile-size);
 
   /* If 32px tiles fit, use that. Otherwise, scale down */
@@ -21,6 +22,12 @@
   margin-left: -3px;
 }
 
-.line-tool-tile.active {
+.tile.active {
+  position: relative;
   z-index: 999 !important;
+}
+
+.tile.dragging {
+  transition: transform 100ms linear;
+  transform: translateY(-5px)
 }
