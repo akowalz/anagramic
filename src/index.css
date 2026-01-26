@@ -53,6 +53,10 @@ body {
 
 /* Buttons */
 button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
   font-weight: 600;
   font-size: 1.1em;
   padding: 8px 12px;
@@ -62,6 +66,10 @@ button {
   color: var(--darkest);
   border: 1px solid var(--dark);
   box-shadow: 2px 2px 0 black;
+}
+
+button > svg {
+  margin-left: 4px;
 }
 
 button.active {

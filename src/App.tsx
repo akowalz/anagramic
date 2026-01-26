@@ -11,6 +11,8 @@ import TilesTool from "./TilesTool/TilesTool"
 import LineTool from "./LineTool/LineTool"
 import WheelTool from "./WheelTool/WheelTool"
 import FloatingTool from "./FloatingTool/FloatingTool"
+import ShuffleIcon from "./Icons/ShuffleIcon"
+import BackIcon from "./Icons/BackIcon"
 
 type ActionsForTools = {
   [K in Tool]: ToolActions | undefined
@@ -130,9 +132,15 @@ function App() {
         <div className="tool-footer">
           {currentToolActions.reset && <button onClick={reset}>Reset</button>}
           {currentToolActions.shuffle && (
-            <button onClick={shuffle}>Shuffle</button>
+            <button onClick={shuffle}>
+              Shuffle
+              <ShuffleIcon />
+            </button>
           )}
-          <button onClick={() => newLetters()}>New Letters</button>
+          <button onClick={() => newLetters()}>
+            New Letters
+            <BackIcon />
+          </button>
         </div>
       )}
     </>
