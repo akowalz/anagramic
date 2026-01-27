@@ -19,6 +19,11 @@
   color: var(--dark);
 }
 
+#header > .back-button:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 #header > .back-button > svg {
   margin-right: 4px;
   width: 16px;
