@@ -20,7 +20,7 @@
   padding: 4px;
   border-radius: 8px;
   border: 1px solid var(--darkest);
-  box-shadow: 1px 1px 0 black;
+  box-shadow: 0px 1px 0 1px black;
 }
 
 .tool-picker-tool {
@@ -29,6 +29,13 @@
   border-radius: 4px;
   color: #777;
   cursor: pointer;
+}
+
+@media(hover: hover) {
+  .tool-picker-tool:hover {
+    color: var(--darkest);
+    text-decoration: underline;
+  }
 }
 
 .tool-picker-tool:not(:last-child)::after {

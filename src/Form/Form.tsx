@@ -13,9 +13,11 @@ export default function Form({
   setLetters,
 }: FormProps) {
   useEffect(() => {
-    const input = document.getElementById("fodder-input")
-    if (!input) return
-    input.focus()
+    setTimeout(() => {
+      const input = document.getElementById("fodder-input")
+      if (!input) return
+      input.focus()
+    }, 200)
   }, [])
 
   const submit = () => {
