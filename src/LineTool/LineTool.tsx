@@ -29,6 +29,7 @@ export default function LineTool({ letters, registerActions }: Props) {
 
   // wont be in hook
   const [isDragging, setIsDragging] = useState<boolean>(false)
+  const [dragId, setDragId] = useState<string | null>(null)
 
   // maybe will be in hook?
   useEffect(() => {
@@ -40,7 +41,7 @@ export default function LineTool({ letters, registerActions }: Props) {
 
   // could be in hook minus drag logic
   function onClickLetter(index: number) {
-    if (isDragging) return
+    if (dragId !== null) return
 
     if (activeIndex !== null) {
       swapTiles(activeIndex, index)
@@ -75,14 +76,15 @@ export default function LineTool({ letters, registerActions }: Props) {
                   tile
                   line-tool-tile
                   ${index === activeIndex ? "active" : ""}
+                  ${tile.id === dragId ? "dragging" : ""}
                 `}
               key={tile.id}
               onClick={(e) => {
                 e.stopPropagation()
                 onClickLetter(index)
               }}
-              onDragStart={() => setIsDragging(true)}
-              onDragEnd={() => setIsDragging(false)}
+              onDragStart={() => setDragId(tile.id)}
+              onDragEnd={() => setDragId(null)}
               transition={spring}
               layout
             >
