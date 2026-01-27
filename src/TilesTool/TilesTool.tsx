@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 import Tile from "../DraggableTile/DraggableTile"
 import "./TilesTool.css"
 import { type ToolActions } from "../Types/ToolActions"
+import { shuffle } from "../lib/shuffle"
 
 type Props = {
   letters: string[]
@@ -32,6 +33,10 @@ export default function TileTool({ letters, registerActions }: Props) {
     setTileData(initialTileData(letters))
   }
 
+  function shuffleTiles() {
+    setTileData([...shuffle(initialTileData(letters))])
+  }
+
   const handleMoveTile = (id: number, newPos: Pos) => {
     const currentMaxZIndex = Math.max(...tileData.map((t) => t.zIndex))
 
@@ -47,6 +52,7 @@ export default function TileTool({ letters, registerActions }: Props) {
   useEffect(() => {
     registerActions({
       reset: () => resetTiles(),
+      shuffle: () => shuffleTiles(),
     })
   }, [])
 

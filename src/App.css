@@ -6,8 +6,22 @@
 }
 
 #header {
+  display: flex;
   padding-left: 12px;
+  padding-right: 12px;
   text-align: left;
+}
+
+#header > .back-button {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  color: var(--dark);
+}
+
+#header > .back-button > svg {
+  margin-right: 4px;
+  width: 16px;
 }
 
 h1 {
