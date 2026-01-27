@@ -36,7 +36,7 @@ function App() {
     Tiles: "Drag and drop to rearrange letters",
     Line: "Drag to move letters, tap to swap letters",
     Wheel: "Tap to swap letters",
-    Floating: "Just let the letters wash over you, see if it pops out",
+    Floating: "Just let the letters float by",
   }
 
   function setActionsForTool(tool: Tool, actions: ToolActions) {
@@ -141,6 +141,7 @@ function App() {
               Reset
             </button>
           )}
+
           {currentToolActions.shuffle && (
             <button onClick={shuffle}>
               <ShuffleIcon />

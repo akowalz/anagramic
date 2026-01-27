@@ -27,7 +27,9 @@ body {
   --darkest: #2d232e;
   --darker: #474448;
   --dark: #534b52;
-  --light: #e0ddcf;
+  --transparent-dark: #323232d2; 
+  --middle: #ebebeb;
+  --light: #eeeeee;
   --lighter: #f4f4f4;
   --lightest: #f7f7f7;
   --highlight: orange;

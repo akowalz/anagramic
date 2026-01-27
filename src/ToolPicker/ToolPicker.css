@@ -1,18 +1,46 @@
-#tool-picker {
+.tool-picker-container {
+  display: flex;
+  justify-content: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-style: italic;
+  font-weight: bold;
+}
+
+.tool-picker {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 12px;
   margin-bottom: 8px;
+  color: var(--darkest);
+  border-radius: 4px;
+  background: white;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--darkest);
+  box-shadow: 1px 1px 0 black;
 }
 
-#tool-picker > span {
-  font-weight: bold;
+.tool-picker-tool {
+  position: relative;
+  padding: 8px;
+  border-radius: 4px;
+  color: #777;
+  cursor: pointer;
 }
 
-#tool-picker button {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
+.tool-picker-tool:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  right: -6px;          /* half of gap */
+  top: 50%;
+  width: 1px;
+  height: 80%;
+  background-color: #ddd;
+  transform: translateY(-50%);
+}
+
+.tool-picker-tool.active {
+  background-color: var(--middle);
+  color: black;
 }
