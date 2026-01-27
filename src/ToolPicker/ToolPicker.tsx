@@ -11,6 +11,13 @@ type Props = {
 export default function ToolPicker({ activeTool, setTool }: Props) {
   const allTools: Tool[] = ["Tiles", "Line", "Wheel", "Floating"]
 
+  const toolNames = {
+    Tiles: "Freeform",
+    Line: "Fixed",
+    Wheel: "Wheel",
+    Floating: "Floating",
+  }
+
   return (
     <div className="tool-picker-container">
       <div className="tool-picker">
@@ -21,7 +28,7 @@ export default function ToolPicker({ activeTool, setTool }: Props) {
               className={`tool-picker-tool ${activeTool === tool ? "active" : ""}`}
               onClick={() => setTool(tool)}
             >
-              {tool}
+              {toolNames[tool]}
             </span>
           )
         })}

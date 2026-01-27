@@ -14,7 +14,9 @@
 
 .form input {
   position: relative;
+  letter-spacing: 4px;
   width: 90%;
+  max-width: 450px;
   border: none;
   border-bottom: 2px solid var(--dark);
   text-align: center;

@@ -7,14 +7,16 @@
 }
 
 .tool-picker {
+  --gap: 12px;
+
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 12px;
+  gap: var(--gap);
   margin-bottom: 8px;
   color: var(--darkest);
   border-radius: 4px;
-  background: white;
+  background: var(--lightest);
   padding: 4px;
   border-radius: 8px;
   border: 1px solid var(--darkest);
@@ -32,7 +34,7 @@
 .tool-picker-tool:not(:last-child)::after {
   content: "";
   position: absolute;
-  right: -6px;          /* half of gap */
+  right: calc(-1 * var(--gap) / 2);
   top: 50%;
   width: 1px;
   height: 80%;

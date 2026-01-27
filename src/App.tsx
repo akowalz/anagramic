@@ -118,10 +118,12 @@ function App() {
     <>
       <div id="header">
         <h1>assistagram</h1>
-        <a className="back-button" onClick={() => newLetters()}>
-          <BackIcon />
-          Back
-        </a>
+        {letters.length > 0 && (
+          <a className="back-button" onClick={() => newLetters()}>
+            <BackIcon />
+            Back
+          </a>
+        )}
       </div>
 
       {letters.length !== 0 && (
