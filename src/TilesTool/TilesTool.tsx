@@ -12,40 +12,71 @@ type Props = {
 type Pos = { x: number; y: number }
 
 type TileData = {
+  id: number
   pos: Pos
   letter: string
   zIndex: number
-  id: number
+}
+
+function tilesFromLetters(letters: string[]): TileData[] {
+  return letters.map((letter, index) => ({
+    letter,
+    id: index,
+    pos: { x: 0, y: 0 },
+    zIndex: 0,
+  }))
 }
 
 export default function TileTool({ letters, registerActions }: Props) {
-  const initialTileData = (letters: string[]) => {
-    return letters.map((letter, index) => ({
-      id: index,
-      pos: { x: 0, y: 0 },
-      zIndex: 0,
-      letter,
-    }))
-  }
-  const [tileData, setTileData] = useState<TileData[]>(initialTileData(letters))
+  const shadowTileData: TileData[] = tilesFromLetters(letters)
+
+  const [initialPositions, setInitialPositions] = useState<Pos[] | null>(null)
+  const [tileData, setTileData] = useState<TileData[]>([])
 
   function resetTiles() {
-    setTileData(initialTileData(letters))
+    if (!initialPositions) throw "error: inital positions not never set"
+
+    setTileData((tileData) =>
+      tileData.map((tile, index) => {
+        const posForTile = initialPositions[index]
+        if (!posForTile) throw "no initial position found"
+
+        return {
+          ...tile,
+          pos: posForTile,
+        }
+      }),
+    )
   }
 
   function shuffleTiles() {
-    setTileData([...shuffle(initialTileData(letters))])
+    if (!initialPositions) return
+    const shuffledPositions = shuffle(initialPositions)
+
+    setTileData((tileData) =>
+      tileData.map((tile, index) => {
+        const posForTile = shuffledPositions[index]
+        if (!posForTile) throw "no shuffled position found"
+
+        return {
+          ...tile,
+          pos: posForTile,
+        }
+      }),
+    )
   }
 
   const handleMoveTile = (id: number, newPos: Pos) => {
+    if (!tileData) return
     const currentMaxZIndex = Math.max(...tileData.map((t) => t.zIndex))
 
-    setTileData((tiles) =>
-      tiles.map((tile) =>
-        tile.id === id
-          ? { ...tile, pos: newPos, zIndex: currentMaxZIndex + 1 }
-          : tile,
-      ),
+    setTileData(
+      (tiles) =>
+        tiles?.map((tile) =>
+          tile.id === id
+            ? { ...tile, pos: newPos, zIndex: currentMaxZIndex + 1 }
+            : tile,
+        ) || [],
     )
   }
 
@@ -54,48 +85,52 @@ export default function TileTool({ letters, registerActions }: Props) {
       reset: () => resetTiles(),
       shuffle: () => shuffleTiles(),
     })
-  }, [])
+  }, [initialPositions])
 
   useLayoutEffect(() => {
     const shadowTiles = Array.from(
       document.querySelectorAll("#shadow-canvas > .tile"),
     )
     if (!shadowTiles) throw "cant find tiles"
+    console.log(shadowTiles)
 
-    setTileData((oldTiles) => {
-      return oldTiles.map((tile, index) => {
+    setInitialPositions((pos) => {
+      return shadowTiles.map((t) => ({ x: t.offsetLeft, y: t.offsetTop }))
+    })
+
+    setTileData(
+      letters.map((letter, index) => {
         const shadowTileForTile = shadowTiles[index]
         if (!shadowTileForTile) throw "cant find shadow tile for tile"
-        console.log({
-          top: shadowTileForTile.offsetTop,
-          left: shadowTileForTile.offsetLeft,
-        })
 
         return {
-          ...tile,
+          letter,
+          zIndex: 0,
+          id: index,
           pos: {
             x: shadowTileForTile.offsetLeft,
             y: shadowTileForTile.offsetTop,
           },
         }
-      })
-    })
+      }),
+    )
   }, [])
 
-  const tiles = tileData.map((tile) => {
-    return (
-      <Tile
-        letter={tile.letter.toUpperCase()}
-        id={tile.id}
-        key={tile.id}
-        pos={{ ...tile.pos }}
-        zIndex={tile.zIndex}
-        onMove={handleMoveTile}
-      />
-    )
-  })
+  const tiles =
+    tileData?.map((tile) => {
+      return (
+        <Tile
+          letter={tile.letter.toUpperCase()}
+          id={tile.id}
+          key={tile.id}
+          pos={{ ...tile.pos }}
+          zIndex={tile.zIndex}
+          onMove={handleMoveTile}
+        />
+      )
+    }) || []
 
-  const shadowTiles = tileData.map((tile) => {
+  const shadowTiles = shadowTileData.map((tile) => {
     return (
       <Tile
         letter={tile.letter.toUpperCase()}
