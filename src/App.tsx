@@ -1,6 +1,6 @@
 import "./App.css"
 
-import { useMemo, useState, type JSX } from "react"
+import { useEffect, useMemo, useState, type JSX } from "react"
 import { type ToolActions } from "./Types/ToolActions"
 import { type Tool } from "./Types/Tool"
 
@@ -29,7 +29,11 @@ function App() {
 
   const [inputValue, setInputValue] = useState("")
 
-  const [letters, setLetters] = useState<string[]>([])
+  const [letters, setLetters] = useState<string[]>(() => {
+    const params = new URLSearchParams(window.location.search)
+    const fodder = params.get("fodder")
+    return fodder ? fodder.split("") : []
+  })
   const [tool, setTool] = useState<Tool>("Tiles")
 
   const tooltips = {

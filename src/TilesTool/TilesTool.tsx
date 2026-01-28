@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useState } from "react"
 import Tile from "../DraggableTile/DraggableTile"
 import "./TilesTool.css"
 import { type ToolActions } from "../Types/ToolActions"
@@ -56,6 +56,32 @@ export default function TileTool({ letters, registerActions }: Props) {
     })
   }, [])
 
+  useLayoutEffect(() => {
+    const shadowTiles = Array.from(
+      document.querySelectorAll("#shadow-canvas > .tile"),
+    )
+    if (!shadowTiles) throw "cant find tiles"
+
+    setTileData((oldTiles) => {
+      return oldTiles.map((tile, index) => {
+        const shadowTileForTile = shadowTiles[index]
+        if (!shadowTileForTile) throw "cant find shadow tile for tile"
+        console.log({
+          top: shadowTileForTile.offsetTop,
+          left: shadowTileForTile.offsetLeft,
+        })
+
+        return {
+          ...tile,
+          pos: {
+            x: shadowTileForTile.offsetLeft,
+            y: shadowTileForTile.offsetTop,
+          },
+        }
+      })
+    })
+  }, [])
+
   const tiles = tileData.map((tile) => {
     return (
       <Tile
@@ -69,5 +95,28 @@ export default function TileTool({ letters, registerActions }: Props) {
     )
   })
 
-  return <div className="tile-canvas">{tiles}</div>
+  const shadowTiles = tileData.map((tile) => {
+    return (
+      <Tile
+        letter={tile.letter.toUpperCase()}
+        id={tile.id}
+        key={tile.id}
+        pos={{ x: 0, y: 0 }}
+        zIndex={tile.zIndex}
+        onMove={handleMoveTile}
+      />
+    )
+  })
+
+  return (
+    <>
+      <div className="tile-canvas-container">
+        <div className="tile-canvas">{tiles}</div>
+
+        <div id="shadow-canvas" className="hidden-tile-canvas">
+          {shadowTiles}
+        </div>
+      </div>
+    </>
+  )
 }

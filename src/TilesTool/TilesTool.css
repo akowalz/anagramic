@@ -1,4 +1,23 @@
+.tile-canvas-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .tile-canvas {
+  background: #fd7b7b77;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.tile-canvas .tile {
+  position: absolute;
+}
+
+#shadow-canvas {
+  background: #7482ff77;
+  position: absolute;
   width: 100%;
   height: 100%;
   display: flex;
@@ -8,4 +27,5 @@
   align-items: center;
   align-content: center;
   gap: 10px;
+  color: blue;
 }
