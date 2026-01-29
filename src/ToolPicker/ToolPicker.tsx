@@ -13,7 +13,7 @@ export default function ToolPicker({ activeTool, setTool }: Props) {
 
   const toolNames = {
     Tiles: "Freeform",
-    Line: "Fixed",
+    Line: "Line",
     Wheel: "Wheel",
     Floating: "Floating",
   }

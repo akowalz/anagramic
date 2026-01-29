@@ -32,8 +32,9 @@ function App() {
   const [letters, setLetters] = useState<string[]>(() => {
     const params = new URLSearchParams(window.location.search)
     const fodder = params.get("fodder")
-    return fodder ? fodder.split("") : []
+    return fodder ? fodder.toLocaleUpperCase().split("") : []
   })
+
   const [tool, setTool] = useState<Tool>("Tiles")
 
   const tooltips = {

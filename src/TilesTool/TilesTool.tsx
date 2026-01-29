@@ -91,10 +91,12 @@ export default function TileTool({ letters, registerActions }: Props) {
     const shadowTiles = Array.from(
       document.querySelectorAll("#shadow-canvas > .tile"),
     )
+
     if (!shadowTiles) throw "cant find tiles"
     console.log(shadowTiles)
 
-    setInitialPositions((pos) => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInitialPositions(() => {
       return shadowTiles.map((t) => ({ x: t.offsetLeft, y: t.offsetTop }))
     })
 
