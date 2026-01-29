@@ -108,7 +108,13 @@ function App() {
         <div
           className={`tool-container ${tool === "Floating" ? "" : "hidden"}`}
         >
-          <FloatingTool letters={letters} active={tool === "Floating"} />
+          <FloatingTool
+            letters={letters}
+            active={tool === "Floating"}
+            registerActions={(actions: ToolActions) =>
+              setActionsForTool("Floating", actions)
+            }
+          />
         </div>
       </>
     )

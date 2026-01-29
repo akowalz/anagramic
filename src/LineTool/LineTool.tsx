@@ -28,7 +28,6 @@ export default function LineTool({ letters, registerActions }: Props) {
   } = useMoveableLetters(letters)
 
   // wont be in hook
-  const [isDragging, setIsDragging] = useState<boolean>(false)
   const [dragId, setDragId] = useState<string | null>(null)
 
   // maybe will be in hook?
