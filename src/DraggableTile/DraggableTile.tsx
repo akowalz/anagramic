@@ -6,35 +6,48 @@ type Pos = { x: number; y: number }
 type Props = {
   letter: string
   id: number
-  pos: Pos
+  relativePos: Pos
   zIndex: number
   onMove: (id: number, pos: Pos) => void
+  containerRef: React.RefObject<HTMLDivElement | null>
 }
 
 export default function DraggableTile({
   letter,
-  pos,
+  relativePos,
   id,
   zIndex,
   onMove,
+  containerRef,
 }: Props) {
   const [dragging, setDragging] = useState(false)
   const [offset, setOffset] = useState({ x: 0, y: 0 })
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!containerRef.current) return
+
     e.currentTarget.setPointerCapture(e.pointerId)
+    const rect = containerRef.current.getBoundingClientRect()
+
+    const pixelX = relativePos.x * rect.width
+    const pixelY = relativePos.y * rect.height
 
     setDragging(true)
-    setOffset({
-      x: e.clientX - pos.x,
-      y: e.clientY - pos.y,
-    })
+    setOffset(() => ({
+      x: e.clientX - rect.left - pixelX,
+      y: e.clientY - rect.top - pixelY,
+    }))
   }
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!dragging) return
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
 
-    onMove(id, { x: e.clientX - offset.x, y: e.clientY - offset.y })
+    onMove(id, {
+      x: (e.clientX - rect.left - offset.x) / rect.width,
+      y: (e.clientY - rect.top - offset.y) / rect.height,
+    })
   }
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -50,7 +63,7 @@ export default function DraggableTile({
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
       style={{
-        transform: `translate(${pos.x}px, ${pos.y}px)`,
+        transform: `translate(${relativePos.x * 100}cqw, ${relativePos.y * 100}cqh)`,
         zIndex,
       }}
     >

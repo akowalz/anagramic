@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import Tile from "../DraggableTile/DraggableTile"
 import "./TilesTool.css"
 import { type ToolActions } from "../Types/ToolActions"
@@ -13,7 +13,7 @@ type Pos = { x: number; y: number }
 
 type TileData = {
   id: number
-  pos: Pos
+  relativePos: Pos
   letter: string
   zIndex: number
 }
@@ -22,12 +22,16 @@ function tilesFromLetters(letters: string[]): TileData[] {
   return letters.map((letter, index) => ({
     letter,
     id: index,
+    relativePos: { x: 0, y: 0 },
     pos: { x: 0, y: 0 },
     zIndex: 0,
   }))
 }
 
 export default function TileTool({ letters, registerActions }: Props) {
+  const canvasRef = useRef<HTMLDivElement>(null)
+  const shadowCanvasRef = useRef<HTMLDivElement>(null)
+
   const shadowTileData: TileData[] = tilesFromLetters(letters)
 
   const [initialPositions, setInitialPositions] = useState<Pos[] | null>(null)
@@ -43,7 +47,7 @@ export default function TileTool({ letters, registerActions }: Props) {
 
         return {
           ...tile,
-          pos: posForTile,
+          relativePos: posForTile,
         }
       }),
     )
@@ -60,24 +64,22 @@ export default function TileTool({ letters, registerActions }: Props) {
 
         return {
           ...tile,
-          pos: posForTile,
+          relativePos: posForTile,
         }
       }),
     )
   }
 
   const handleMoveTile = (id: number, newPos: Pos) => {
-    if (!tileData) return
-    const currentMaxZIndex = Math.max(...tileData.map((t) => t.zIndex))
+    setTileData((tiles) => {
+      const maxZ = Math.max(...tiles.map((t) => t.zIndex))
 
-    setTileData(
-      (tiles) =>
-        tiles?.map((tile) =>
-          tile.id === id
-            ? { ...tile, pos: newPos, zIndex: currentMaxZIndex + 1 }
-            : tile,
-        ) || [],
-    )
+      return tiles.map((tile) =>
+        tile.id === id
+          ? { ...tile, relativePos: newPos, zIndex: maxZ + 1 }
+          : tile,
+      )
+    })
   }
 
   useEffect(() => {
@@ -88,17 +90,25 @@ export default function TileTool({ letters, registerActions }: Props) {
   }, [initialPositions])
 
   useLayoutEffect(() => {
+    if (!shadowCanvasRef.current || !canvasRef.current)
+      throw "cant find canvas refs"
+
+    const { containerHeight, containerWidth } = {
+      containerHeight: canvasRef.current.clientHeight,
+      containerWidth: canvasRef.current.clientWidth,
+    }
+
     const shadowTiles = Array.from(
-      document.querySelectorAll("#shadow-canvas > .tile"),
+      shadowCanvasRef.current.querySelectorAll<HTMLElement>(".tile"),
     )
-
     if (!shadowTiles) throw "cant find tiles"
-    console.log(shadowTiles)
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setInitialPositions(() => {
-      return shadowTiles.map((t) => ({ x: t.offsetLeft, y: t.offsetTop }))
-    })
+    const initialPositionData = shadowTiles.map((t) => ({
+      x: t.offsetLeft / containerWidth,
+      y: t.offsetTop / containerHeight,
+    }))
+
+    setInitialPositions(initialPositionData)
 
     setTileData(
       letters.map((letter, index) => {
@@ -109,10 +119,7 @@ export default function TileTool({ letters, registerActions }: Props) {
           letter,
           zIndex: 0,
           id: index,
-          pos: {
-            x: shadowTileForTile.offsetLeft,
-            y: shadowTileForTile.offsetTop,
-          },
+          relativePos: initialPositionData[index],
         }
       }),
     )
@@ -125,9 +132,10 @@ export default function TileTool({ letters, registerActions }: Props) {
           letter={tile.letter.toUpperCase()}
           id={tile.id}
           key={tile.id}
-          pos={{ ...tile.pos }}
+          relativePos={{ ...tile.relativePos }}
           zIndex={tile.zIndex}
           onMove={handleMoveTile}
+          containerRef={canvasRef}
         />
       )
     }) || []
@@ -138,9 +146,10 @@ export default function TileTool({ letters, registerActions }: Props) {
         letter={tile.letter.toUpperCase()}
         id={tile.id}
         key={tile.id}
-        pos={{ x: 0, y: 0 }}
+        relativePos={{ ...tile.relativePos }}
         zIndex={tile.zIndex}
-        onMove={handleMoveTile}
+        onMove={() => {}}
+        containerRef={shadowCanvasRef}
       />
     )
   })
@@ -148,9 +157,15 @@ export default function TileTool({ letters, registerActions }: Props) {
   return (
     <>
       <div className="tile-canvas-container">
-        <div className="tile-canvas">{tiles}</div>
+        <div className="tile-canvas" ref={canvasRef}>
+          {tiles}
+        </div>
 
-        <div id="shadow-canvas" className="hidden-tile-canvas">
+        <div
+          id="shadow-canvas"
+          className="hidden-tile-canvas"
+          ref={shadowCanvasRef}
+        >
           {shadowTiles}
         </div>
       </div>
