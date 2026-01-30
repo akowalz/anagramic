@@ -23,7 +23,6 @@ function tilesFromLetters(letters: string[]): TileData[] {
     letter,
     id: index,
     relativePos: { x: 0, y: 0 },
-    pos: { x: 0, y: 0 },
     zIndex: 0,
   }))
 }
@@ -32,17 +31,38 @@ export default function TileTool({ letters, registerActions }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const shadowCanvasRef = useRef<HTMLDivElement>(null)
 
-  const shadowTileData: TileData[] = tilesFromLetters(letters)
+  const [showTiles, setShowTiles] = useState<boolean>(false)
+  const [tileData, setTileData] = useState<TileData[]>(
+    tilesFromLetters(letters),
+  )
 
-  const [initialPositions, setInitialPositions] = useState<Pos[] | null>(null)
-  const [tileData, setTileData] = useState<TileData[]>([])
+  /* Get position of tiles if they had be positioned using flexbox */
+  function getFlexPositions(): Pos[] {
+    if (!shadowCanvasRef.current || !canvasRef.current)
+      throw "cant find canvas refs"
+
+    const { containerHeight, containerWidth } = {
+      containerHeight: canvasRef.current.clientHeight,
+      containerWidth: canvasRef.current.clientWidth,
+    }
+
+    const shadowTiles = Array.from(
+      shadowCanvasRef.current.querySelectorAll<HTMLElement>(".tile"),
+    )
+    if (!shadowTiles) throw "cant find tiles"
+
+    return shadowTiles.map((t) => ({
+      x: t.offsetLeft / containerWidth,
+      y: t.offsetTop / containerHeight,
+    }))
+  }
 
   function resetTiles() {
-    if (!initialPositions) throw "error: inital positions not never set"
+    const flexPositions = getFlexPositions()
 
     setTileData((tileData) =>
       tileData.map((tile, index) => {
-        const posForTile = initialPositions[index]
+        const posForTile = flexPositions[index]
         if (!posForTile) throw "no initial position found"
 
         return {
@@ -54,8 +74,8 @@ export default function TileTool({ letters, registerActions }: Props) {
   }
 
   function shuffleTiles() {
-    if (!initialPositions) return
-    const shuffledPositions = shuffle(initialPositions)
+    const flexPositions = getFlexPositions()
+    const shuffledPositions = shuffle(flexPositions)
 
     setTileData((tileData) =>
       tileData.map((tile, index) => {
@@ -87,69 +107,36 @@ export default function TileTool({ letters, registerActions }: Props) {
       reset: () => resetTiles(),
       shuffle: () => shuffleTiles(),
     })
-  }, [initialPositions])
+  }, [])
 
   useLayoutEffect(() => {
-    if (!shadowCanvasRef.current || !canvasRef.current)
-      throw "cant find canvas refs"
+    const flexPositions = getFlexPositions()
 
-    const { containerHeight, containerWidth } = {
-      containerHeight: canvasRef.current.clientHeight,
-      containerWidth: canvasRef.current.clientWidth,
-    }
-
-    const shadowTiles = Array.from(
-      shadowCanvasRef.current.querySelectorAll<HTMLElement>(".tile"),
-    )
-    if (!shadowTiles) throw "cant find tiles"
-
-    const initialPositionData = shadowTiles.map((t) => ({
-      x: t.offsetLeft / containerWidth,
-      y: t.offsetTop / containerHeight,
-    }))
-
-    setInitialPositions(initialPositionData)
-
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTileData(
       letters.map((letter, index) => {
-        const shadowTileForTile = shadowTiles[index]
-        if (!shadowTileForTile) throw "cant find shadow tile for tile"
-
         return {
           letter,
           zIndex: 0,
           id: index,
-          relativePos: initialPositionData[index],
+          relativePos: flexPositions[index],
         }
       }),
     )
+
+    setShowTiles(true)
   }, [])
 
-  const tiles =
-    tileData?.map((tile) => {
-      return (
-        <Tile
-          letter={tile.letter.toUpperCase()}
-          id={tile.id}
-          key={tile.id}
-          relativePos={{ ...tile.relativePos }}
-          zIndex={tile.zIndex}
-          onMove={handleMoveTile}
-          containerRef={canvasRef}
-        />
-      )
-    }) || []
-
-  const shadowTiles = shadowTileData.map((tile) => {
+  const tiles = tileData.map((tile) => {
     return (
       <Tile
-        letter={tile.letter.toUpperCase()}
+        letter={tile.letter}
         id={tile.id}
         key={tile.id}
         relativePos={{ ...tile.relativePos }}
         zIndex={tile.zIndex}
-        onMove={() => {}}
-        containerRef={shadowCanvasRef}
+        onMove={handleMoveTile}
+        containerRef={canvasRef}
       />
     )
   })
@@ -158,7 +145,7 @@ export default function TileTool({ letters, registerActions }: Props) {
     <>
       <div className="tile-canvas-container">
         <div className="tile-canvas" ref={canvasRef}>
-          {tiles}
+          {showTiles && tiles}
         </div>
 
         <div
@@ -166,7 +153,7 @@ export default function TileTool({ letters, registerActions }: Props) {
           className="hidden-tile-canvas"
           ref={shadowCanvasRef}
         >
-          {shadowTiles}
+          {tiles}
         </div>
       </div>
     </>
