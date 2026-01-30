@@ -128,7 +128,7 @@ function App() {
   return (
     <>
       <div id="header">
-        <h1>assistagram</h1>
+        <h1>anagramic</h1>
         {letters.length > 0 && (
           <a className="back-button" onClick={() => newLetters()}>
             <BackIcon />
