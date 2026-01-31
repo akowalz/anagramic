@@ -2,7 +2,6 @@ import "./FloatingTool.css"
 import { useEffect, useState } from "react"
 import { type Coord } from "../lib/coordinate-plane"
 import type { ToolActions } from "../Types/ToolActions"
-import { shuffle } from "../lib/shuffle"
 
 type Props = {
   letters: string[]
@@ -20,22 +19,32 @@ type FloatingTile = {
 /**
  * Constants
  */
-const SPEED = 0.05
-const FRAMERATE = 100
+const UNITS_PER_SECOND = 0.5 // How fast in normalized coords (0-2 range)
+const UPDATE_INTERVAL_MS = 50 // How often to update (20 fps)
+
+// Calculate distance per frame
+const UNITS_PER_FRAME = (UNITS_PER_SECOND / 1000) * UPDATE_INTERVAL_MS
+
+function randomCoords(): Coord {
+  return {
+    x: Math.random() * 2 - 1,
+    y: Math.random() * 2 - 1,
+  }
+}
 
 function randomDirection(): { xDir: number; yDir: number } {
   const angle = Math.random() * Math.PI * 2
 
   return {
-    xDir: Math.cos(angle) * SPEED,
-    yDir: Math.sin(angle) * SPEED,
+    xDir: Math.cos(angle) * UNITS_PER_FRAME,
+    yDir: Math.sin(angle) * UNITS_PER_FRAME,
   }
 }
 
 function initializeTile(letter: string): FloatingTile {
   return {
     letter,
-    coords: { x: Math.random(), y: Math.random() },
+    coords: randomCoords(),
     ...randomDirection(),
   }
 }
@@ -87,16 +96,13 @@ export default function FloatingTool({
 
   const shuffleTiles = () => {
     setTiles((tiles) => [
-      ...shuffle(
-        tiles.map((tile) => {
-          console.log(tile.coords)
-
-          return {
-            ...tile,
-            ...randomDirection(),
-          }
-        }),
-      ),
+      ...tiles.map((tile) => {
+        return {
+          ...tile,
+          coords: randomCoords(),
+          ...randomDirection(),
+        }
+      }),
     ])
   }
 
@@ -117,7 +123,7 @@ export default function FloatingTool({
           return updateTile(tile)
         })
       })
-    }, FRAMERATE)
+    }, UPDATE_INTERVAL_MS)
 
     return () => {
       clearInterval(intervalId)
@@ -134,7 +140,7 @@ export default function FloatingTool({
               className="tile floating-tool-tile"
               style={{
                 ...coordToTranslate(tile.coords),
-                transition: `translate ${FRAMERATE}ms linear`,
+                transition: `translate ${UPDATE_INTERVAL_MS}ms linear`,
               }}
             >
               {tile.letter}
