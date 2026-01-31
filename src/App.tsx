@@ -1,6 +1,6 @@
 import "./App.css"
 
-import { useEffect, useMemo, useState, type JSX } from "react"
+import { useMemo, useState, type JSX } from "react"
 import { type ToolActions } from "./Types/ToolActions"
 import { type Tool } from "./Types/Tool"
 
@@ -129,6 +129,7 @@ function App() {
     <>
       <div id="header">
         <h1>anagramic</h1>
+
         {letters.length > 0 && (
           <a className="back-button" onClick={() => newLetters()}>
             <BackIcon />

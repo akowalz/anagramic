@@ -13,7 +13,7 @@ type Pos = { x: number; y: number }
 
 type TileData = {
   id: number
-  relativePos: Pos
+  pos: Pos
   letter: string
   zIndex: number
 }
@@ -22,7 +22,7 @@ function tilesFromLetters(letters: string[]): TileData[] {
   return letters.map((letter, index) => ({
     letter,
     id: index,
-    relativePos: { x: 0, y: 0 },
+    pos: { x: 0, y: 0 },
     zIndex: 0,
   }))
 }
@@ -41,19 +41,14 @@ export default function TileTool({ letters, registerActions }: Props) {
     if (!shadowCanvasRef.current || !canvasRef.current)
       throw "cant find canvas refs"
 
-    const { containerHeight, containerWidth } = {
-      containerHeight: canvasRef.current.clientHeight,
-      containerWidth: canvasRef.current.clientWidth,
-    }
-
     const shadowTiles = Array.from(
       shadowCanvasRef.current.querySelectorAll<HTMLElement>(".tile"),
     )
     if (!shadowTiles) throw "cant find tiles"
 
     return shadowTiles.map((t) => ({
-      x: t.offsetLeft / containerWidth,
-      y: t.offsetTop / containerHeight,
+      x: t.offsetLeft,
+      y: t.offsetTop,
     }))
   }
 
@@ -67,7 +62,7 @@ export default function TileTool({ letters, registerActions }: Props) {
 
         return {
           ...tile,
-          relativePos: posForTile,
+          pos: posForTile,
         }
       }),
     )
@@ -84,7 +79,7 @@ export default function TileTool({ letters, registerActions }: Props) {
 
         return {
           ...tile,
-          relativePos: posForTile,
+          pos: posForTile,
         }
       }),
     )
@@ -95,9 +90,7 @@ export default function TileTool({ letters, registerActions }: Props) {
       const maxZ = Math.max(...tiles.map((t) => t.zIndex))
 
       return tiles.map((tile) =>
-        tile.id === id
-          ? { ...tile, relativePos: newPos, zIndex: maxZ + 1 }
-          : tile,
+        tile.id === id ? { ...tile, pos: newPos, zIndex: maxZ + 1 } : tile,
       )
     })
   }
@@ -119,7 +112,7 @@ export default function TileTool({ letters, registerActions }: Props) {
           letter,
           zIndex: 0,
           id: index,
-          relativePos: flexPositions[index],
+          pos: flexPositions[index],
         }
       }),
     )
@@ -133,7 +126,7 @@ export default function TileTool({ letters, registerActions }: Props) {
         letter={tile.letter}
         id={tile.id}
         key={tile.id}
-        relativePos={{ ...tile.relativePos }}
+        pos={{ ...tile.pos }}
         zIndex={tile.zIndex}
         onMove={handleMoveTile}
         containerRef={canvasRef}
@@ -153,7 +146,15 @@ export default function TileTool({ letters, registerActions }: Props) {
           className="hidden-tile-canvas"
           ref={shadowCanvasRef}
         >
-          {tiles}
+          {letters.map((letter, index) => (
+            <div
+              key={index}
+              className="tile"
+              style={{ height: "40px", width: "40px" }}
+            >
+              {letter}
+            </div>
+          ))}
         </div>
       </div>
     </>
