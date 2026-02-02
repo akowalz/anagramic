@@ -5,11 +5,12 @@
   cursor: grab;
   transition: transform 100ms ease-out;
 
-  height: 40px;
-  width: 40px;
+  height: var(--tile-size);
+  width: var(--tile-size);
 }
 
 .draggable-tile.dragging {
+  transition: none;
   cursor: grabbing;
   background-color: var(--lighter);
   box-shadow: 4px 4px 0 black;

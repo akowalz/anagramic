@@ -12,6 +12,14 @@ type Props = {
   containerRef: React.RefObject<HTMLDivElement | null>
 }
 
+/* Tile height and width */
+const TILE_SIZE = 40
+/* When clicking a tile, move the tile to 50%
+X position (middle of the tile), and 70% Y position
+(shift tile up a bit) */
+const DRAG_OFFSET_X = 0.5
+const DRAG_OFFSET_Y = 0.7
+
 export default function DraggableTile({
   letter,
   pos,
@@ -49,13 +57,22 @@ export default function DraggableTile({
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     e.currentTarget.releasePointerCapture(e.pointerId)
     setDragging(false)
+
+    if (!containerRef.current) return
+    const rect = containerRef.current.getBoundingClientRect()
+
+    onMove(id, {
+      x: e.clientX - rect.left - Math.round(TILE_SIZE * DRAG_OFFSET_X),
+      y: e.clientY - rect.top - Math.round(TILE_SIZE * DRAG_OFFSET_Y),
+    })
   }
 
   const scale = dragging ? 1.11 : 1
-  const translateY = dragging ? 70 : 50
+  const translateXPct = dragging ? DRAG_OFFSET_X * 100 : 0
+  const translateYPct = dragging ? DRAG_OFFSET_Y * 100 : 0
   const transform = `translate(
-    calc(${pos.x}px - 50%),
-    calc(${pos.y}px - ${translateY}%)
+    calc(${pos.x}px - ${translateXPct}%),
+    calc(${pos.y}px - ${translateYPct}%)
   ) scale(${scale})`
 
   return (
@@ -65,7 +82,13 @@ export default function DraggableTile({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
-      style={{ transform, zIndex }}
+      style={
+        {
+          transform,
+          zIndex,
+          "--tile-size": `${TILE_SIZE}px`,
+        } as React.CSSProperties
+      }
     >
       {letter}
     </div>
