@@ -54,7 +54,7 @@ function App() {
 
   function reset(): void {
     if (!currentToolActions.reset) {
-      throw "attempted to call non-existed reset function"
+      throw "attempted to call non-existant reset function"
     }
 
     currentToolActions.reset()
@@ -62,7 +62,7 @@ function App() {
 
   function shuffle(): void {
     if (!currentToolActions.shuffle) {
-      throw "attempted to call non-existed shuffle function"
+      throw "attempted to call non-existant shuffle function"
     }
 
     currentToolActions.shuffle()
