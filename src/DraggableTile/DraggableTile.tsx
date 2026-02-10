@@ -73,7 +73,7 @@ export default function DraggableTile({
   const transform = `translate(
     calc(${pos.x}px - ${translateXPct}%),
     calc(${pos.y}px - ${translateYPct}%)
-  ) scale(${scale})`
+  ) translateZ(0) scale(${scale})`
 
   return (
     <div
