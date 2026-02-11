@@ -36,6 +36,11 @@ h1 {
   font-family: monospace;
 }
 
+h1:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 #tool-container {
   display: flex;
   flex: 1;

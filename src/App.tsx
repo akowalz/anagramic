@@ -14,6 +14,7 @@ import FloatingTool from "./FloatingTool/FloatingTool"
 import ShuffleIcon from "./Icons/ShuffleIcon"
 import BackIcon from "./Icons/BackIcon"
 import ResetIcon from "./Icons/ResetIcon"
+import AboutPage from "./AboutPage/AboutPage"
 
 type ActionsForTools = {
   [K in Tool]: ToolActions | undefined
@@ -27,6 +28,7 @@ function App() {
     Floating: undefined,
   })
 
+  const [showAboutPage, setShowAboutPage] = useState(false)
   const [inputValue, setInputValue] = useState("")
 
   const [letters, setLetters] = useState<string[]>(() => {
@@ -69,6 +71,7 @@ function App() {
   }
 
   const newLetters = () => {
+    setShowAboutPage(false)
     setInputValue("")
     setLetters([])
   }
@@ -128,7 +131,7 @@ function App() {
   return (
     <>
       <div id="header">
-        <h1>anagramic</h1>
+        <h1 onClick={() => setShowAboutPage(!showAboutPage)}>anagramic</h1>
 
         {letters.length > 0 && (
           <a className="back-button" onClick={() => newLetters()}>
@@ -138,31 +141,37 @@ function App() {
         )}
       </div>
 
-      {letters.length !== 0 && (
-        <div id="main-navigation">
-          <ToolPicker activeTool={tool} setTool={setTool} />
-          <div className="tooltip">{tooltips[tool]}</div>
-        </div>
-      )}
-
-      <div id="tool-container">{getContainerView()}</div>
-
-      {letters.length !== 0 && (
-        <div className="tool-footer">
-          {currentToolActions.reset && (
-            <button onClick={reset}>
-              <ResetIcon />
-              Reset
-            </button>
+      {showAboutPage ? (
+        <AboutPage />
+      ) : (
+        <>
+          {letters.length !== 0 && (
+            <div id="main-navigation">
+              <ToolPicker activeTool={tool} setTool={setTool} />
+              <div className="tooltip">{tooltips[tool]}</div>
+            </div>
           )}
 
-          {currentToolActions.shuffle && (
-            <button onClick={shuffle}>
-              <ShuffleIcon />
-              Shuffle
-            </button>
+          <div id="tool-container">{getContainerView()}</div>
+
+          {letters.length !== 0 && (
+            <div className="tool-footer">
+              {currentToolActions.reset && (
+                <button onClick={reset}>
+                  <ResetIcon />
+                  Reset
+                </button>
+              )}
+
+              {currentToolActions.shuffle && (
+                <button onClick={shuffle}>
+                  <ShuffleIcon />
+                  Shuffle
+                </button>
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
     </>
   )
