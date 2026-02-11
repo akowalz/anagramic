@@ -32,7 +32,7 @@ body {
   --light: #eeeeee;
   --lighter: #f4f4f4;
   --lightest: #f7f7f7;
-  --highlight: orange;
+  --highlight: #EAB308;
 
   /* App background alias */
   --app-bg: var(--lighter);
