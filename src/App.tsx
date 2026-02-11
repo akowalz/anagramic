@@ -29,7 +29,10 @@ function App() {
   })
 
   const [showAboutPage, setShowAboutPage] = useState(false)
-  const [inputValue, setInputValue] = useState("")
+  const [inputValue, setInputValue] = useState(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get("fodder") ?? ""
+  })
 
   const [letters, setLetters] = useState<string[]>(() => {
     const params = new URLSearchParams(window.location.search)
@@ -74,6 +77,10 @@ function App() {
     setShowAboutPage(false)
     setInputValue("")
     setLetters([])
+
+    const url = new URL(window.location.href)
+    url.searchParams.delete("fodder")
+    window.history.replaceState(null, "", url)
   }
 
   function getContainerView(): JSX.Element {

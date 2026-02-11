@@ -23,6 +23,10 @@ export default function Form({
   const submit = () => {
     if (inputValue === "") return
 
+    const url = new URL(window.location.href)
+    url.searchParams.set("fodder", inputValue)
+    window.history.replaceState(null, "", url)
+
     setLetters(inputValue.toUpperCase().split(""))
   }
 
@@ -48,9 +52,7 @@ export default function Form({
         onChange={(e) => onInputChange(e.target.value)}
       />
 
-      <button type="submit" onClick={() => submit()}>
-        Let's anagram
-      </button>
+      <button type="submit">Let's anagram</button>
     </form>
   )
 }
