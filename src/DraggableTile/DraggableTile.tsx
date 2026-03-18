@@ -14,11 +14,6 @@ type Props = {
 
 /* Tile height and width */
 const TILE_SIZE = 40
-/* When clicking a tile, move the tile to 50%
-X position (middle of the tile), and 70% Y position
-(shift tile up a bit) */
-const DRAG_OFFSET_X = 0.5
-const DRAG_OFFSET_Y = 0.7
 
 export default function DraggableTile({
   letter,
@@ -29,6 +24,7 @@ export default function DraggableTile({
   containerRef,
 }: Props) {
   const [dragging, setDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState<Pos>({ x: 0, y: 0 })
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!containerRef.current) return
@@ -36,11 +32,14 @@ export default function DraggableTile({
     e.currentTarget.setPointerCapture(e.pointerId)
     const rect = containerRef.current.getBoundingClientRect()
 
+    // Calculate the offset from the tile's current position to where the cursor is
+    const cursorX = e.clientX - rect.left
+    const cursorY = e.clientY - rect.top
+    const offsetX = cursorX - pos.x
+    const offsetY = cursorY - pos.y
+
+    setDragOffset({ x: offsetX, y: offsetY })
     setDragging(true)
-    onMove(id, {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    })
   }
 
   const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -49,8 +48,8 @@ export default function DraggableTile({
     const rect = containerRef.current.getBoundingClientRect()
 
     onMove(id, {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      x: e.clientX - rect.left - dragOffset.x,
+      y: e.clientY - rect.top - dragOffset.y,
     })
   }
 
@@ -62,18 +61,13 @@ export default function DraggableTile({
     const rect = containerRef.current.getBoundingClientRect()
 
     onMove(id, {
-      x: e.clientX - rect.left - Math.round(TILE_SIZE * DRAG_OFFSET_X),
-      y: e.clientY - rect.top - Math.round(TILE_SIZE * DRAG_OFFSET_Y),
+      x: e.clientX - rect.left - dragOffset.x,
+      y: e.clientY - rect.top - dragOffset.y,
     })
   }
 
   const scale = dragging ? 1.11 : 1
-  const translateXPct = dragging ? DRAG_OFFSET_X * 100 : 0
-  const translateYPct = dragging ? DRAG_OFFSET_Y * 100 : 0
-  const transform = `translate(
-    calc(${pos.x}px - ${translateXPct}%),
-    calc(${pos.y}px - ${translateYPct}%)
-  ) translateZ(0) scale(${scale})`
+  const transform = `translate(${pos.x}px, ${pos.y}px) translateZ(0) scale(${scale})`
 
   return (
     <div
