@@ -20,11 +20,8 @@ export default function LineTool({ letters, registerActions }: Props) {
   const {
     tiles,
     setTiles,
-    activeIndex,
-    setActiveIndex,
     shuffleTiles,
     resetPositions,
-    swapTiles,
   } = useMoveableLetters(letters)
 
   // wont be in hook
@@ -38,21 +35,8 @@ export default function LineTool({ letters, registerActions }: Props) {
     })
   }, [])
 
-  // could be in hook minus drag logic
-  function onClickLetter(index: number) {
-    if (dragId !== null) return
-
-    if (activeIndex !== null) {
-      swapTiles(activeIndex, index)
-      return
-    }
-
-    setActiveIndex(index)
-  }
-
   function onReorder(args: Tile[]) {
     setTiles(args)
-    setActiveIndex(null)
   }
 
   return (
@@ -60,13 +44,12 @@ export default function LineTool({ letters, registerActions }: Props) {
       <Reorder.Group
         axis="x"
         as="div"
-        onClick={() => setActiveIndex(null)}
         values={tiles}
         onReorder={onReorder}
         className="line-tool-container"
         style={{ "--tile-count": tiles.length } as React.CSSProperties}
       >
-        {tiles.map((tile, index) => {
+        {tiles.map((tile) => {
           return (
             <Reorder.Item
               as="div"
@@ -74,14 +57,9 @@ export default function LineTool({ letters, registerActions }: Props) {
               className={`
                   tile
                   line-tool-tile
-                  ${index === activeIndex ? "active" : ""}
                   ${tile.id === dragId ? "dragging" : ""}
                 `}
               key={tile.id}
-              onClick={(e) => {
-                e.stopPropagation()
-                onClickLetter(index)
-              }}
               onDragStart={() => setDragId(tile.id)}
               onDragEnd={() => setDragId(null)}
               transition={spring}
