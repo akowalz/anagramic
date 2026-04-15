@@ -24,10 +24,8 @@ export default function LineTool({ letters, registerActions }: Props) {
     resetPositions,
   } = useMoveableLetters(letters)
 
-  // wont be in hook
   const [dragId, setDragId] = useState<string | null>(null)
 
-  // maybe will be in hook?
   useEffect(() => {
     registerActions({
       reset: () => resetPositions(),

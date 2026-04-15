@@ -8,9 +8,8 @@ export default function AboutPage() {
         Anagramic helps you find anagrams visually. I built it to help solve{" "}
         <a href="https://minutecryptic.com">Minute Cryptic</a> and other{" "}
         <a href="https://en.wikipedia.org/wiki/Cryptic_crossword">
-          cryptic crossword
-        </a>{" "}
-        clues.
+          cryptic crosswords.
+        </a>
       </p>
       <p>
         Often, cryptic crossword clues require finding anagrams from a long set
@@ -18,8 +17,9 @@ export default function AboutPage() {
         don't have to resort to an anagram solver.
       </p>
       <p>
-        Anagramic is and will always be free to use. If you find it useful,
-        share it with a fellow solver!
+        Anagramic is free and{" "}
+        <a href="https://github.com/akowalz/anagramic">open source</a>. If you
+        enjoy it or find it useful, share it with a fellow solver!
       </p>
     </div>
   )

@@ -12,18 +12,13 @@ in their browser. There is no backend or persistence.
 The app is deployed using Vercel, pushing to main deploys. DO NOT DEPLOY OR PUSH.
 
 The app is primarily designed to be used on mobile, but it also looks nice on
-desktops. I've tried to use responsive design everywhere so that it looks good
-on any screen size.
+desktops. It's designed to look good on basically any screen size.
 
 ## Rules for contributing
-
-Please DO NOT COMMIT CODE TO MAIN. If you are working on main, please first ask me
-to create a branch for you to work on.
 
 Please DO NOT PUSH TO MAIN. Pushing will deploy to production. Please do not do this!
 
 Do not install new dependencies without asking first. If you want to install a new
 dependency, make a strong case for it and only use if necessary.
 
-There are no tests, so all changes must be verified by hand. If you need to verify a change,
-pause and ask me to check the web app. I can verify the changes quickly by hand.
+There are no tests, so all changes must be verified by hand. If you need to verify a change, pause and ask for a manual verification of the changes.
