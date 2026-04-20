@@ -42,6 +42,8 @@ export default function Form({
         submit()
       }}
       autoComplete="off"
+      autoCorrect="off"
+      autoCapitalize="off"
     >
       <div className="form-label">Enter letters to anagram:</div>
 
@@ -50,6 +52,7 @@ export default function Form({
         id="fodder-input"
         value={inputValue}
         onChange={(e) => onInputChange(e.target.value)}
+        spellCheck="false"
       />
 
       <button type="submit">Let's anagram</button>
