@@ -9,11 +9,12 @@ type Props = {
   pos: Pos
   zIndex: number
   onMove: (id: number, pos: Pos) => void
+  onDrop: (id: number, pos: Pos) => void
   containerRef: React.RefObject<HTMLDivElement | null>
 }
 
 /* Tile height and width */
-const TILE_SIZE = 40
+export const TILE_SIZE = 40
 
 export default function DraggableTile({
   letter,
@@ -21,6 +22,7 @@ export default function DraggableTile({
   id,
   zIndex,
   onMove,
+  onDrop,
   containerRef,
 }: Props) {
   const [dragging, setDragging] = useState(false)
@@ -60,7 +62,7 @@ export default function DraggableTile({
     if (!containerRef.current) return
     const rect = containerRef.current.getBoundingClientRect()
 
-    onMove(id, {
+    onDrop(id, {
       x: e.clientX - rect.left - dragOffset.x,
       y: e.clientY - rect.top - dragOffset.y,
     })
