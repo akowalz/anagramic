@@ -10,9 +10,10 @@ const MAX_PUSH_PASSES = 20
 
 /*
  * After a tile is dropped, push any tiles it overlaps out of the way.
- * The dropped tile never moves; every other tile can be pushed, including
- * by tiles that were themselves pushed. Runs repeated passes until no
- * overlaps remain (or the pass cap is hit).
+ * The dropped tile is first pulled back inside the canvas (it may have been
+ * released past the edge), then never moves; every other tile can be pushed,
+ * including by tiles that were themselves pushed. Runs repeated passes until
+ * no overlaps remain (or the pass cap is hit).
  */
 export function resolveOverlaps<T extends { id: number; pos: Pos }>(
   tiles: T[],
@@ -26,6 +27,11 @@ export function resolveOverlaps<T extends { id: number; pos: Pos }>(
     x: Math.min(Math.max(pos.x, 0), Math.max(0, bounds.width - TILE_SIZE)),
     y: Math.min(Math.max(pos.y, 0), Math.max(0, bounds.height - TILE_SIZE)),
   })
+
+  const droppedIndex = tiles.findIndex((tile) => tile.id === droppedId)
+  if (droppedIndex !== -1) {
+    positions[droppedIndex] = clamp(positions[droppedIndex])
+  }
 
   for (let pass = 0; pass < MAX_PUSH_PASSES; pass++) {
     let anyPushed = false

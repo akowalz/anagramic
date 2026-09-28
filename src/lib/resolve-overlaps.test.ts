@@ -30,6 +30,28 @@ describe("resolveOverlaps", () => {
     expect(result[1].pos).toEqual({ x: TILE_SIZE, y: 0 })
   })
 
+  it("pulls a tile dropped past the canvas edge back inside", () => {
+    const bounds = { width: 200, height: 300 }
+    const tiles = [tile(0, -25, 400), tile(1, 500, -10)]
+
+    const [first] = resolveOverlaps(tiles, 0, bounds)
+    const [, second] = resolveOverlaps(tiles, 1, bounds)
+
+    expect(first.pos).toEqual({ x: 0, y: 300 - TILE_SIZE })
+    expect(second.pos).toEqual({ x: 200 - TILE_SIZE, y: 0 })
+  })
+
+  it("pushes tiles away from where the dropped tile lands after clamping", () => {
+    const bounds = { width: 200, height: 200 }
+    // Released far off the left edge, landing on top of tile 1
+    const tiles = [tile(0, -300, 50), tile(1, 5, 50)]
+
+    const result = resolveOverlaps(tiles, 0, bounds)
+
+    expect(result[0].pos).toEqual({ x: 0, y: 50 })
+    expect(overlaps(result[0].pos, result[1].pos)).toBe(false)
+  })
+
   it("never moves the dropped tile", () => {
     const tiles = [tile(0, 100, 100), tile(1, 110, 110), tile(2, 90, 95)]
 
