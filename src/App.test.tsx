@@ -160,6 +160,42 @@ describe("going back", () => {
   })
 })
 
+describe("Freeform layout", () => {
+  // Fake just enough layout for Freeform to measure: elements inside a hidden
+  // tool have no layout (like display: none), others sit 50px apart.
+  function fakeLayout() {
+    const offset = (el: HTMLElement) =>
+      el.closest(".hidden")
+        ? 0
+        : Array.from(el.parentElement?.children ?? []).indexOf(el) * 50
+    vi.spyOn(HTMLElement.prototype, "offsetLeft", "get").mockImplementation(
+      function (this: HTMLElement) {
+        return offset(this)
+      },
+    )
+    vi.spyOn(HTMLElement.prototype, "offsetTop", "get").mockReturnValue(0)
+  }
+
+  function freeformTransforms(): string[] {
+    return tilesIn("Tiles").map((tile) => tile.style.transform)
+  }
+
+  it("spreads the tiles out after entering new letters from another tool", async () => {
+    fakeLayout()
+    const user = renderApp()
+    await enterFodder(user, "cat")
+    await pickTool(user, "Line")
+    await user.click(screen.getByText("Back"))
+    await enterFodder(user, "dog")
+
+    await pickTool(user, "Tiles")
+
+    const transforms = freeformTransforms()
+    expect(transforms).toHaveLength(3)
+    expect(new Set(transforms).size).toBe(3)
+  })
+})
+
 describe("switching tools", () => {
   it("starts on Freeform", async () => {
     const user = renderApp()

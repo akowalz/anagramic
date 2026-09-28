@@ -102,6 +102,7 @@ function App() {
         >
           <TilesTool
             letters={letters}
+            active={tool === "Tiles"}
             registerActions={(actions: ToolActions) =>
               setActionsForTool("Tiles", actions)
             }
