@@ -14,6 +14,19 @@ The app is deployed using Vercel, pushing to main deploys. DO NOT DEPLOY OR PUSH
 The app is primarily designed to be used on mobile, but it also looks nice on
 desktops. It's designed to look good on basically any screen size.
 
+## Development
+
+Dependencies are managed with npm (`package-lock.json`). Run `npm install` first.
+
+- `npm run dev` — start the Vite dev server (http://localhost:5173 by default)
+- `npx tsc -b` — type check the project (uses the project references in
+  `tsconfig.json`, which cover `tsconfig.app.json` and `tsconfig.node.json`)
+- `npm run lint` — run ESLint
+- `npm run build` — type check and produce a production build in `dist/`
+- `npm run preview` — serve the production build locally
+
+Run the type check and lint after making changes.
+
 ## Rules for contributing
 
 Please DO NOT PUSH TO MAIN. Pushing will deploy to production. Please do not do this!
