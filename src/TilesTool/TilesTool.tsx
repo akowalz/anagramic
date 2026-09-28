@@ -7,6 +7,7 @@ import { resolveOverlaps, type Pos } from "../lib/resolve-overlaps"
 
 type Props = {
   letters: string[]
+  active: boolean
   registerActions: (actions: ToolActions) => void
 }
 
@@ -26,7 +27,11 @@ function tilesFromLetters(letters: string[]): TileData[] {
   }))
 }
 
-export default function TileTool({ letters, registerActions }: Props) {
+export default function TileTool({
+  letters,
+  active,
+  registerActions,
+}: Props) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const shadowCanvasRef = useRef<HTMLDivElement>(null)
 
@@ -118,7 +123,14 @@ export default function TileTool({ letters, registerActions }: Props) {
     })
   }, [])
 
+  /*
+   * Lay out the tiles the first time the tool is shown. The shadow canvas
+   * has no layout while the tool is hidden (display: none), so measuring it
+   * then would put every tile at (0, 0).
+   */
   useLayoutEffect(() => {
+    if (!active || showTiles) return
+
     const flexPositions = getFlexPositions()
 
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -134,7 +146,7 @@ export default function TileTool({ letters, registerActions }: Props) {
     )
 
     setShowTiles(true)
-  }, [])
+  }, [active, letters, showTiles])
 
   const tiles = tileData.map((tile) => {
     return (
