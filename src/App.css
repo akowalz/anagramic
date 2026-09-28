@@ -33,7 +33,7 @@ h1 {
   font-size: 1.8em;
   margin-block-start: 0.2em;
   margin-block-end: 0.4em;
-  font-family: monospace;
+  font-family: var(--font-letters);
 }
 
 h1:hover {

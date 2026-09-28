@@ -37,7 +37,12 @@ body {
   /* App background alias */
   --app-bg: var(--lighter);
 
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  /* Fonts (overridden at runtime by the dev-only FontPicker) */
+  --font-ui: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-tool-picker: Arial, Helvetica, sans-serif;
+  --font-letters: monospace;
+
+  font-family: var(--font-ui);
   font-weight: 400;
 
   font-synthesis: none;
@@ -106,7 +111,7 @@ button.active {
   place-items: center;
 
   aspect-ratio: 1/1;
-  font-family: monospace;
+  font-family: var(--font-letters);
   font-size: 32px;
   border-radius: 4px;
   background-color: var(--background-color);
