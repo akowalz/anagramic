@@ -12,7 +12,7 @@ export function coordToPosition(coord: Coord) {
   const { x, y } = coord
 
   if (x < -1.0 || x > 1.0) throw "x out of range"
-  if (y < -1.0 || y > 1.0) throw "x out of range"
+  if (y < -1.0 || y > 1.0) throw "y out of range"
 
   return {
     left: x * 0.5 + 0.5,

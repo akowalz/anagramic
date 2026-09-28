@@ -17,6 +17,19 @@ function initializeLetters(letters: string[]): Tile[] {
   })
 }
 
+export function sortByInitialPosition(tiles: Tile[]): Tile[] {
+  return [...tiles].sort((a, b) => a.initialPosition - b.initialPosition)
+}
+
+export function swapTiles(tiles: Tile[], indexA: number, indexB: number): Tile[] {
+  const newTiles = [...tiles]
+
+  newTiles[indexA] = tiles[indexB]
+  newTiles[indexB] = tiles[indexA]
+
+  return newTiles
+}
+
 export function useMoveableLetters(letters: string[]) {
   const [tiles, setTiles] = useState<Tile[]>(
     initializeLetters(letters)
@@ -25,26 +38,16 @@ export function useMoveableLetters(letters: string[]) {
 
   function shuffleTiles() {
     setActiveIndex(null)
-    setTiles([...shuffle(tiles)])
+    setTiles(shuffle([...tiles]))
   }
 
   function resetPositions() {
     setActiveIndex(null)
-    setTiles([
-      ...tiles.sort((a, b) => a.initialPosition - b.initialPosition),
-    ])
+    setTiles(sortByInitialPosition(tiles))
   }
 
-  function swapTiles(indexA: number, indexB: number) {
-    const newTiles = [...tiles]
-
-    const letterA = tiles[indexA]
-    const letterB = tiles[indexB]
-
-    newTiles[indexB] = letterA
-    newTiles[indexA] = letterB
-
-    setTiles([...newTiles])
+  function swap(indexA: number, indexB: number) {
+    setTiles(swapTiles(tiles, indexA, indexB))
     setActiveIndex(null)
   }
 
@@ -55,6 +58,6 @@ export function useMoveableLetters(letters: string[]) {
     setActiveIndex,
     shuffleTiles,
     resetPositions,
-    swapTiles
+    swapTiles: swap
   }
 }

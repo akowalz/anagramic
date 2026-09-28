@@ -34,4 +34,11 @@ Please DO NOT PUSH TO MAIN. Pushing will deploy to production. Please do not do 
 Do not install new dependencies without asking first. If you want to install a new
 dependency, make a strong case for it and only use if necessary.
 
-There are no tests, so all changes must be verified by hand. If you need to verify a change, pause and ask for a manual verification of the changes.
+There is a small Vitest suite covering pure logic (run with `npm test`, or
+`npx vitest run` for a single run). Tests live next to the code they cover as
+`*.test.ts`. Keep testable logic in plain functions (e.g. in `src/lib/`) so it
+can be tested without a DOM.
+
+Interactions (dragging, tapping, animation) are not covered by tests, so UI
+changes must still be verified by hand. If you need to verify a change, pause
+and ask for a manual verification of the changes.
