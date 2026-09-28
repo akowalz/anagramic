@@ -96,7 +96,10 @@ function App() {
 
     return (
       <>
-        <div className={`tool-container ${tool === "Tiles" ? "" : "hidden"}`}>
+        <div
+          className={`tool-container ${tool === "Tiles" ? "" : "hidden"}`}
+          data-tool="Tiles"
+        >
           <TilesTool
             letters={letters}
             registerActions={(actions: ToolActions) =>
@@ -104,7 +107,10 @@ function App() {
             }
           />
         </div>
-        <div className={`tool-container ${tool === "Line" ? "" : "hidden"}`}>
+        <div
+          className={`tool-container ${tool === "Line" ? "" : "hidden"}`}
+          data-tool="Line"
+        >
           <LineTool
             letters={letters}
             registerActions={(actions: ToolActions) =>
@@ -112,7 +118,10 @@ function App() {
             }
           />
         </div>
-        <div className={`tool-container ${tool === "Wheel" ? "" : "hidden"}`}>
+        <div
+          className={`tool-container ${tool === "Wheel" ? "" : "hidden"}`}
+          data-tool="Wheel"
+        >
           <WheelTool
             letters={letters}
             registerActions={(actions: ToolActions) =>
@@ -122,6 +131,7 @@ function App() {
         </div>
         <div
           className={`tool-container ${tool === "Floating" ? "" : "hidden"}`}
+          data-tool="Floating"
         >
           <FloatingTool
             letters={letters}

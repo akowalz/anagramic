@@ -21,11 +21,15 @@ Please DO NOT PUSH TO MAIN. Pushing will deploy to production. Please do not do 
 Do not install new dependencies without asking first. If you want to install a new
 dependency, make a strong case for it and only use if necessary.
 
-There is a small Vitest suite covering pure logic (run with `npm test`, or
-`npx vitest run` for a single run). Tests live next to the code they cover as
-`*.test.ts`. Keep testable logic in plain functions (e.g. in `src/lib/`) so it
-can be tested without a DOM.
+There is a small Vitest suite (run with `npm test`, or `npx vitest run` for a
+single run). Tests live next to the code they cover as `*.test.ts(x)`:
 
-Interactions (dragging, tapping, animation) are not covered by tests, so UI
-changes must still be verified by hand. If you need to verify a change, pause
-and ask for a manual verification of the changes.
+- Unit tests for pure logic. Keep testable logic in plain functions (e.g. in
+  `src/lib/`) so it can be tested without a DOM.
+- UI tests in `src/App.test.tsx`, using Testing Library in jsdom. They cover
+  entering fodder, going back, switching tools, and basic interactions in each
+  tool. jsdom has no CSS or layout, so they can't check real positioning,
+  animation, or the Line tool's drag-to-reorder.
+
+Because of those gaps, UI changes must still be verified by hand. If you need
+to verify a change, pause and ask for a manual verification of the changes.
