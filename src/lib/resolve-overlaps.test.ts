@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest"
 import { resolveOverlaps, TILE_GAP } from "./resolve-overlaps"
 import { TILE_SIZE } from "../DraggableTile/DraggableTile"
 
-const BIG_BOUNDS = { width: 1000, height: 1000 }
+const BIG_BOUNDS = box(1000, 1000)
 const SETTLED = TILE_SIZE + TILE_GAP
+
+function box(width: number, height: number) {
+  return { left: 0, top: 0, right: width, bottom: height }
+}
 
 function tile(id: number, x: number, y: number) {
   return { id, pos: { x, y } }
@@ -31,7 +35,7 @@ describe("resolveOverlaps", () => {
   })
 
   it("pulls a tile dropped past the canvas edge back inside", () => {
-    const bounds = { width: 200, height: 300 }
+    const bounds = box(200, 300)
     const tiles = [tile(0, -25, 400), tile(1, 500, -10)]
 
     const [first] = resolveOverlaps(tiles, 0, bounds)
@@ -42,7 +46,7 @@ describe("resolveOverlaps", () => {
   })
 
   it("pushes tiles away from where the dropped tile lands after clamping", () => {
-    const bounds = { width: 200, height: 200 }
+    const bounds = box(200, 200)
     // Released far off the left edge, landing on top of tile 1
     const tiles = [tile(0, -300, 50), tile(1, 5, 50)]
 
@@ -50,6 +54,20 @@ describe("resolveOverlaps", () => {
 
     expect(result[0].pos).toEqual({ x: 0, y: 50 })
     expect(overlaps(result[0].pos, result[1].pos)).toBe(false)
+  })
+
+  it("lets tiles sit in margins that extend past the canvas", () => {
+    // Canvas starts 300px from the left of a 1000px-wide screen
+    const bounds = { left: -300, top: 0, right: 700, bottom: 500 }
+    const tiles = [tile(0, -200, 50), tile(1, -500, 50), tile(2, 900, 50)]
+
+    const [first] = resolveOverlaps(tiles, 0, bounds)
+    const [, second] = resolveOverlaps(tiles, 1, bounds)
+    const [, , third] = resolveOverlaps(tiles, 2, bounds)
+
+    expect(first.pos).toEqual({ x: -200, y: 50 })
+    expect(second.pos).toEqual({ x: -300, y: 50 })
+    expect(third.pos).toEqual({ x: 700 - TILE_SIZE, y: 50 })
   })
 
   it("never moves the dropped tile", () => {
@@ -97,7 +115,7 @@ describe("resolveOverlaps", () => {
   })
 
   it("keeps pushed tiles inside the canvas", () => {
-    const bounds = { width: 120, height: 120 }
+    const bounds = box(120, 120)
     // Dropped in the bottom-right corner, pushing the other tile toward the edge
     const tiles = [tile(0, 70, 70), tile(1, 75, 78)]
 
@@ -106,8 +124,8 @@ describe("resolveOverlaps", () => {
     for (const { pos } of result) {
       expect(pos.x).toBeGreaterThanOrEqual(0)
       expect(pos.y).toBeGreaterThanOrEqual(0)
-      expect(pos.x).toBeLessThanOrEqual(bounds.width - TILE_SIZE)
-      expect(pos.y).toBeLessThanOrEqual(bounds.height - TILE_SIZE)
+      expect(pos.x).toBeLessThanOrEqual(bounds.right - TILE_SIZE)
+      expect(pos.y).toBeLessThanOrEqual(bounds.bottom - TILE_SIZE)
     }
   })
 

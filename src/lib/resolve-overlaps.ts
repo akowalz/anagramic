@@ -2,6 +2,12 @@ import { TILE_SIZE } from "../DraggableTile/DraggableTile"
 
 export type Pos = { x: number; y: number }
 
+/*
+ * Area tiles must stay within, in canvas coordinates. It can extend past the
+ * canvas (e.g. a negative left) since tiles may sit in the margins around it.
+ */
+export type Bounds = { left: number; top: number; right: number; bottom: number }
+
 /* Breathing room left between tiles once repulsion has separated them */
 export const TILE_GAP = 6
 
@@ -10,7 +16,7 @@ const MAX_PUSH_PASSES = 20
 
 /*
  * After a tile is dropped, push any tiles it overlaps out of the way.
- * The dropped tile is first pulled back inside the canvas (it may have been
+ * The dropped tile is first pulled back inside the bounds (it may have been
  * released past the edge), then never moves; every other tile can be pushed,
  * including by tiles that were themselves pushed. Runs repeated passes until
  * no overlaps remain (or the pass cap is hit).
@@ -18,14 +24,16 @@ const MAX_PUSH_PASSES = 20
 export function resolveOverlaps<T extends { id: number; pos: Pos }>(
   tiles: T[],
   droppedId: number,
-  bounds: { width: number; height: number },
+  bounds: Bounds,
 ): T[] {
   const positions = tiles.map((tile) => ({ ...tile.pos }))
   const settledDist = TILE_SIZE + TILE_GAP
 
+  const maxX = Math.max(bounds.left, bounds.right - TILE_SIZE)
+  const maxY = Math.max(bounds.top, bounds.bottom - TILE_SIZE)
   const clamp = (pos: Pos): Pos => ({
-    x: Math.min(Math.max(pos.x, 0), Math.max(0, bounds.width - TILE_SIZE)),
-    y: Math.min(Math.max(pos.y, 0), Math.max(0, bounds.height - TILE_SIZE)),
+    x: Math.min(Math.max(pos.x, bounds.left), maxX),
+    y: Math.min(Math.max(pos.y, bounds.top), maxY),
   })
 
   const droppedIndex = tiles.findIndex((tile) => tile.id === droppedId)

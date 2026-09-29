@@ -3,7 +3,7 @@ import Tile from "../DraggableTile/DraggableTile"
 import "./TilesTool.css"
 import { type ToolActions } from "../Types/ToolActions"
 import { shuffle } from "../lib/shuffle"
-import { resolveOverlaps, type Pos } from "../lib/resolve-overlaps"
+import { resolveOverlaps, type Bounds, type Pos } from "../lib/resolve-overlaps"
 
 type Props = {
   letters: string[]
@@ -96,9 +96,24 @@ export default function TileTool({ letters, registerActions }: Props) {
 
   const handleDropTile = (id: number, newPos: Pos) => {
     const canvas = canvasRef.current
-    const bounds = canvas
-      ? { width: canvas.offsetWidth, height: canvas.offsetHeight }
-      : { width: Infinity, height: Infinity }
+    // The canvas is narrower than the screen on wide displays (#root has a
+    // max-width), so let tiles use the full viewport width. Vertically they
+    // stay within the canvas so they can't cover the header or footer buttons.
+    let bounds: Bounds = {
+      left: -Infinity,
+      top: -Infinity,
+      right: Infinity,
+      bottom: Infinity,
+    }
+    if (canvas) {
+      const rect = canvas.getBoundingClientRect()
+      bounds = {
+        left: -rect.left,
+        top: 0,
+        right: document.documentElement.clientWidth - rect.left,
+        bottom: canvas.offsetHeight,
+      }
+    }
 
     setTileData((tiles) => {
       const maxZ = Math.max(...tiles.map((t) => t.zIndex))
