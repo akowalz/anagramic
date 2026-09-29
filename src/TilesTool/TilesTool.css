@@ -16,6 +16,10 @@
   position: absolute;
 }
 
+.tile-canvas.snapping .tile {
+  transition: none;
+}
+
 #shadow-canvas {
   visibility: hidden;
   background: #7482ff77;
