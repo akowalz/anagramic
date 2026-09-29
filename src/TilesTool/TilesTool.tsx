@@ -51,13 +51,22 @@ export default function TileTool({ letters, registerActions }: Props) {
     }))
   }
 
-  function resetTiles() {
+  /*
+   * Slot (index into the flex positions) each tile occupies while the tiles are
+   * still laid out in the flex arrangement, i.e. after mount, reset or shuffle.
+   * Null once the user drags a tile. While set, tiles follow the layout when
+   * the canvas resizes, e.g. when the footer buttons appear after mount.
+   */
+  const slotsRef = useRef<number[] | null>(null)
+
+  function placeInSlots(slots: number[]) {
     const flexPositions = getFlexPositions()
+    slotsRef.current = slots
 
     setTileData((tileData) =>
       tileData.map((tile, index) => {
-        const posForTile = flexPositions[index]
-        if (!posForTile) throw "no initial position found"
+        const posForTile = flexPositions[slots[index]]
+        if (!posForTile) throw "no flex position found"
 
         return {
           ...tile,
@@ -65,26 +74,19 @@ export default function TileTool({ letters, registerActions }: Props) {
         }
       }),
     )
+  }
+
+  function resetTiles() {
+    placeInSlots(letters.map((_, index) => index))
   }
 
   function shuffleTiles() {
-    const flexPositions = getFlexPositions()
-    const shuffledPositions = shuffle(flexPositions)
-
-    setTileData((tileData) =>
-      tileData.map((tile, index) => {
-        const posForTile = shuffledPositions[index]
-        if (!posForTile) throw "no shuffled position found"
-
-        return {
-          ...tile,
-          pos: posForTile,
-        }
-      }),
-    )
+    placeInSlots(shuffle(letters.map((_, index) => index)))
   }
 
   const handleMoveTile = (id: number, newPos: Pos) => {
+    slotsRef.current = null
+
     setTileData((tiles) => {
       const maxZ = Math.max(...tiles.map((t) => t.zIndex))
 
@@ -134,21 +136,23 @@ export default function TileTool({ letters, registerActions }: Props) {
   }, [])
 
   useLayoutEffect(() => {
-    const flexPositions = getFlexPositions()
-
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTileData(
-      letters.map((letter, index) => {
-        return {
-          letter,
-          zIndex: 0,
-          id: index,
-          pos: flexPositions[index],
-        }
-      }),
-    )
-
+    resetTiles()
     setShowTiles(true)
+  }, [])
+
+  useEffect(() => {
+    const shadowCanvas = shadowCanvasRef.current
+    if (!shadowCanvas) return
+
+    const observer = new ResizeObserver(() => {
+      // Skip while hidden (another tool is active); nothing to lay out
+      if (!slotsRef.current || shadowCanvas.offsetWidth === 0) return
+      placeInSlots(slotsRef.current)
+    })
+    observer.observe(shadowCanvas)
+
+    return () => observer.disconnect()
   }, [])
 
   const tiles = tileData.map((tile) => {
