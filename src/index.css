@@ -37,10 +37,9 @@ body {
   /* App background alias */
   --app-bg: var(--lighter);
 
-  /* Fonts (overridden at runtime by the dev-only FontPicker) */
-  --font-ui: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-  --font-tool-picker: Arial, Helvetica, sans-serif;
-  --font-letters: monospace;
+  /* Fonts (loaded from Google Fonts in index.html) */
+  --font-ui: "IBM Plex Sans", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-letters: "Rubik", sans-serif;
 
   font-family: var(--font-ui);
   font-weight: 400;
@@ -65,6 +64,7 @@ button {
   justify-content: center;
   white-space: nowrap;
 
+  font-family: inherit;
   font-weight: 600;
   font-size: 1em;
   padding: 8px;
