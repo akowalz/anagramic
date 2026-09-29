@@ -3,17 +3,12 @@ import type { ToolActions } from "../Types/ToolActions"
 import { type Tile, useMoveableLetters } from "../hooks/useMoveableLetters"
 
 import { useEffect, useState } from "react"
-import { Reorder, type Transition } from "motion/react"
+import { Reorder } from "motion/react"
+import { tileSpring } from "../lib/animation"
 
 type Props = {
   letters: string[]
   registerActions: (actions: ToolActions) => void
-}
-
-const spring: Transition = {
-  type: "spring",
-  damping: 50,
-  stiffness: 1000,
 }
 
 export default function LineTool({ letters, registerActions }: Props) {
@@ -60,7 +55,7 @@ export default function LineTool({ letters, registerActions }: Props) {
               key={tile.id}
               onDragStart={() => setDragId(tile.id)}
               onDragEnd={() => setDragId(null)}
-              transition={spring}
+              transition={tileSpring}
               layout
             >
               {tile.letter}

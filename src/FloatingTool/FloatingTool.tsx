@@ -2,6 +2,7 @@ import "./FloatingTool.css"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { type Coord } from "../lib/coordinate-plane"
 import type { ToolActions } from "../Types/ToolActions"
+import { tileSpringCss, tileSpringCssMs } from "../lib/animation"
 
 type Props = {
   letters: string[]
@@ -82,7 +83,7 @@ function coordToTranslate(coord: Coord) {
   }
 }
 
-const SHUFFLE_DURATION_MS = 333
+const SHUFFLE_DURATION_MS = tileSpringCssMs
 
 export default function FloatingTool({
   letters,
@@ -161,7 +162,7 @@ export default function FloatingTool({
               style={{
                 ...coordToTranslate(tile.coords),
                 ...(shuffling && {
-                  transition: `translate ${SHUFFLE_DURATION_MS}ms ease-in-out`,
+                  transition: `translate ${tileSpringCss}`,
                 }),
               }}
             >
