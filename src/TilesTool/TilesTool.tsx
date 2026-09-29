@@ -67,12 +67,12 @@ export default function TileTool({ letters, registerActions }: Props) {
     )
   }
 
+  /* Swap letters between the tiles' current positions, keeping the layout */
   function shuffleTiles() {
-    const flexPositions = getFlexPositions()
-    const shuffledPositions = shuffle(flexPositions)
+    setTileData((tileData) => {
+      const shuffledPositions = shuffle(tileData.map((tile) => tile.pos))
 
-    setTileData((tileData) =>
-      tileData.map((tile, index) => {
+      return tileData.map((tile, index) => {
         const posForTile = shuffledPositions[index]
         if (!posForTile) throw "no shuffled position found"
 
@@ -80,8 +80,8 @@ export default function TileTool({ letters, registerActions }: Props) {
           ...tile,
           pos: posForTile,
         }
-      }),
-    )
+      })
+    })
   }
 
   const handleMoveTile = (id: number, newPos: Pos) => {
