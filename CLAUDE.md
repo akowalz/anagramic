@@ -34,6 +34,8 @@ picks the next free port, so report the URL you're using.
 Dependencies are managed with npm (`package-lock.json`). Run `npm install` first.
 
 - `npm run dev` — start the Vite dev server (http://localhost:5173 by default)
+- `npm run wt <name>` — start the dev server in `.claude/worktrees/<name>`
+  (installs dependencies first if needed; extra args after `--` go to Vite)
 - `npx tsc -b` — type check the project (uses the project references in
   `tsconfig.json`, which cover `tsconfig.app.json` and `tsconfig.node.json`)
 - `npm run lint` — run ESLint
