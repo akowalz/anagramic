@@ -1,5 +1,6 @@
 import "./DraggableTile.css"
 import { useState } from "react"
+import { tileSpringCss } from "../lib/animation"
 
 type Pos = { x: number; y: number }
 
@@ -83,6 +84,7 @@ export default function DraggableTile({
           transform,
           zIndex,
           "--tile-size": `${TILE_SIZE}px`,
+          "--tile-spring": tileSpringCss,
         } as React.CSSProperties
       }
     >

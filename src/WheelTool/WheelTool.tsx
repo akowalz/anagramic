@@ -6,17 +6,11 @@ import { coordToPosition, positionToStyle } from "../lib/coordinate-plane.ts"
 import { useEffect } from "react"
 
 import * as motion from "motion/react-client"
-import type { Transition } from "motion"
+import { tileSpring } from "../lib/animation"
 
 type Props = {
   letters: string[]
   registerActions: (actions: ToolActions) => void
-}
-
-const spring: Transition = {
-  type: "spring",
-  damping: 50,
-  stiffness: 1000,
 }
 
 export default function WheelTool({ letters, registerActions }: Props) {
@@ -74,7 +68,7 @@ export default function WheelTool({ letters, registerActions }: Props) {
                   e.stopPropagation()
                   onClickTile(index)
                 }}
-                transition={spring}
+                transition={tileSpring}
                 layout
               >
                 {tile.letter}
