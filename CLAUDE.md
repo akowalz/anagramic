@@ -14,6 +14,21 @@ The app is deployed using Vercel, pushing to main deploys. DO NOT DEPLOY OR PUSH
 The app is primarily designed to be used on mobile, but it also looks nice on
 desktops. It's designed to look good on basically any screen size.
 
+## Worktrees
+
+When switching into a worktree, say so loudly: state the worktree name, its
+path, and the git branch it is on (and whether that branch is new).
+
+Naming: use the session name in kebab-case if there is one; otherwise pick a
+short kebab-case name describing the task. With that `<name>`:
+
+- worktree directory: `.claude/worktrees/<name>`
+- git branch: `worktree-<name>` (the `EnterWorktree` default)
+
+This lets me start and stop the dev server in different worktrees. A new
+worktree needs `npm install` before `npm run dev`. If port 5173 is taken, Vite
+picks the next free port, so report the URL you're using.
+
 ## Development
 
 Dependencies are managed with npm (`package-lock.json`). Run `npm install` first.
