@@ -1,7 +1,9 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { flushSync } from "react-dom"
 import Tile from "../DraggableTile/DraggableTile"
 import "./TilesTool.css"
 import { type ToolActions } from "../Types/ToolActions"
+import { shuffle } from "../lib/shuffle"
 import { shuffleTilePositions } from "../lib/shuffle-positions"
 import { resolveOverlaps, type Bounds, type Pos } from "../lib/resolve-overlaps"
 
@@ -51,13 +53,22 @@ export default function TileTool({ letters, registerActions }: Props) {
     }))
   }
 
-  function resetTiles() {
+  /*
+   * Slot (index into the flex positions) each tile occupies while the tiles are
+   * still laid out in the flex arrangement, i.e. after mount, reset or shuffle.
+   * Null once the user drags a tile. While set, tiles follow the layout when
+   * the canvas resizes, e.g. when the footer buttons appear after mount.
+   */
+  const slotsRef = useRef<number[] | null>(null)
+
+  function placeInSlots(slots: number[]) {
     const flexPositions = getFlexPositions()
+    slotsRef.current = slots
 
     setTileData((tileData) =>
       tileData.map((tile, index) => {
-        const posForTile = flexPositions[index]
-        if (!posForTile) throw "no initial position found"
+        const posForTile = flexPositions[slots[index]]
+        if (!posForTile) throw "no flex position found"
 
         return {
           ...tile,
@@ -67,11 +78,20 @@ export default function TileTool({ letters, registerActions }: Props) {
     )
   }
 
+  function resetTiles() {
+    placeInSlots(letters.map((_, index) => index))
+  }
+
   function shuffleTiles() {
-    setTileData(shuffleTilePositions)
+    // Still in the flex layout: shuffle slots so tiles keep following it
+    const slots = slotsRef.current
+    if (slots) placeInSlots(shuffle([...slots]))
+    else setTileData(shuffleTilePositions)
   }
 
   const handleMoveTile = (id: number, newPos: Pos) => {
+    slotsRef.current = null
+
     setTileData((tiles) => {
       const maxZ = Math.max(...tiles.map((t) => t.zIndex))
 
@@ -121,21 +141,38 @@ export default function TileTool({ letters, registerActions }: Props) {
   }, [])
 
   useLayoutEffect(() => {
-    const flexPositions = getFlexPositions()
-
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTileData(
-      letters.map((letter, index) => {
-        return {
-          letter,
-          zIndex: 0,
-          id: index,
-          pos: flexPositions[index],
-        }
-      }),
-    )
-
+    resetTiles()
     setShowTiles(true)
+  }, [])
+
+  // A layout effect so the observer is attached before the first paint and
+  // catches the footer buttons appearing, which happens before that paint too
+  useLayoutEffect(() => {
+    const shadowCanvas = shadowCanvasRef.current
+    if (!shadowCanvas) return
+
+    let frame = 0
+    const observer = new ResizeObserver(() => {
+      const canvas = canvasRef.current
+      const slots = slotsRef.current
+      // Skip while hidden (another tool is active); nothing to lay out
+      if (!canvas || !slots || shadowCanvas.offsetWidth === 0) return
+
+      // Move the tiles in the same frame as the layout change, without the
+      // transform transition, so they stay put relative to the layout rather
+      // than visibly sliding (e.g. when the footer buttons appear on load).
+      canvas.classList.add("snapping")
+      flushSync(() => placeInSlots(slots))
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => canvas.classList.remove("snapping"))
+    })
+    observer.observe(shadowCanvas)
+
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
   }, [])
 
   const tiles = tileData.map((tile) => {
