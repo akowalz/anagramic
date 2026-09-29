@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react"
 import Tile from "../DraggableTile/DraggableTile"
 import "./TilesTool.css"
 import { type ToolActions } from "../Types/ToolActions"
-import { shuffle } from "../lib/shuffle"
+import { shuffleTilePositions } from "../lib/shuffle-positions"
 import { resolveOverlaps, type Bounds, type Pos } from "../lib/resolve-overlaps"
 
 type Props = {
@@ -67,21 +67,8 @@ export default function TileTool({ letters, registerActions }: Props) {
     )
   }
 
-  /* Swap letters between the tiles' current positions, keeping the layout */
   function shuffleTiles() {
-    setTileData((tileData) => {
-      const shuffledPositions = shuffle(tileData.map((tile) => tile.pos))
-
-      return tileData.map((tile, index) => {
-        const posForTile = shuffledPositions[index]
-        if (!posForTile) throw "no shuffled position found"
-
-        return {
-          ...tile,
-          pos: posForTile,
-        }
-      })
-    })
+    setTileData(shuffleTilePositions)
   }
 
   const handleMoveTile = (id: number, newPos: Pos) => {
