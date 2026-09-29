@@ -4,8 +4,8 @@ import { spring, type Transition } from "motion"
  * One spring shared by every tool so tiles move with the same feel whether
  * they're animated by motion (Line, Wheel) or by CSS (Freeform, Floating).
  */
-const VISUAL_DURATION_SECONDS = 0.35
-const BOUNCE = 0.3
+const VISUAL_DURATION_SECONDS = 0.28
+const BOUNCE = 0.2
 
 export const tileSpring: Transition = {
   type: "spring",
