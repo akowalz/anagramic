@@ -21,10 +21,10 @@
   border-bottom: 2px solid var(--dark);
   text-align: center;
   font-size: 1.8em;
-  font-weight: bold;
+  font-weight: normal;
   line-height: 1.4em;
   text-transform: uppercase;
-  font-family: monospace;
+  font-family: var(--font-letters);
   margin-bottom: 8px;
   caret-color: var(--darkest);
   background-color: inherit;

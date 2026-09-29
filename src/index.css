@@ -37,7 +37,11 @@ body {
   /* App background alias */
   --app-bg: var(--lighter);
 
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  /* Fonts (loaded from Google Fonts in index.html) */
+  --font-ui: "IBM Plex Sans", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  --font-letters: "Rubik", sans-serif;
+
+  font-family: var(--font-ui);
   font-weight: 400;
 
   font-synthesis: none;
@@ -60,6 +64,7 @@ button {
   justify-content: center;
   white-space: nowrap;
 
+  font-family: inherit;
   font-weight: 600;
   font-size: 1em;
   padding: 8px;
@@ -106,7 +111,7 @@ button.active {
   place-items: center;
 
   aspect-ratio: 1/1;
-  font-family: monospace;
+  font-family: var(--font-letters);
   font-size: 32px;
   border-radius: 4px;
   background-color: var(--background-color);
