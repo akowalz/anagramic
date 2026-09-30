@@ -144,4 +144,50 @@ describe("resolveOverlaps", () => {
       { letter: "B", zIndex: 1 },
     ])
   })
+
+  describe("with locked tiles", () => {
+    function locked(id: number, x: number, y: number) {
+      return { ...tile(id, x, y), locked: true }
+    }
+
+    it("moves the dropped tile off a locked tile instead", () => {
+      const tiles = [tile(0, 110, 100), locked(1, 100, 100)]
+
+      const result = resolveOverlaps(tiles, 0, BIG_BOUNDS)
+
+      expect(result[1].pos).toEqual({ x: 100, y: 100 })
+      expect(result[0].pos).toEqual({ x: 100 + SETTLED, y: 100 })
+    })
+
+    it("never moves a locked tile pushed by a cascade", () => {
+      // The dropped tile pushes tile 1 right, onto the locked tile 2
+      const tiles = [
+        tile(0, 100, 100),
+        tile(1, 120, 100),
+        locked(2, 100 + SETTLED + 10, 100),
+      ]
+
+      const result = resolveOverlaps(tiles, 0, BIG_BOUNDS)
+
+      expect(result[2].pos).toEqual(tiles[2].pos)
+      expect(overlaps(result[1].pos, result[2].pos)).toBe(false)
+    })
+
+    it("lets a dropped locked tile push unlocked tiles", () => {
+      const tiles = [locked(0, 100, 100), tile(1, 110, 100)]
+
+      const result = resolveOverlaps(tiles, 0, BIG_BOUNDS)
+
+      expect(result[0].pos).toEqual({ x: 100, y: 100 })
+      expect(result[1].pos).toEqual({ x: 100 + SETTLED, y: 100 })
+    })
+
+    it("leaves two overlapping locked tiles alone", () => {
+      const tiles = [locked(0, 100, 100), locked(1, 110, 100)]
+
+      const result = resolveOverlaps(tiles, 0, BIG_BOUNDS)
+
+      expect(result.map((t) => t.pos)).toEqual(tiles.map((t) => t.pos))
+    })
+  })
 })
