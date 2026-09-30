@@ -1,23 +1,32 @@
 /* Lock / unlock button that pops up above the selected tile */
 .tile-lock-button {
   position: absolute;
-  bottom: calc(100% + 10px);
+  bottom: calc(100% + 7px);
   left: 50%;
   translate: -50% 0;
   z-index: 1;
 
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   font-size: 16px;
+  border-radius: 50%;
+  box-shadow: 1px 1px 0 var(--dark);
   touch-action: manipulation;
 
   animation: tile-lock-pop 150ms ease-out;
 }
 
+/* Keep a finger-sized tap target around the smaller button */
+.tile-lock-button::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
 .tile-lock-button > svg {
-  min-width: 22px;
-  max-width: 22px;
+  min-width: 15px;
+  max-width: 15px;
   margin: 0;
 }
 
