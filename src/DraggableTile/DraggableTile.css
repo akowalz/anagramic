@@ -23,8 +23,9 @@
   z-index: 999;
 }
 
-.draggable-tile.locked.dragging {
-  background-color: var(--dark);
+/* A locked tile follows its small rubber-band offset without lag */
+.draggable-tile.resisting {
+  transition: none;
 }
 
 /* Keep the selected tile, and its lock button, above the others */

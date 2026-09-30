@@ -42,3 +42,23 @@
 .wheel-tool-tile.active {
   z-index: 999;
 }
+
+/* A locked tile shakes its head when tapped to swap */
+.wheel-tool-tile.refused {
+  animation: wheel-tile-refuse 320ms ease-in-out;
+}
+
+@keyframes wheel-tile-refuse {
+  20% {
+    rotate: -8deg;
+  }
+  40% {
+    rotate: 6deg;
+  }
+  60% {
+    rotate: -4deg;
+  }
+  80% {
+    rotate: 2deg;
+  }
+}

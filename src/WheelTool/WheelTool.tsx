@@ -4,7 +4,7 @@ import { useMoveableLetters } from "../hooks/useMoveableLetters"
 import { coordToPosition, positionToStyle } from "../lib/coordinate-plane.ts"
 import TileLock from "../TileLock/TileLock"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 
 import * as motion from "motion/react-client"
 import { tileSpring } from "../lib/animation"
@@ -25,6 +25,9 @@ export default function WheelTool({ letters, registerActions }: Props) {
     toggleLock,
   } = useMoveableLetters(letters)
 
+  // A locked tile that was just tapped to swap, shaken to show it can't move
+  const [refusedId, setRefusedId] = useState<string | null>(null)
+
   useEffect(() => {
     registerActions({
       reset: () => resetPositions(),
@@ -33,7 +36,21 @@ export default function WheelTool({ letters, registerActions }: Props) {
   }, [])
 
   function onClickTile(index: number) {
+    if (activeIndex === index) {
+      setActiveIndex(null)
+      return
+    }
+
     if (activeIndex !== null) {
+      // Locked tiles can't be swapped: shake the locked one and select the
+      // tapped tile instead (e.g. to show its unlock button)
+      const lockedIndex = [index, activeIndex].find((i) => tiles[i].locked)
+      if (lockedIndex !== undefined) {
+        setRefusedId(tiles[lockedIndex].id)
+        setActiveIndex(index)
+        return
+      }
+
       swapTiles(activeIndex, index)
       return
     }
@@ -63,8 +80,14 @@ export default function WheelTool({ letters, registerActions }: Props) {
               <motion.li
                 className={`tile wheel-tool-tile ${
                   index === activeIndex ? "active" : ""
-                } ${tile.locked ? "locked" : ""}`}
+                } ${tile.locked ? "locked" : ""} ${
+                  tile.id === refusedId ? "refused" : ""
+                }`}
                 key={tile.id}
+                onAnimationEnd={(e) => {
+                  // Ignore animations bubbling up from the lock button
+                  if (e.target === e.currentTarget) setRefusedId(null)
+                }}
                 style={tileStyles[index]}
                 onClick={(e) => {
                   e.stopPropagation()

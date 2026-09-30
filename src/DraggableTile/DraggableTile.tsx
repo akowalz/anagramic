@@ -2,6 +2,7 @@ import "./DraggableTile.css"
 import { useRef, useState } from "react"
 import { tileSpringCss } from "../lib/animation"
 import TileLock from "../TileLock/TileLock"
+import { rubberBand } from "../lib/rubber-band"
 
 type Pos = { x: number; y: number }
 
@@ -23,7 +24,7 @@ type Props = {
 export const TILE_SIZE = 40
 
 /* How far (px) the pointer can move and still count as a tap, not a drag */
-const TAP_THRESHOLD = 5
+export const TAP_THRESHOLD = 5
 
 export default function DraggableTile({
   letter,
@@ -42,6 +43,7 @@ export default function DraggableTile({
   const [dragOffset, setDragOffset] = useState<Pos>({ x: 0, y: 0 })
   const pointerStartRef = useRef<Pos>({ x: 0, y: 0 })
   const movedRef = useRef(false)
+  const [resistOffset, setResistOffset] = useState<Pos>({ x: 0, y: 0 })
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!containerRef.current) return
@@ -65,12 +67,17 @@ export default function DraggableTile({
     if (!dragging) return
     if (!containerRef.current) return
 
-    if (!movedRef.current) {
-      const start = pointerStartRef.current
-      const distance = Math.hypot(e.clientX - start.x, e.clientY - start.y)
-      if (distance < TAP_THRESHOLD) return
-      movedRef.current = true
+    const start = pointerStartRef.current
+    const delta = { x: e.clientX - start.x, y: e.clientY - start.y }
+    if (Math.hypot(delta.x, delta.y) >= TAP_THRESHOLD) movedRef.current = true
+
+    // Locked tiles resist being dragged rather than following the pointer
+    if (locked) {
+      setResistOffset(rubberBand(delta))
+      return
     }
+
+    if (!movedRef.current) return
 
     const rect = containerRef.current.getBoundingClientRect()
 
@@ -83,6 +90,9 @@ export default function DraggableTile({
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     e.currentTarget.releasePointerCapture(e.pointerId)
     setDragging(false)
+    setResistOffset({ x: 0, y: 0 })
+
+    if (locked && movedRef.current) return
 
     if (!movedRef.current) {
       if (e.type === "pointerup") onTap(id)
@@ -98,14 +108,20 @@ export default function DraggableTile({
     })
   }
 
-  const scale = dragging ? 1.11 : 1
-  const transform = `translate(${pos.x}px, ${pos.y}px) translateZ(0) scale(${scale})`
+  // Locked tiles stay rigid (no lift) and spring back when released
+  const resisting = dragging && locked
+  const scale = dragging && !locked ? 1.11 : 1
+  const x = pos.x + resistOffset.x
+  const y = pos.y + resistOffset.y
+  const transform = `translate(${x}px, ${y}px) translateZ(0) scale(${scale})`
 
   return (
     <div
-      className={`tile draggable-tile ${dragging ? "dragging" : ""} ${
-        selected ? "active" : ""
-      } ${locked ? "locked" : ""}`}
+      className={`tile draggable-tile ${
+        dragging && !locked ? "dragging" : ""
+      } ${resisting ? "resisting" : ""} ${selected ? "active" : ""} ${
+        locked ? "locked" : ""
+      }`}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
