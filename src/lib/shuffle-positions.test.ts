@@ -47,6 +47,18 @@ describe("shuffleTilePositions", () => {
     expect(tiles).toEqual(before)
   })
 
+  it("leaves locked tiles where they are", () => {
+    vi.spyOn(Math, "random").mockReturnValue(0)
+
+    const result = shuffleTilePositions(tiles, (tile) => tile.id === 0)
+
+    expect(result.map((t) => t.pos)).toEqual([
+      { x: 10, y: 200 },
+      { x: 300, y: 120 },
+      { x: 55, y: 30 },
+    ])
+  })
+
   it("handles empty input", () => {
     expect(shuffleTilePositions([])).toEqual([])
   })

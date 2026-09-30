@@ -10,6 +10,7 @@
 .line-tool-tile {
   --tile-size: 44px;
 
+  position: relative;
   flex-basis: var(--tile-size);
   min-width: 0;
   margin-left: -3px;

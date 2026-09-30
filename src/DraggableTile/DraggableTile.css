@@ -22,3 +22,12 @@
   box-shadow: 4px 4px 0 black;
   z-index: 999;
 }
+
+.draggable-tile.locked.dragging {
+  background-color: var(--dark);
+}
+
+/* Keep the selected tile, and its lock button, above the others */
+.draggable-tile.active {
+  z-index: 999 !important;
+}

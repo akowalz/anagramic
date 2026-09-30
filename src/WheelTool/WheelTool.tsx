@@ -2,6 +2,7 @@ import "./WheelTool.css"
 import type { ToolActions } from "../Types/ToolActions"
 import { useMoveableLetters } from "../hooks/useMoveableLetters"
 import { coordToPosition, positionToStyle } from "../lib/coordinate-plane.ts"
+import TileLock from "../TileLock/TileLock"
 
 import { useEffect } from "react"
 
@@ -21,6 +22,7 @@ export default function WheelTool({ letters, registerActions }: Props) {
     shuffleTiles,
     resetPositions,
     swapTiles,
+    toggleLock,
   } = useMoveableLetters(letters)
 
   useEffect(() => {
@@ -61,7 +63,7 @@ export default function WheelTool({ letters, registerActions }: Props) {
               <motion.li
                 className={`tile wheel-tool-tile ${
                   index === activeIndex ? "active" : ""
-                }`}
+                } ${tile.locked ? "locked" : ""}`}
                 key={tile.id}
                 style={tileStyles[index]}
                 onClick={(e) => {
@@ -72,6 +74,11 @@ export default function WheelTool({ letters, registerActions }: Props) {
                 layout
               >
                 {tile.letter}
+                <TileLock
+                  selected={index === activeIndex}
+                  locked={tile.locked}
+                  onToggle={() => toggleLock(tile.id)}
+                />
               </motion.li>
             )
           })}

@@ -16,3 +16,24 @@ export function shuffle<T>(array: Array<T>): Array<T> {
 
   return array;
 }
+
+/*
+ * Shuffle a copy of the array, leaving locked items at their current index.
+ * The unlocked items are shuffled among the remaining indices.
+ */
+export function shuffleUnlocked<T>(
+  array: Array<T>,
+  isLocked: (item: T, index: number) => boolean,
+): Array<T> {
+  const unlockedIndices = array.flatMap((item, index) =>
+    isLocked(item, index) ? [] : [index],
+  )
+  const shuffled = shuffle(unlockedIndices.map((index) => array[index]))
+
+  const result = [...array]
+  unlockedIndices.forEach((index, i) => {
+    result[index] = shuffled[i]
+  })
+
+  return result
+}
