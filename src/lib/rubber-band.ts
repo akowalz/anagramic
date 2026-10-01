@@ -1,10 +1,10 @@
 type Pos = { x: number; y: number }
 
 /* Furthest (px) a locked tile gives way when you try to drag it */
-export const MAX_RESISTANCE_OFFSET = 8
+export const MAX_RESISTANCE_OFFSET = 14
 
 /* How quickly the tile stiffens; lower is stiffer */
-const GIVE = 0.55
+const GIVE = 0.7
 
 /*
  * How far a locked tile moves when the pointer has been dragged `delta` from
