@@ -21,9 +21,9 @@
   );
 }
 
-/* Locked tiles spring back after resisting a drag (motion owns transform) */
+/* Locked tiles bounce back after resisting a drag (motion owns transform) */
 .line-tool-tile {
-  transition: translate var(--tile-spring);
+  transition: translate var(--resist-spring);
 }
 
 .line-tool-tile.resisting {

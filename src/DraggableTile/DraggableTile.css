@@ -23,6 +23,11 @@
   z-index: 999;
 }
 
+/* Locked tiles only move when resisting a drag, then bounce back */
+.draggable-tile.locked {
+  transition: transform var(--resist-spring);
+}
+
 /* A locked tile follows its small rubber-band offset without lag */
 .draggable-tile.resisting {
   transition: none;

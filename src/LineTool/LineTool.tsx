@@ -7,7 +7,7 @@ import { rubberBand } from "../lib/rubber-band"
 
 import { useEffect, useRef, useState } from "react"
 import { Reorder } from "motion/react"
-import { tileSpring, tileSpringCss } from "../lib/animation"
+import { resistSpringCss, tileSpring } from "../lib/animation"
 
 type Props = {
   letters: string[]
@@ -31,23 +31,53 @@ export default function LineTool({ letters, registerActions }: Props) {
 
   // Locked tiles can't be dragged; they give a little under the pointer and
   // spring back instead
-  const resistStartRef = useRef(0)
+  // The pointer pressing on a locked tile. A ref rather than state so every
+  // event sees it immediately, without waiting for a re-render.
+  const resistPointerRef = useRef<{
+    pointerId: number
+    id: string
+    startX: number
+  } | null>(null)
   const [resisting, setResisting] = useState<{ id: string; x: number } | null>(
     null,
   )
 
   function startResisting(tile: Tile, e: React.PointerEvent<HTMLElement>) {
     if (!tile.locked) return
+    if (e.button !== 0 || resistPointerRef.current) return
+
     e.currentTarget.setPointerCapture(e.pointerId)
-    resistStartRef.current = e.clientX
+    resistPointerRef.current = {
+      pointerId: e.pointerId,
+      id: tile.id,
+      startX: e.clientX,
+    }
     setResisting({ id: tile.id, x: 0 })
   }
 
   function resist(tile: Tile, e: React.PointerEvent<HTMLElement>) {
-    if (resisting?.id !== tile.id) return
-    const deltaX = e.clientX - resistStartRef.current
+    const pointer = resistPointerRef.current
+    if (pointer?.pointerId !== e.pointerId || pointer.id !== tile.id) return
+
+    // The mouse button is up but the pointerup got lost: stop resisting
+    if (e.pointerType === "mouse" && e.buttons === 0) {
+      stopResisting(e)
+      return
+    }
+
+    const deltaX = e.clientX - pointer.startX
     if (Math.abs(deltaX) >= TAP_THRESHOLD) draggedRef.current = true
     setResisting({ id: tile.id, x: rubberBand({ x: deltaX, y: 0 }).x })
+  }
+
+  function stopResisting(e: React.PointerEvent<HTMLElement>) {
+    if (resistPointerRef.current?.pointerId !== e.pointerId) return
+    resistPointerRef.current = null
+
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId)
+    }
+    setResisting(null)
   }
 
   useEffect(() => {
@@ -76,7 +106,7 @@ export default function LineTool({ letters, registerActions }: Props) {
         style={
           {
             "--tile-count": tiles.length,
-            "--tile-spring": tileSpringCss,
+            "--resist-spring": resistSpringCss,
           } as React.CSSProperties
         }
       >
@@ -100,8 +130,9 @@ export default function LineTool({ letters, registerActions }: Props) {
               }}
               onPointerDown={(e) => startResisting(tile, e)}
               onPointerMove={(e) => resist(tile, e)}
-              onPointerUp={() => setResisting(null)}
-              onPointerCancel={() => setResisting(null)}
+              onPointerUp={stopResisting}
+              onPointerCancel={stopResisting}
+              onLostPointerCapture={stopResisting}
               onTapStart={() => {
                 draggedRef.current = false
               }}
