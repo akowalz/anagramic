@@ -37,10 +37,29 @@
 
   width: var(--wheel-tile-width);
   height: var(--wheel-tile-width);
+
+  cursor: grab;
+  user-select: none;
+  /* Motion only sets this on draggable tiles; locked ones resist drags too */
+  touch-action: none;
+
+  /* Locked tiles bounce back after resisting a drag (motion owns transform) */
+  transition: translate var(--resist-spring);
+}
+
+.wheel-tool-tile.resisting {
+  transition: none;
 }
 
 .wheel-tool-tile.active {
   z-index: 999;
+}
+
+.wheel-tool-tile.dragging {
+  cursor: grabbing;
+  --background-color: var(--lighter);
+  box-shadow: 4px 4px 0 var(--border-color);
+  z-index: 1000;
 }
 
 /* A locked tile shakes its head when tapped to swap */
