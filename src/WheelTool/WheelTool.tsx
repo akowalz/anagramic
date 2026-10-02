@@ -1,13 +1,19 @@
 import "./WheelTool.css"
 import type { ToolActions } from "../Types/ToolActions"
-import { type Tile, useMoveableLetters } from "../hooks/useMoveableLetters"
-import { coordToPosition, positionToStyle } from "../lib/coordinate-plane.ts"
+import { useMoveableLetters } from "../hooks/useMoveableLetters"
 import TileLock from "../TileLock/TileLock"
 import { TAP_THRESHOLD } from "../DraggableTile/DraggableTile"
 import { rubberBand } from "../lib/rubber-band"
-import { moveOnRing, slotAtPoint } from "../lib/ring-reorder"
+import {
+  angleOfPoint,
+  angleOfSlot,
+  moveOnRing,
+  pointOnRing,
+  slotAtAngle,
+} from "../lib/ring-reorder"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import { flushSync } from "react-dom"
 
 import * as motion from "motion/react-client"
 import { resistSpringCss, tileSpring } from "../lib/animation"
@@ -17,11 +23,15 @@ type Props = {
   registerActions: (actions: ToolActions) => void
 }
 
+type Point = { x: number; y: number }
+
 /*
- * Near the center of the wheel the pointer's angle jumps about, so dragging
- * there doesn't reorder. A fraction of the wheel's width.
+ * Near the center of the wheel the pointer's angle jumps about, so a dragged
+ * tile stays put while the pointer is there. A fraction of the wheel's width.
  */
 const DEAD_ZONE = 0.15
+
+const instant = { duration: 0 }
 
 export default function WheelTool({ letters, registerActions }: Props) {
   const {
@@ -37,93 +47,130 @@ export default function WheelTool({ letters, registerActions }: Props) {
 
   const wheelRef = useRef<HTMLDivElement>(null)
 
+  // Radius (px) of the ring the tiles sit on, i.e. half the wheel's width
+  const [radius, setRadius] = useState(0)
+  // While set, tiles jump to their places rather than animating, e.g. when the
+  // wheel is resized or shown
+  const [snapping, setSnapping] = useState(false)
+
   // A locked tile that was just tapped to swap, shaken to show it can't move
   const [refusedId, setRefusedId] = useState<string | null>(null)
 
-  const [dragId, setDragId] = useState<string | null>(null)
-  // Whether the current press turned into a drag, so it isn't also a tap
-  const draggedRef = useRef(false)
+  // The pointer pressing on a tile. A ref rather than state so every event sees
+  // it immediately, without waiting for a re-render.
+  const pressRef = useRef<{
+    pointerId: number
+    id: string
+    start: Point
+    // Whether the press turned into a drag, so it isn't also a tap
+    moved: boolean
+    // The tile's angle minus the pointer's, so the tile doesn't jump to sit
+    // right under the pointer when the drag starts
+    angleOffset: number
+  } | null>(null)
+
+  // The tile being dragged, held at `angle` on the ring under the pointer
+  const [drag, setDrag] = useState<{ id: string; angle: number } | null>(null)
 
   // Locked tiles can't be dragged; they give a little under the pointer and
   // spring back instead
-  // The pointer pressing on a locked tile. A ref rather than state so every
-  // event sees it immediately, without waiting for a re-render.
-  const resistPointerRef = useRef<{
-    pointerId: number
-    id: string
-    start: { x: number; y: number }
-  } | null>(null)
   const [resisting, setResisting] = useState<{
     id: string
     x: number
     y: number
   } | null>(null)
 
-  function startResisting(tile: Tile, e: React.PointerEvent<HTMLElement>) {
-    if (!tile.locked) return
-    if (e.button !== 0 || resistPointerRef.current) return
-
-    e.currentTarget.setPointerCapture(e.pointerId)
-    resistPointerRef.current = {
-      pointerId: e.pointerId,
-      id: tile.id,
-      start: { x: e.clientX, y: e.clientY },
-    }
-    setResisting({ id: tile.id, x: 0, y: 0 })
+  function wheelCenter(wheel: HTMLElement): Point {
+    const rect = wheel.getBoundingClientRect()
+    return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
   }
 
-  function resist(tile: Tile, e: React.PointerEvent<HTMLElement>) {
-    const pointer = resistPointerRef.current
-    if (pointer?.pointerId !== e.pointerId || pointer.id !== tile.id) return
+  function startPress(index: number, e: React.PointerEvent<HTMLElement>) {
+    const wheel = wheelRef.current
+    if (!wheel) return
+    // Only the main button drags, and only one pointer at a time
+    if (e.button !== 0 || pressRef.current) return
 
-    // The mouse button is up but the pointerup got lost: stop resisting
+    e.currentTarget.setPointerCapture(e.pointerId)
+    const pointer = { x: e.clientX, y: e.clientY }
+
+    pressRef.current = {
+      pointerId: e.pointerId,
+      id: tiles[index].id,
+      start: pointer,
+      moved: false,
+      angleOffset:
+        angleOfSlot(index, tiles.length) -
+        angleOfPoint(pointer, wheelCenter(wheel)),
+    }
+  }
+
+  function movePress(e: React.PointerEvent<HTMLElement>) {
+    const press = pressRef.current
+    const wheel = wheelRef.current
+    if (press?.pointerId !== e.pointerId || !wheel) return
+
+    // The mouse button is up but the pointerup got lost: end the press here
+    // instead of leaving the tile stuck to the cursor
     if (e.pointerType === "mouse" && e.buttons === 0) {
-      stopResisting(e)
+      endPress(e, { canTap: false })
       return
     }
 
-    const delta = {
-      x: e.clientX - pointer.start.x,
-      y: e.clientY - pointer.start.y,
+    const pointer = { x: e.clientX, y: e.clientY }
+    const delta = { x: pointer.x - press.start.x, y: pointer.y - press.start.y }
+    if (!press.moved && Math.hypot(delta.x, delta.y) >= TAP_THRESHOLD) {
+      press.moved = true
     }
-    if (Math.hypot(delta.x, delta.y) >= TAP_THRESHOLD) draggedRef.current = true
-    setResisting({ id: tile.id, ...rubberBand(delta) })
+
+    const tile = tiles.find((tile) => tile.id === press.id)
+    if (tile?.locked) {
+      setResisting({ id: press.id, ...rubberBand(delta) })
+      return
+    }
+
+    if (!press.moved) return
+    setActiveIndex(null)
+
+    const center = wheelCenter(wheel)
+    const fromCenter = Math.hypot(pointer.x - center.x, pointer.y - center.y)
+    if (fromCenter < wheel.offsetWidth * DEAD_ZONE) return
+
+    // The tile follows the pointer's angle but stays on the ring
+    const angle = angleOfPoint(pointer, center) + press.angleOffset
+    setDrag({ id: press.id, angle })
+
+    // Move it to whichever slot it's over, making room for it there
+    setTiles((tiles) => {
+      const from = tiles.findIndex((tile) => tile.id === press.id)
+      if (from === -1) return tiles
+
+      const to = slotAtAngle(angle, tiles.length, from)
+      return moveOnRing(tiles, from, to, (tile) => tile.locked)
+    })
   }
 
-  function stopResisting(e: React.PointerEvent<HTMLElement>) {
-    if (resistPointerRef.current?.pointerId !== e.pointerId) return
-    resistPointerRef.current = null
+  /*
+   * Finish the press on pointerup, or whenever the pointer is lost (cancel,
+   * lost capture, released unnoticed). Only a real pointerup can be a tap.
+   */
+  function endPress(
+    e: React.PointerEvent<HTMLElement>,
+    { canTap }: { canTap: boolean },
+  ) {
+    const press = pressRef.current
+    if (press?.pointerId !== e.pointerId) return
+    pressRef.current = null
 
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId)
     }
     setResisting(null)
-  }
+    setDrag(null)
 
-  /* Move the dragged tile to whichever slot the pointer is over */
-  function reorderTowards(id: string, pointer: { x: number; y: number }) {
-    const wheel = wheelRef.current
-    if (!wheel) return
-
-    const rect = wheel.getBoundingClientRect()
-    const center = {
-      x: rect.left + rect.width / 2,
-      y: rect.top + rect.height / 2,
-    }
-
-    setTiles((tiles) => {
-      const from = tiles.findIndex((tile) => tile.id === id)
-      if (from === -1) return tiles
-
-      const to = slotAtPoint(
-        pointer,
-        center,
-        tiles.length,
-        from,
-        rect.width * DEAD_ZONE,
-      )
-      return moveOnRing(tiles, from, to, (tile) => tile.locked)
-    })
+    if (press.moved || !canTap) return
+    const index = tiles.findIndex((tile) => tile.id === press.id)
+    if (index !== -1) onClickTile(index)
   }
 
   useEffect(() => {
@@ -131,6 +178,28 @@ export default function WheelTool({ letters, registerActions }: Props) {
       reset: () => resetPositions(),
       shuffle: () => shuffleTiles(),
     })
+  }, [])
+
+  // A layout effect so the tiles are placed on the ring before the first paint
+  useLayoutEffect(() => {
+    const wheel = wheelRef.current
+    if (!wheel) return
+
+    let frame = 0
+    const observer = new ResizeObserver(() => {
+      flushSync(() => {
+        setSnapping(true)
+        setRadius(wheel.offsetWidth / 2)
+      })
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => setSnapping(false))
+    })
+    observer.observe(wheel)
+
+    return () => {
+      observer.disconnect()
+      cancelAnimationFrame(frame)
+    }
   }, [])
 
   function onClickTile(index: number) {
@@ -156,16 +225,6 @@ export default function WheelTool({ letters, registerActions }: Props) {
     setActiveIndex(index)
   }
 
-  const tileStyles = letters.map((_, index) => {
-    const TWO_PI = Math.PI * 2
-    const theta = TWO_PI / letters.length
-
-    const y = Math.cos(theta * index)
-    const x = Math.sin(theta * index)
-
-    return positionToStyle(coordToPosition({ x, y }))
-  })
-
   return (
     <>
       <div
@@ -178,6 +237,11 @@ export default function WheelTool({ letters, registerActions }: Props) {
           style={{ "--resist-spring": resistSpringCss } as React.CSSProperties}
         >
           {tiles.map((tile, index) => {
+            const dragging = drag?.id === tile.id
+            const angle = dragging
+              ? drag.angle
+              : angleOfSlot(index, tiles.length)
+            const pos = pointOnRing(angle, radius)
             const offset =
               resisting?.id === tile.id ? resisting : { x: 0, y: 0 }
 
@@ -187,7 +251,7 @@ export default function WheelTool({ letters, registerActions }: Props) {
                   index === activeIndex ? "active" : ""
                 } ${tile.locked ? "locked" : ""} ${
                   tile.id === refusedId ? "refused" : ""
-                } ${tile.id === dragId ? "dragging" : ""} ${
+                } ${dragging ? "dragging" : ""} ${
                   resisting?.id === tile.id ? "resisting" : ""
                 }`}
                 key={tile.id}
@@ -196,39 +260,26 @@ export default function WheelTool({ letters, registerActions }: Props) {
                   if (e.target === e.currentTarget) setRefusedId(null)
                 }}
                 style={{
-                  ...tileStyles[index],
                   translate: `calc(-50% + ${offset.x}px) calc(-50% + ${offset.y}px)`,
                 }}
-                // Taps are handled by onTap; this just keeps the click from
-                // reaching the container, which would deselect
+                initial={false}
+                animate={{ x: pos.x, y: pos.y, scale: dragging ? 1.11 : 1 }}
+                // The dragged tile sticks to the pointer; the rest spring
+                transition={
+                  snapping
+                    ? instant
+                    : dragging
+                      ? { ...tileSpring, x: instant, y: instant }
+                      : tileSpring
+                }
+                // Taps are handled on pointerup; this just keeps the click
+                // from reaching the container, which would deselect
                 onClick={(e) => e.stopPropagation()}
-                onPointerDown={(e) => startResisting(tile, e)}
-                onPointerMove={(e) => resist(tile, e)}
-                onPointerUp={stopResisting}
-                onPointerCancel={stopResisting}
-                onLostPointerCapture={stopResisting}
-                onTapStart={() => {
-                  draggedRef.current = false
-                }}
-                onTap={() => {
-                  if (draggedRef.current) return
-                  onClickTile(index)
-                }}
-                drag={!tile.locked}
-                dragSnapToOrigin
-                whileDrag={{ scale: 1.11 }}
-                onDragStart={() => {
-                  draggedRef.current = true
-                  setActiveIndex(null)
-                  setDragId(tile.id)
-                }}
-                onDrag={(e) => {
-                  if (!("clientX" in e)) return
-                  reorderTowards(tile.id, { x: e.clientX, y: e.clientY })
-                }}
-                onDragEnd={() => setDragId(null)}
-                transition={tileSpring}
-                layout
+                onPointerDown={(e) => startPress(index, e)}
+                onPointerMove={movePress}
+                onPointerUp={(e) => endPress(e, { canTap: true })}
+                onPointerCancel={(e) => endPress(e, { canTap: false })}
+                onLostPointerCapture={(e) => endPress(e, { canTap: false })}
               >
                 {tile.letter}
                 <TileLock

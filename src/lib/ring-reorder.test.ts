@@ -1,41 +1,68 @@
 import { describe, expect, it } from "vitest"
-import { moveOnRing, slotAtPoint } from "./ring-reorder"
+import {
+  angleOfPoint,
+  angleOfSlot,
+  moveOnRing,
+  pointOnRing,
+  slotAtAngle,
+} from "./ring-reorder"
 
 const center = { x: 0, y: 0 }
 
-/* A point on the ring at `slot` (fractional slots allowed), screen y down */
-function pointAt(slot: number, count: number, radius = 100) {
-  const angle = ((Math.PI * 2) / count) * slot
-  return { x: Math.sin(angle) * radius, y: -Math.cos(angle) * radius }
-}
+/* Angle of a (possibly fractional) slot on a ring of `count` slots */
+const at = (slot: number, count: number) => angleOfSlot(slot, count)
 
-describe("slotAtPoint", () => {
-  it("finds slot 0 at the top and goes clockwise", () => {
-    expect(slotAtPoint({ x: 0, y: -100 }, center, 4, 2)).toBe(0)
-    expect(slotAtPoint({ x: 100, y: 0 }, center, 4, 0)).toBe(1)
-    expect(slotAtPoint({ x: 0, y: 100 }, center, 4, 0)).toBe(2)
-    expect(slotAtPoint({ x: -100, y: 0 }, center, 4, 0)).toBe(3)
+describe("angleOfPoint", () => {
+  it("is 0 at the top and goes clockwise", () => {
+    expect(angleOfPoint({ x: 0, y: -100 }, center)).toBeCloseTo(0)
+    expect(angleOfPoint({ x: 100, y: 0 }, center)).toBeCloseTo(Math.PI / 2)
+    expect(angleOfPoint({ x: -100, y: 0 }, center)).toBeCloseTo(-Math.PI / 2)
   })
 
-  it("wraps around past the top", () => {
-    expect(slotAtPoint(pointAt(7.9, 8), center, 8, 3)).toBe(0)
-    expect(slotAtPoint(pointAt(-0.1, 8), center, 8, 3)).toBe(0)
+  it("is measured around the given center", () => {
+    expect(angleOfPoint({ x: 60, y: 50 }, { x: 50, y: 50 })).toBeCloseTo(
+      Math.PI / 2,
+    )
+  })
+})
+
+describe("pointOnRing", () => {
+  it("projects an angle onto the ring", () => {
+    const right = pointOnRing(Math.PI / 2, 100)
+    expect(right.x).toBeCloseTo(100)
+    expect(right.y).toBeCloseTo(0)
+
+    const bottom = pointOnRing(Math.PI, 50)
+    expect(bottom.x).toBeCloseTo(0)
+    expect(bottom.y).toBeCloseTo(50)
+  })
+
+  it("round-trips with angleOfPoint", () => {
+    expect(angleOfPoint(pointOnRing(1, 80), center)).toBeCloseTo(1)
+  })
+})
+
+describe("slotAtAngle", () => {
+  it("finds slot 0 at the top and goes clockwise", () => {
+    expect(slotAtAngle(at(0, 4), 4, 2)).toBe(0)
+    expect(slotAtAngle(at(1, 4), 4, 0)).toBe(1)
+    expect(slotAtAngle(at(2, 4), 4, 0)).toBe(2)
+    expect(slotAtAngle(at(3, 4), 4, 0)).toBe(3)
+  })
+
+  it("wraps around past the top, either way", () => {
+    expect(slotAtAngle(at(7.9, 8), 8, 3)).toBe(0)
+    expect(slotAtAngle(at(-0.1, 8), 8, 3)).toBe(0)
+    expect(slotAtAngle(at(-3, 8), 8, 0)).toBe(5)
+    expect(slotAtAngle(at(10, 8), 8, 0)).toBe(2)
   })
 
   it("stays on the current slot just past a boundary", () => {
-    expect(slotAtPoint(pointAt(2.55, 8), center, 8, 2)).toBe(2)
-    expect(slotAtPoint(pointAt(2.65, 8), center, 8, 2)).toBe(3)
-    expect(slotAtPoint(pointAt(-0.55, 8), center, 8, 0)).toBe(0)
-    expect(slotAtPoint(pointAt(-0.65, 8), center, 8, 0)).toBe(7)
-  })
-
-  it("stays on the current slot within the dead zone", () => {
-    expect(slotAtPoint(pointAt(4, 8, 5), center, 8, 1, 10)).toBe(1)
-    expect(slotAtPoint(pointAt(4, 8, 50), center, 8, 1, 10)).toBe(4)
-  })
-
-  it("ignores how far the pointer is from the center", () => {
-    expect(slotAtPoint(pointAt(3, 6, 1000), center, 6, 0)).toBe(3)
+    expect(slotAtAngle(at(2.55, 8), 8, 2)).toBe(2)
+    expect(slotAtAngle(at(2.65, 8), 8, 2)).toBe(3)
+    expect(slotAtAngle(at(-0.55, 8), 8, 0)).toBe(0)
+    expect(slotAtAngle(at(-0.65, 8), 8, 0)).toBe(7)
+    expect(slotAtAngle(at(7.45, 8), 8, 0)).toBe(0)
   })
 })
 

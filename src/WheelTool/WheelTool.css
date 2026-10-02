@@ -31,8 +31,11 @@
   transform: translate(-50%, -50%);
 }
 
+/* Tiles sit at the center; motion moves them out to their place on the ring */
 .wheel-tool-tile {
   position: absolute;
+  top: 50%;
+  left: 50%;
   translate: -50% -50%;
 
   width: var(--wheel-tile-width);
@@ -40,7 +43,6 @@
 
   cursor: grab;
   user-select: none;
-  /* Motion only sets this on draggable tiles; locked ones resist drags too */
   touch-action: none;
 
   /* Locked tiles bounce back after resisting a drag (motion owns transform) */

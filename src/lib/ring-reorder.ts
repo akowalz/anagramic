@@ -1,40 +1,50 @@
 type Point = { x: number; y: number }
 
 /*
- * How far (as a fraction of the gap between slots) the pointer must go past
- * the halfway point to a neighbouring slot before it counts as being over it.
- * Stops tiles flickering back and forth when the pointer sits on a boundary.
+ * How far (as a fraction of the gap between slots) a tile must go past the
+ * halfway point to a neighbouring slot before it counts as being over it.
+ * Stops tiles flickering back and forth when a tile sits on a boundary.
  */
 const HYSTERESIS = 0.1
 
+const TWO_PI = Math.PI * 2
+
 /*
- * The slot on a ring of `count` slots that the pointer is over. Slot 0 is at
- * the top and slots go clockwise, as in the Wheel tool. Only the angle around
- * `center` matters, not the distance. Stays on `currentSlot` until the pointer
- * is clearly over another slot, or while it's within `deadZone` of the center,
- * where the angle jumps about.
+ * Angle (radians) of `point` around `center`, clockwise from the top, as in
+ * the Wheel tool where slot 0 is at the top. Screen y points down.
  */
-export function slotAtPoint(
-  point: Point,
-  center: Point,
+export function angleOfPoint(point: Point, center: Point): number {
+  return Math.atan2(point.x - center.x, center.y - point.y)
+}
+
+/* Angle of a slot on a ring of `count` slots */
+export function angleOfSlot(slot: number, count: number): number {
+  return (TWO_PI / count) * slot
+}
+
+/* Offset from the ring's center of the point at `angle` on the ring */
+export function pointOnRing(angle: number, radius: number): Point {
+  return { x: Math.sin(angle) * radius, y: -Math.cos(angle) * radius }
+}
+
+/*
+ * The slot on a ring of `count` slots that a tile at `angle` is over. Stays
+ * on `currentSlot` until the tile is clearly over another slot.
+ */
+export function slotAtAngle(
+  angle: number,
   count: number,
   currentSlot: number,
-  deadZone = 0,
 ): number {
-  const dx = point.x - center.x
-  const dy = point.y - center.y
-  if (Math.hypot(dx, dy) <= deadZone) return currentSlot
-
-  const step = (Math.PI * 2) / count
-  // Clockwise from the top; screen y points down
-  const angle = Math.atan2(dx, -dy)
+  const step = TWO_PI / count
 
   const nearest = ((Math.round(angle / step) % count) + count) % count
   if (nearest === currentSlot) return currentSlot
 
-  // Angular distance from the pointer to the current slot, around the ring
+  // Angular distance from the tile to the current slot, around the ring
   const fromCurrent = Math.abs(
-    ((angle - currentSlot * step + Math.PI * 3) % (Math.PI * 2)) - Math.PI,
+    ((((angle - currentSlot * step + Math.PI) % TWO_PI) + TWO_PI) % TWO_PI) -
+      Math.PI,
   )
   if (fromCurrent < step * (0.5 + HYSTERESIS)) return currentSlot
 
