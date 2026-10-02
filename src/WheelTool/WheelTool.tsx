@@ -1,6 +1,9 @@
 import "./WheelTool.css"
 import type { ToolActions } from "../Types/ToolActions"
-import { useMoveableLetters } from "../hooks/useMoveableLetters"
+import {
+  sortByInitialPosition,
+  useMoveableLetters,
+} from "../hooks/useMoveableLetters"
 import TileLock from "../TileLock/TileLock"
 import { TAP_THRESHOLD } from "../DraggableTile/DraggableTile"
 import { rubberBand } from "../lib/rubber-band"
@@ -236,7 +239,13 @@ export default function WheelTool({ letters, registerActions }: Props) {
           ref={wheelRef}
           style={{ "--resist-spring": resistSpringCss } as React.CSSProperties}
         >
-          {tiles.map((tile, index) => {
+          {/*
+           * Render in a fixed order and place each tile by its index in
+           * `tiles`. Reordering the elements would move the dragged one in
+           * the DOM, which drops its pointer capture and ends the drag.
+           */}
+          {sortByInitialPosition(tiles).map((tile) => {
+            const index = tiles.indexOf(tile)
             const dragging = drag?.id === tile.id
             const angle = dragging
               ? drag.angle
