@@ -45,7 +45,7 @@ function App() {
   const tooltips = {
     Tiles: "Drag to rearrange letters, tap to lock",
     Line: "Drag to move letters, tap to lock",
-    Wheel: "Tap to swap or lock letters",
+    Wheel: "Drag or tap to swap letters, tap to lock",
     Floating: "Just let the letters float by",
   }
 

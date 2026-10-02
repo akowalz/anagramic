@@ -31,16 +31,37 @@
   transform: translate(-50%, -50%);
 }
 
+/* Tiles sit at the center; motion moves them out to their place on the ring */
 .wheel-tool-tile {
   position: absolute;
+  top: 50%;
+  left: 50%;
   translate: -50% -50%;
 
   width: var(--wheel-tile-width);
   height: var(--wheel-tile-width);
+
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+
+  /* Locked tiles bounce back after resisting a drag (motion owns transform) */
+  transition: translate var(--resist-spring);
+}
+
+.wheel-tool-tile.resisting {
+  transition: none;
 }
 
 .wheel-tool-tile.active {
   z-index: 999;
+}
+
+.wheel-tool-tile.dragging {
+  cursor: grabbing;
+  --background-color: var(--lighter);
+  box-shadow: 4px 4px 0 var(--border-color);
+  z-index: 1000;
 }
 
 /* A locked tile shakes its head when tapped to swap */

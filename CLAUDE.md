@@ -9,7 +9,8 @@ intentionally.
 It is a fully front-end experience. It's just a static web app that users visit
 in their browser. There is no backend or persistence.
 
-The app is deployed using Vercel, pushing to main deploys. DO NOT DEPLOY OR PUSH.
+The app is deployed using Vercel, pushing to main deploys. DO NOT DEPLOY OR PUSH
+TO MAIN.
 
 The app is primarily designed to be used on mobile, but it also looks nice on
 desktops. It's designed to look good on basically any screen size.
@@ -46,7 +47,11 @@ Run the type check and lint after making changes.
 
 ## Rules for contributing
 
-Please DO NOT PUSH TO MAIN. Pushing will deploy to production. Please do not do this!
+Please DO NOT PUSH TO MAIN. Pushing to main will deploy to production. Please do
+not do this!
+
+Pushing other branches (e.g. a worktree's `worktree-<name>` branch) is fine, and
+so is opening a pull request from one.
 
 Do not install new dependencies without asking first. If you want to install a new
 dependency, make a strong case for it and only use if necessary.
