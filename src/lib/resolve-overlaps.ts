@@ -17,11 +17,14 @@ const MAX_PUSH_PASSES = 20
 /*
  * After a tile is dropped, push any tiles it overlaps out of the way.
  * The dropped tile is first pulled back inside the bounds (it may have been
- * released past the edge), then never moves; every other tile can be pushed,
- * including by tiles that were themselves pushed. Runs repeated passes until
- * no overlaps remain (or the pass cap is hit).
+ * released past the edge), then only moves to get off a locked tile; every
+ * other tile can be pushed, including by tiles that were themselves pushed.
+ * Locked tiles never move, and overlapping locked tiles are left as they are.
+ * Runs repeated passes until no overlaps remain (or the pass cap is hit).
  */
-export function resolveOverlaps<T extends { id: number; pos: Pos }>(
+export function resolveOverlaps<
+  T extends { id: number; pos: Pos; locked?: boolean },
+>(
   tiles: T[],
   droppedId: number,
   bounds: Bounds,
@@ -63,7 +66,16 @@ export function resolveOverlaps<T extends { id: number; pos: Pos }>(
             ? { x: pushX, y: 0 }
             : { x: 0, y: pushY }
 
-        if (tiles[i].id === droppedId) {
+        const lockedA = tiles[i].locked ?? false
+        const lockedB = tiles[j].locked ?? false
+
+        if (lockedA && lockedB) {
+          continue
+        } else if (lockedA) {
+          positions[j] = clamp({ x: posB.x + push.x, y: posB.y + push.y })
+        } else if (lockedB) {
+          positions[i] = clamp({ x: posA.x - push.x, y: posA.y - push.y })
+        } else if (tiles[i].id === droppedId) {
           positions[j] = clamp({ x: posB.x + push.x, y: posB.y + push.y })
         } else if (tiles[j].id === droppedId) {
           positions[i] = clamp({ x: posA.x - push.x, y: posA.y - push.y })

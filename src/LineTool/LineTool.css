@@ -10,6 +10,7 @@
 .line-tool-tile {
   --tile-size: 44px;
 
+  position: relative;
   flex-basis: var(--tile-size);
   min-width: 0;
   margin-left: -3px;
@@ -18,6 +19,20 @@
     calc((100vw - 2 * var(--tile-size)) / var(--tile-count)),
     36px
   );
+}
+
+/* Locked tiles bounce back after resisting a drag (motion owns transform) */
+.line-tool-tile {
+  transition: translate var(--resist-spring);
+}
+
+.line-tool-tile.resisting {
+  transition: none;
+}
+
+/* Motion doesn't set this when drag is off, so stop the browser panning */
+.line-tool-tile.locked {
+  touch-action: none;
 }
 
 .line-tool-tile:not(:last-child) {

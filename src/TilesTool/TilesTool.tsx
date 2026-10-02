@@ -3,8 +3,9 @@ import { flushSync } from "react-dom"
 import Tile from "../DraggableTile/DraggableTile"
 import "./TilesTool.css"
 import { type ToolActions } from "../Types/ToolActions"
-import { shuffle } from "../lib/shuffle"
+import { shuffleUnlocked } from "../lib/shuffle"
 import { shuffleTilePositions } from "../lib/shuffle-positions"
+import { toggleLocked } from "../lib/locking"
 import { resolveOverlaps, type Bounds, type Pos } from "../lib/resolve-overlaps"
 
 type Props = {
@@ -17,6 +18,8 @@ type TileData = {
   pos: Pos
   letter: string
   zIndex: number
+  // Locked tiles stay where they are when shuffling
+  locked: boolean
 }
 
 function tilesFromLetters(letters: string[]): TileData[] {
@@ -25,6 +28,7 @@ function tilesFromLetters(letters: string[]): TileData[] {
     id: index,
     pos: { x: 0, y: 0 },
     zIndex: 0,
+    locked: false,
   }))
 }
 
@@ -36,6 +40,14 @@ export default function TileTool({ letters, registerActions }: Props) {
   const [tileData, setTileData] = useState<TileData[]>(
     tilesFromLetters(letters),
   )
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+
+  // The actions registered with the app are created once, so they read the
+  // latest tiles (e.g. which are locked) from here
+  const tileDataRef = useRef(tileData)
+  useLayoutEffect(() => {
+    tileDataRef.current = tileData
+  })
 
   /* Get position of tiles if they had be positioned using flexbox */
   function getFlexPositions(): Pos[] {
@@ -79,18 +91,36 @@ export default function TileTool({ letters, registerActions }: Props) {
   }
 
   function resetTiles() {
+    setSelectedId(null)
+    setTileData((tiles) => tiles.map((tile) => ({ ...tile, locked: false })))
     placeInSlots(letters.map((_, index) => index))
   }
 
   function shuffleTiles() {
+    setSelectedId(null)
+
     // Still in the flex layout: shuffle slots so tiles keep following it
     const slots = slotsRef.current
-    if (slots) placeInSlots(shuffle([...slots]))
-    else setTileData(shuffleTilePositions)
+    if (slots) {
+      const tiles = tileDataRef.current
+      placeInSlots(shuffleUnlocked(slots, (_, index) => tiles[index].locked))
+    } else {
+      setTileData((tiles) => shuffleTilePositions(tiles, (tile) => tile.locked))
+    }
+  }
+
+  const handleTapTile = (id: number) => {
+    setSelectedId((selectedId) => (selectedId === id ? null : id))
+  }
+
+  const handleToggleLock = (id: number) => {
+    setSelectedId(null)
+    setTileData((tiles) => toggleLocked(tiles, id))
   }
 
   const handleMoveTile = (id: number, newPos: Pos) => {
     slotsRef.current = null
+    setSelectedId(null)
 
     setTileData((tiles) => {
       const maxZ = Math.max(...tiles.map((t) => t.zIndex))
@@ -183,8 +213,12 @@ export default function TileTool({ letters, registerActions }: Props) {
         key={tile.id}
         pos={{ ...tile.pos }}
         zIndex={tile.zIndex}
+        selected={tile.id === selectedId}
+        locked={tile.locked}
         onMove={handleMoveTile}
         onDrop={handleDropTile}
+        onTap={handleTapTile}
+        onToggleLock={handleToggleLock}
         containerRef={canvasRef}
       />
     )
@@ -193,7 +227,14 @@ export default function TileTool({ letters, registerActions }: Props) {
   return (
     <>
       <div className="tile-canvas-container">
-        <div className="tile-canvas" ref={canvasRef}>
+        <div
+          className="tile-canvas"
+          ref={canvasRef}
+          onPointerDown={(e) => {
+            // Tapping empty space deselects
+            if (e.target === e.currentTarget) setSelectedId(null)
+          }}
+        >
           {showTiles && tiles}
         </div>
 

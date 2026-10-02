@@ -10,6 +10,7 @@ function tilesFor(word: string): Tile[] {
     id: `${letter}${index}`,
     letter,
     initialPosition: index,
+    locked: false,
   }))
 }
 

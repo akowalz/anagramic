@@ -129,3 +129,15 @@ button.active {
     --background-color: var(--lighter)
   }
 }
+
+/* Locked tiles stay where they are when shuffling */
+.tile.locked {
+  --background-color: var(--darker);
+  color: white;
+}
+
+@media (hover: hover) {
+  .tile.locked:hover {
+    --background-color: var(--dark);
+  }
+}

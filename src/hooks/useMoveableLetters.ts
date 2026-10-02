@@ -1,10 +1,13 @@
 import { useState } from 'react'
-import { shuffle } from '../lib/shuffle'
+import { shuffleUnlocked } from '../lib/shuffle'
+import { toggleLocked } from '../lib/locking'
 
 export type Tile = {
   id: string,
   letter: string,
   initialPosition: number,
+  // Locked tiles stay where they are when shuffling
+  locked: boolean,
 }
 
 function initializeLetters(letters: string[]): Tile[] {
@@ -13,6 +16,7 @@ function initializeLetters(letters: string[]): Tile[] {
       id: Math.random().toString(36).substring(3, 9),
       initialPosition: index,
       letter,
+      locked: false,
     }
   })
 }
@@ -38,17 +42,24 @@ export function useMoveableLetters(letters: string[]) {
 
   function shuffleTiles() {
     setActiveIndex(null)
-    setTiles(shuffle([...tiles]))
+    setTiles((tiles) => shuffleUnlocked(tiles, (tile) => tile.locked))
   }
 
   function resetPositions() {
     setActiveIndex(null)
-    setTiles(sortByInitialPosition(tiles))
+    setTiles((tiles) =>
+      sortByInitialPosition(tiles).map((tile) => ({ ...tile, locked: false }))
+    )
   }
 
   function swap(indexA: number, indexB: number) {
     setTiles(swapTiles(tiles, indexA, indexB))
     setActiveIndex(null)
+  }
+
+  function toggleLock(id: string) {
+    setActiveIndex(null)
+    setTiles((tiles) => toggleLocked(tiles, id))
   }
 
   return {
@@ -58,6 +69,7 @@ export function useMoveableLetters(letters: string[]) {
     setActiveIndex,
     shuffleTiles,
     resetPositions,
-    swapTiles: swap
+    swapTiles: swap,
+    toggleLock,
   }
 }

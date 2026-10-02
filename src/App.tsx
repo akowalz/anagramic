@@ -43,9 +43,9 @@ function App() {
   const [tool, setTool] = useState<Tool>("Tiles")
 
   const tooltips = {
-    Tiles: "Drag and drop to rearrange letters",
-    Line: "Drag to move letters",
-    Wheel: "Tap to swap letters",
+    Tiles: "Drag to rearrange letters, tap to lock",
+    Line: "Drag to move letters, tap to lock",
+    Wheel: "Tap to swap or lock letters",
     Floating: "Just let the letters float by",
   }
 

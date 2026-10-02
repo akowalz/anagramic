@@ -1,0 +1,62 @@
+/* Lock / unlock button that pops up above the selected tile */
+.tile-lock-button {
+  position: absolute;
+  bottom: calc(100% + 7px);
+  left: 50%;
+  translate: -50% 0;
+  z-index: 1;
+
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 16px;
+  border-radius: 50%;
+  box-shadow: 1px 1px 0 var(--dark);
+  touch-action: manipulation;
+
+  animation: tile-lock-pop 150ms ease-out;
+}
+
+/* Keep a finger-sized tap target around the smaller button */
+.tile-lock-button::before {
+  content: "";
+  position: absolute;
+  inset: -6px;
+}
+
+.tile-lock-button > svg {
+  min-width: 15px;
+  max-width: 15px;
+  margin: 0;
+}
+
+@keyframes tile-lock-pop {
+  from {
+    opacity: 0;
+    scale: 0.6;
+  }
+}
+
+/* Small marker straddling the top edge of a locked tile */
+.tile-lock-badge {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  translate: -50% 0;
+
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--darkest);
+  background: white;
+  color: var(--darkest);
+  pointer-events: none;
+}
+
+.tile-lock-badge > svg {
+  width: 11px;
+  height: 11px;
+}
