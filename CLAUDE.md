@@ -29,9 +29,56 @@ Dependencies are managed with npm (`package-lock.json`). Run `npm install` first
 - `npm run lint` — run ESLint
 - `npm run build` — type check and produce a production build in `dist/`
 - `npm run preview` — serve the production build locally
-- `npm run share` - share a public link with ngrok (handy if using remote-control to make changes)
+- `npm run share [name]` - share a public link with ngrok (handy if using remote-control to make changes); see "Sharing a dev server" below
 
 Run the type check and lint after making changes.
+
+## Sharing a dev server at a public URL (ngrok)
+
+```
+npm run share              # share the checkout you're in
+npm run share <name>       # share .claude/worktrees/<name>
+```
+
+`npm run share [name]` starts the dev server and puts it on a public
+`https://<random>.ngrok-free.app` URL, e.g. to try a change on a phone. With no
+name it shares the checkout you're in; with a name it shares
+`.claude/worktrees/<name>` (installing dependencies first if needed). Extra
+args after `--` go to Vite. It prints the URL on a `Public:` line, and Ctrl+C
+stops both the dev server and the tunnel.
+
+**Claude can run this.** When asking the user to check a UI change by hand,
+remind them that Claude can run `npm run share <name>` to give them a URL to
+open on their phone. Only start it once they say yes, since it makes the app
+public. To run it, use the background option, read its output for the `Public:`
+line, and send the user that URL. Stop the background task when they're done.
+
+Notes:
+
+- **Doing it by hand**, e.g. for a dev server that's already running:
+  `ngrok http <port> --host-header=rewrite`, with the port Vite printed (5173,
+  or the next free port). ngrok prints the URL, or read `public_url` from its
+  local API with `curl -s http://127.0.0.1:4040/api/tunnels`.
+- **`--host-header=rewrite` is required.** Vite refuses requests whose `Host`
+  isn't allowed, so without it the site shows "Blocked request. This host is
+  not allowed." Rewriting the header to `localhost` means no `vite.config.ts`
+  change is needed, in any worktree or branch. Hot reload works through the
+  tunnel. (`npm run share` does this for you.)
+- **Tunnel the right port.** Several dev servers can be running at once. To
+  see which checkout a port serves, run `lsof -nP -iTCP -sTCP:LISTEN | grep node`
+  and then `lsof -a -p <pid> -d cwd` for the process.
+- **Check it loads before sending it**, e.g. with
+  `curl -s -H "ngrok-skip-browser-warning: 1" <url>/`, which should return the
+  page's HTML.
+- **Setup:** ngrok is installed with `brew install --cask ngrok`. It needs a
+  free ngrok account and an authtoken, added once with
+  `ngrok config add-authtoken <token>`. The token is stored in
+  `~/Library/Application Support/ngrok/ngrok.yml` and is already set up on
+  this machine. Never print it.
+- **It's public.** Anyone with the URL can use the app until the tunnel is
+  stopped, so stop it when the user is done (Ctrl+C, or stop the background
+  task). The URL changes every time a tunnel starts, and the free plan limits
+  how many tunnels can run at once.
 
 ## Rules for contributing
 
