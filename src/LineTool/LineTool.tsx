@@ -5,7 +5,7 @@ import TileLock from "../TileLock/TileLock"
 import { TAP_THRESHOLD } from "../DraggableTile/DraggableTile"
 import { rubberBand } from "../lib/rubber-band"
 
-import { useEffect, useRef, useState } from "react"
+import { useImperativeHandle, useRef, useState, type Ref } from "react"
 import { Reorder } from "motion/react"
 import { resistSpringCss, tileSpring } from "../lib/animation"
 import type { Letter } from "../lib/letters"
@@ -14,14 +14,14 @@ type Props = {
   letters: Letter[]
   selectedId: number | null
   select: (id: number | null) => void
-  registerActions: (actions: ToolActions) => void
+  ref: Ref<ToolActions>
 }
 
 export default function LineTool({
   letters,
   selectedId,
   select,
-  registerActions,
+  ref,
 }: Props) {
   const { tiles, setTiles, shuffleTiles, resetPositions, toggleLock } =
     useMoveableLetters(letters, select)
@@ -81,12 +81,10 @@ export default function LineTool({
     setResisting(null)
   }
 
-  useEffect(() => {
-    registerActions({
-      reset: () => resetPositions(),
-      shuffle: () => shuffleTiles(),
-    })
-  }, [])
+  useImperativeHandle(ref, () => ({
+    reset: resetPositions,
+    shuffle: shuffleTiles,
+  }))
 
   function onReorder(args: Tile[]) {
     setTiles(args)

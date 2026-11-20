@@ -1,7 +1,7 @@
 import "./App.css"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
-import { type ToolActions } from "./Types/ToolActions"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { TOOL_BUTTONS, type ToolActions } from "./Types/ToolActions"
 import { type Tool } from "./Types/Tool"
 
 import ToolPicker from "./ToolPicker/ToolPicker"
@@ -24,10 +24,6 @@ import {
   type Selection,
 } from "./lib/letters"
 
-type ActionsForTools = {
-  [K in Tool]: ToolActions | undefined
-}
-
 /* Letters from a shared link (?fodder=...) */
 function lettersFromUrl(): Selection {
   const params = new URLSearchParams(window.location.search)
@@ -38,13 +34,6 @@ function lettersFromUrl(): Selection {
 }
 
 function App() {
-  const [toolActions, setToolActions] = useState<ActionsForTools>({
-    Tiles: undefined,
-    Line: undefined,
-    Wheel: undefined,
-    Floating: undefined,
-  })
-
   const [showAboutPage, setShowAboutPage] = useState(false)
   // The letters, and the selected one. Together, since the delete key
   // changes both at once.
@@ -54,7 +43,6 @@ function App() {
   const [keyboardOpen, setKeyboardOpen] = useState(true)
   const [tool, setTool] = useState<Tool>("Tiles")
 
-  // Stable, since the tools register actions that use it once
   const select = useCallback((id: number | null) => {
     setSelection((selection) => ({ ...selection, selectedId: id }))
   }, [])
@@ -97,28 +85,30 @@ function App() {
     window.history.replaceState(null, "", url)
   }, [letters])
 
-  function setActionsForTool(tool: Tool, actions: ToolActions) {
-    setToolActions((prev) => ({ ...prev, [tool]: actions }))
+  // Each tool hands the app its actions through one of these
+  const tilesRef = useRef<ToolActions>(null)
+  const lineRef = useRef<ToolActions>(null)
+  const wheelRef = useRef<ToolActions>(null)
+  const floatingRef = useRef<ToolActions>(null)
+
+  function currentToolActions(): ToolActions | null {
+    const refs = {
+      Tiles: tilesRef,
+      Line: lineRef,
+      Wheel: wheelRef,
+      Floating: floatingRef,
+    }
+    return refs[tool].current
   }
 
-  const currentToolActions: ToolActions = useMemo(() => {
-    return toolActions[tool] || {}
-  }, [tool, toolActions])
+  const buttons = TOOL_BUTTONS[tool]
 
   function reset(): void {
-    if (!currentToolActions.reset) {
-      throw "attempted to call non-existant reset function"
-    }
-
-    currentToolActions.reset()
+    currentToolActions()?.reset?.()
   }
 
   function shuffle(): void {
-    if (!currentToolActions.shuffle) {
-      throw "attempted to call non-existant shuffle function"
-    }
-
-    currentToolActions.shuffle()
+    currentToolActions()?.shuffle?.()
   }
 
   return (
@@ -144,9 +134,7 @@ function App() {
                 letters={letters}
                 selectedId={selectedId}
                 select={select}
-                registerActions={(actions: ToolActions) =>
-                  setActionsForTool("Tiles", actions)
-                }
+                ref={tilesRef}
               />
             </div>
             <div
@@ -156,9 +144,7 @@ function App() {
                 letters={letters}
                 selectedId={selectedId}
                 select={select}
-                registerActions={(actions: ToolActions) =>
-                  setActionsForTool("Line", actions)
-                }
+                ref={lineRef}
               />
             </div>
             <div
@@ -168,9 +154,7 @@ function App() {
                 letters={letters}
                 selectedId={selectedId}
                 select={select}
-                registerActions={(actions: ToolActions) =>
-                  setActionsForTool("Wheel", actions)
-                }
+                ref={wheelRef}
               />
             </div>
             <div
@@ -180,9 +164,7 @@ function App() {
                 letters={letters}
                 selectedId={selectedId}
                 active={tool === "Floating"}
-                registerActions={(actions: ToolActions) =>
-                  setActionsForTool("Floating", actions)
-                }
+                ref={floatingRef}
               />
             </div>
 
@@ -199,14 +181,14 @@ function App() {
               </button>
             )}
 
-            {currentToolActions.reset && (
+            {buttons.reset && (
               <button onClick={reset}>
                 <ResetIcon />
                 Reset
               </button>
             )}
 
-            {currentToolActions.shuffle && (
+            {buttons.shuffle && (
               <button onClick={shuffle}>
                 <ShuffleIcon />
                 Shuffle

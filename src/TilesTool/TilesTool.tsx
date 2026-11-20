@@ -1,9 +1,10 @@
 import {
   useCallback,
-  useEffect,
+  useImperativeHandle,
   useLayoutEffect,
   useRef,
   useState,
+  type Ref,
 } from "react"
 import { flushSync } from "react-dom"
 import Tile from "../DraggableTile/DraggableTile"
@@ -21,7 +22,7 @@ type Props = {
   letters: Letter[]
   selectedId: number | null
   select: (id: number | null) => void
-  registerActions: (actions: ToolActions) => void
+  ref: Ref<ToolActions>
 }
 
 type TileData = {
@@ -53,7 +54,7 @@ export default function TileTool({
   letters,
   selectedId,
   select,
-  registerActions,
+  ref,
 }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const shadowCanvasRef = useRef<HTMLDivElement>(null)
@@ -63,8 +64,8 @@ export default function TileTool({
     tilesFromLetters(letters),
   )
 
-  // The actions registered with the app are created once, so they read the
-  // latest tiles (e.g. which are locked) from here
+  // The tiles as of the last render, for the layout effects below, which
+  // compare them with the new letters without re-running on every move
   const tileDataRef = useRef(tileData)
   useLayoutEffect(() => {
     tileDataRef.current = tileData
@@ -117,9 +118,7 @@ export default function TileTool({
   function resetTiles() {
     select(null)
     setTileData((tiles) => tiles.map((tile) => ({ ...tile, locked: false })))
-    // The actions registered with the app are created once, so use the latest
-    // tiles rather than the letters from when they were created
-    placeInSlots(tileDataRef.current.map((_, index) => index))
+    placeInSlots(tileData.map((_, index) => index))
   }
 
   function shuffleTiles() {
@@ -128,8 +127,9 @@ export default function TileTool({
     // Still in the flex layout: shuffle slots so tiles keep following it
     const slots = slotsRef.current
     if (slots) {
-      const tiles = tileDataRef.current
-      placeInSlots(shuffleUnlocked(slots, (_, index) => tiles[index].locked))
+      placeInSlots(
+        shuffleUnlocked(slots, (_, index) => tileData[index].locked),
+      )
     } else {
       setTileData((tiles) => shuffleTilePositions(tiles, (tile) => tile.locked))
     }
@@ -197,18 +197,14 @@ export default function TileTool({
     })
   }
 
-  useEffect(() => {
-    registerActions({
-      reset: () => resetTiles(),
-      shuffle: () => shuffleTiles(),
-    })
-  }, [])
+  useImperativeHandle(ref, () => ({ reset: resetTiles, shuffle: shuffleTiles }))
 
+  // Start in the flex layout, in letter order. Only runs on mount, since
+  // placeInSlots never changes.
   useLayoutEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    resetTiles()
+    placeInSlots(tileDataRef.current.map((_, index) => index))
     setShowTiles(true)
-  }, [])
+  }, [placeInSlots])
 
   // Keep the tiles in step with the letters as they're typed and deleted. A
   // layout effect because it measures the layout, which already has the new
@@ -287,7 +283,7 @@ export default function TileTool({
       observer.disconnect()
       cancelAnimationFrame(frame)
     }
-  }, [])
+  }, [placeInSlots, getBounds])
 
   const tiles = tileData.map((tile) => {
     return (

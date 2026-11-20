@@ -4,7 +4,7 @@ import { useMoveableLetters } from "../hooks/useMoveableLetters"
 import { coordToPosition, positionToStyle } from "../lib/coordinate-plane.ts"
 import TileLock from "../TileLock/TileLock"
 
-import { useEffect, useState } from "react"
+import { useImperativeHandle, useState, type Ref } from "react"
 
 import * as motion from "motion/react-client"
 import { tileSpring } from "../lib/animation"
@@ -14,14 +14,14 @@ type Props = {
   letters: Letter[]
   selectedId: number | null
   select: (id: number | null) => void
-  registerActions: (actions: ToolActions) => void
+  ref: Ref<ToolActions>
 }
 
 export default function WheelTool({
   letters,
   selectedId,
   select,
-  registerActions,
+  ref,
 }: Props) {
   const { tiles, shuffleTiles, resetPositions, swapTiles, toggleLock } =
     useMoveableLetters(letters, select)
@@ -32,12 +32,10 @@ export default function WheelTool({
   // A locked tile that was just tapped to swap, shaken to show it can't move
   const [refusedId, setRefusedId] = useState<number | null>(null)
 
-  useEffect(() => {
-    registerActions({
-      reset: () => resetPositions(),
-      shuffle: () => shuffleTiles(),
-    })
-  }, [])
+  useImperativeHandle(ref, () => ({
+    reset: resetPositions,
+    shuffle: shuffleTiles,
+  }))
 
   function onClickTile(index: number) {
     if (activeIndex === index) {

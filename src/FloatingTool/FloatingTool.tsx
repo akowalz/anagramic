@@ -1,5 +1,12 @@
 import "./FloatingTool.css"
-import { useCallback, useEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type Ref,
+} from "react"
 import { type Coord } from "../lib/coordinate-plane"
 import type { ToolActions } from "../Types/ToolActions"
 import { tileSpringCss, tileSpringCssMs } from "../lib/animation"
@@ -11,7 +18,7 @@ type Props = {
   // Tiles can't be tapped here, but the delete key still selects them
   selectedId: number | null
   active: boolean
-  registerActions: (actions: ToolActions) => void
+  ref: Ref<ToolActions>
 }
 
 type FloatingTile = {
@@ -97,7 +104,7 @@ export default function FloatingTool({
   letters,
   selectedId,
   active,
-  registerActions,
+  ref,
 }: Props) {
   const [tiles, setTiles] = useState<FloatingTile[]>(initializeTiles(letters))
 
@@ -133,11 +140,10 @@ export default function FloatingTool({
     }, SHUFFLE_DURATION_MS)
   }, [])
 
-  /* Action Registration */
+  useImperativeHandle(ref, () => ({ shuffle: shuffleTiles }), [shuffleTiles])
+
+  // Don't leave a shuffle timer running after unmounting
   useEffect(() => {
-    registerActions({
-      shuffle: () => shuffleTiles(),
-    })
     return () => {
       if (shuffleTimeoutRef.current) clearTimeout(shuffleTimeoutRef.current)
     }
