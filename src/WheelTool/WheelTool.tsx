@@ -8,25 +8,29 @@ import { useEffect, useState } from "react"
 
 import * as motion from "motion/react-client"
 import { tileSpring } from "../lib/animation"
+import type { Letter } from "../lib/letters"
 
 type Props = {
-  letters: string[]
+  letters: Letter[]
+  selectedId: number | null
+  select: (id: number | null) => void
   registerActions: (actions: ToolActions) => void
 }
 
-export default function WheelTool({ letters, registerActions }: Props) {
-  const {
-    tiles,
-    activeIndex,
-    setActiveIndex,
-    shuffleTiles,
-    resetPositions,
-    swapTiles,
-    toggleLock,
-  } = useMoveableLetters(letters)
+export default function WheelTool({
+  letters,
+  selectedId,
+  select,
+  registerActions,
+}: Props) {
+  const { tiles, shuffleTiles, resetPositions, swapTiles, toggleLock } =
+    useMoveableLetters(letters, select)
+
+  const selectedIndex = tiles.findIndex((tile) => tile.id === selectedId)
+  const activeIndex = selectedIndex === -1 ? null : selectedIndex
 
   // A locked tile that was just tapped to swap, shaken to show it can't move
-  const [refusedId, setRefusedId] = useState<string | null>(null)
+  const [refusedId, setRefusedId] = useState<number | null>(null)
 
   useEffect(() => {
     registerActions({
@@ -37,7 +41,7 @@ export default function WheelTool({ letters, registerActions }: Props) {
 
   function onClickTile(index: number) {
     if (activeIndex === index) {
-      setActiveIndex(null)
+      select(null)
       return
     }
 
@@ -47,7 +51,7 @@ export default function WheelTool({ letters, registerActions }: Props) {
       const lockedIndex = [index, activeIndex].find((i) => tiles[i].locked)
       if (lockedIndex !== undefined) {
         setRefusedId(tiles[lockedIndex].id)
-        setActiveIndex(index)
+        select(tiles[index].id)
         return
       }
 
@@ -55,7 +59,7 @@ export default function WheelTool({ letters, registerActions }: Props) {
       return
     }
 
-    setActiveIndex(index)
+    select(tiles[index].id)
   }
 
   const tileStyles = tiles.map((_, index) => {
@@ -72,7 +76,7 @@ export default function WheelTool({ letters, registerActions }: Props) {
     <>
       <div
         className="wheel-tool-container"
-        onClick={() => setActiveIndex(null)}
+        onClick={() => select(null)}
       >
         <div className="wheel-boundary">
           {tiles.map((tile, index) => {

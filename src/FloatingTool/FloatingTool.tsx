@@ -3,15 +3,20 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { type Coord } from "../lib/coordinate-plane"
 import type { ToolActions } from "../Types/ToolActions"
 import { tileSpringCss, tileSpringCssMs } from "../lib/animation"
-import { syncTilesByPosition } from "../lib/sync-tiles"
+import { syncTilesInLetterOrder } from "../lib/sync-tiles"
+import type { Letter } from "../lib/letters"
 
 type Props = {
-  letters: string[]
+  letters: Letter[]
+  // Tiles can't be tapped here, but the delete key still selects them
+  selectedId: number | null
   active: boolean
   registerActions: (actions: ToolActions) => void
 }
 
 type FloatingTile = {
+  // The id of the tile's letter
+  id: number
   letter: string
   coords: Coord
   xDir: number
@@ -36,15 +41,16 @@ function randomDirection(): { xDir: number; yDir: number } {
   }
 }
 
-function initializeTile(letter: string): FloatingTile {
+function initializeTile(letter: Letter): FloatingTile {
   return {
-    letter,
+    id: letter.id,
+    letter: letter.char,
     coords: randomCoords(),
     ...randomDirection(),
   }
 }
 
-function initializeTiles(letters: string[]): FloatingTile[] {
+function initializeTiles(letters: Letter[]): FloatingTile[] {
   return letters.map((letter) => initializeTile(letter))
 }
 
@@ -67,6 +73,7 @@ function updateTile(tile: FloatingTile, deltaSeconds: number): FloatingTile {
   }
 
   return {
+    id: tile.id,
     letter: tile.letter,
     coords: { x: newX, y: newY },
     xDir,
@@ -88,6 +95,7 @@ const SHUFFLE_DURATION_MS = tileSpringCssMs
 
 export default function FloatingTool({
   letters,
+  selectedId,
   active,
   registerActions,
 }: Props) {
@@ -99,7 +107,7 @@ export default function FloatingTool({
   const [syncedLetters, setSyncedLetters] = useState(letters)
   if (letters !== syncedLetters) {
     setSyncedLetters(letters)
-    setTiles((tiles) => syncTilesByPosition(tiles, letters, initializeTile))
+    setTiles((tiles) => syncTilesInLetterOrder(tiles, letters, initializeTile))
   }
 
   const [shuffling, setShuffling] = useState(false)
@@ -165,11 +173,13 @@ export default function FloatingTool({
   return (
     <div className="floating-tool-container">
       <div className="floating-tool-box">
-        {tiles.map((tile: FloatingTile, index: number) => {
+        {tiles.map((tile: FloatingTile) => {
           return (
             <div
-              key={index}
-              className="tile floating-tool-tile"
+              key={tile.id}
+              className={`tile floating-tool-tile ${
+                tile.id === selectedId ? "active" : ""
+              }`}
               style={{
                 ...coordToTranslate(tile.coords),
                 ...(shuffling && {

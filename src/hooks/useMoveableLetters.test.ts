@@ -7,7 +7,7 @@ import {
 
 function tilesFor(word: string): Tile[] {
   return word.split("").map((letter, index) => ({
-    id: `${letter}${index}`,
+    id: index,
     letter,
     initialPosition: index,
     locked: false,

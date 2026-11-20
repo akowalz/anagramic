@@ -1,10 +1,9 @@
 import "./ToolPicker.css"
 
-import type { Dispatch, SetStateAction } from "react"
 import type { Tool } from "../Types/Tool"
 
 type Props = {
-  setTool: Dispatch<SetStateAction<Tool>>
+  setTool: (tool: Tool) => void
   activeTool: Tool
 }
 

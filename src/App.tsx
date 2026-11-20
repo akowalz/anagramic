@@ -16,20 +16,25 @@ import ShuffleIcon from "./Icons/ShuffleIcon"
 import ResetIcon from "./Icons/ResetIcon"
 import KeyboardIcon from "./Icons/KeyboardIcon"
 import AboutPage from "./AboutPage/AboutPage"
+import {
+  createLetter,
+  lettersFromString,
+  lettersToString,
+  pressDelete,
+  type Selection,
+} from "./lib/letters"
 
 type ActionsForTools = {
   [K in Tool]: ToolActions | undefined
 }
 
 /* Letters from a shared link (?fodder=...) */
-function lettersFromUrl(): string[] {
+function lettersFromUrl(): Selection {
   const params = new URLSearchParams(window.location.search)
   const fodder = params.get("fodder") ?? ""
 
-  return fodder
-    .replace(/[^a-z]/gi, "")
-    .toUpperCase()
-    .split("")
+  const letters = lettersFromString(fodder.replace(/[^a-z]/gi, "").toUpperCase())
+  return { letters, selectedId: null }
 }
 
 function App() {
@@ -41,10 +46,25 @@ function App() {
   })
 
   const [showAboutPage, setShowAboutPage] = useState(false)
-  const [letters, setLetters] = useState<string[]>(lettersFromUrl)
+  // The letters, and the selected one. Together, since the delete key
+  // changes both at once.
+  const [{ letters, selectedId }, setSelection] =
+    useState<Selection>(lettersFromUrl)
 
   const [keyboardOpen, setKeyboardOpen] = useState(true)
   const [tool, setTool] = useState<Tool>("Tiles")
+
+  // Stable, since the tools register actions that use it once
+  const select = useCallback((id: number | null) => {
+    setSelection((selection) => ({ ...selection, selectedId: id }))
+  }, [])
+
+  // Each tool uses the selection in its own way (in the wheel, tapping
+  // another tile swaps with it), so a new tool starts with nothing selected
+  function switchTool(newTool: Tool) {
+    setTool(newTool)
+    select(null)
+  }
 
   const tooltips = {
     Tiles: "Drag to rearrange letters, tap to lock",
@@ -53,12 +73,15 @@ function App() {
     Floating: "Just let the letters float by",
   }
 
-  const addLetter = useCallback((letter: string) => {
-    setLetters((letters) => [...letters, letter])
+  const addLetter = useCallback((char: string) => {
+    setSelection(({ letters }) => ({
+      letters: [...letters, createLetter(char)],
+      selectedId: null,
+    }))
   }, [])
 
   const deleteLetter = useCallback(() => {
-    setLetters((letters) => letters.slice(0, -1))
+    setSelection(pressDelete)
   }, [])
 
   useTypedKeys(!showAboutPage, addLetter, deleteLetter)
@@ -67,7 +90,7 @@ function App() {
   useEffect(() => {
     const url = new URL(window.location.href)
     if (letters.length > 0) {
-      url.searchParams.set("fodder", letters.join(""))
+      url.searchParams.set("fodder", lettersToString(letters))
     } else {
       url.searchParams.delete("fodder")
     }
@@ -109,7 +132,7 @@ function App() {
       ) : (
         <>
           <div id="main-navigation">
-            <ToolPicker activeTool={tool} setTool={setTool} />
+            <ToolPicker activeTool={tool} setTool={switchTool} />
             <div className="tooltip">{tooltips[tool]}</div>
           </div>
 
@@ -119,6 +142,8 @@ function App() {
             >
               <TilesTool
                 letters={letters}
+                selectedId={selectedId}
+                select={select}
                 registerActions={(actions: ToolActions) =>
                   setActionsForTool("Tiles", actions)
                 }
@@ -129,6 +154,8 @@ function App() {
             >
               <LineTool
                 letters={letters}
+                selectedId={selectedId}
+                select={select}
                 registerActions={(actions: ToolActions) =>
                   setActionsForTool("Line", actions)
                 }
@@ -139,6 +166,8 @@ function App() {
             >
               <WheelTool
                 letters={letters}
+                selectedId={selectedId}
+                select={select}
                 registerActions={(actions: ToolActions) =>
                   setActionsForTool("Wheel", actions)
                 }
@@ -149,6 +178,7 @@ function App() {
             >
               <FloatingTool
                 letters={letters}
+                selectedId={selectedId}
                 active={tool === "Floating"}
                 registerActions={(actions: ToolActions) =>
                   setActionsForTool("Floating", actions)

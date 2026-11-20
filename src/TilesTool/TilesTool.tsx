@@ -14,14 +14,18 @@ import { shuffleTilePositions } from "../lib/shuffle-positions"
 import { toggleLocked } from "../lib/locking"
 import { resolveOverlaps, type Bounds, type Pos } from "../lib/resolve-overlaps"
 import { fitToBounds, placeClearOfTiles } from "../lib/place-tiles"
-import { syncSlots, syncTilesByPosition } from "../lib/sync-tiles"
+import { syncSlots, syncTilesInLetterOrder } from "../lib/sync-tiles"
+import type { Letter } from "../lib/letters"
 
 type Props = {
-  letters: string[]
+  letters: Letter[]
+  selectedId: number | null
+  select: (id: number | null) => void
   registerActions: (actions: ToolActions) => void
 }
 
 type TileData = {
+  // The id of the tile's letter
   id: number
   pos: Pos
   letter: string
@@ -30,22 +34,27 @@ type TileData = {
   locked: boolean
 }
 
-/* A tile's id is the index of its letter, and tiles stay in that order */
-function createTile(letter: string, index: number): TileData {
+/* Tiles stay in the order of their letters */
+function createTile(letter: Letter): TileData {
   return {
-    letter,
-    id: index,
+    letter: letter.char,
+    id: letter.id,
     pos: { x: 0, y: 0 },
     zIndex: 0,
     locked: false,
   }
 }
 
-function tilesFromLetters(letters: string[]): TileData[] {
-  return letters.map((letter, index) => createTile(letter, index))
+function tilesFromLetters(letters: Letter[]): TileData[] {
+  return letters.map(createTile)
 }
 
-export default function TileTool({ letters, registerActions }: Props) {
+export default function TileTool({
+  letters,
+  selectedId,
+  select,
+  registerActions,
+}: Props) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const shadowCanvasRef = useRef<HTMLDivElement>(null)
 
@@ -53,7 +62,6 @@ export default function TileTool({ letters, registerActions }: Props) {
   const [tileData, setTileData] = useState<TileData[]>(
     tilesFromLetters(letters),
   )
-  const [selectedId, setSelectedId] = useState<number | null>(null)
 
   // The actions registered with the app are created once, so they read the
   // latest tiles (e.g. which are locked) from here
@@ -107,7 +115,7 @@ export default function TileTool({ letters, registerActions }: Props) {
   )
 
   function resetTiles() {
-    setSelectedId(null)
+    select(null)
     setTileData((tiles) => tiles.map((tile) => ({ ...tile, locked: false })))
     // The actions registered with the app are created once, so use the latest
     // tiles rather than the letters from when they were created
@@ -115,7 +123,7 @@ export default function TileTool({ letters, registerActions }: Props) {
   }
 
   function shuffleTiles() {
-    setSelectedId(null)
+    select(null)
 
     // Still in the flex layout: shuffle slots so tiles keep following it
     const slots = slotsRef.current
@@ -128,17 +136,17 @@ export default function TileTool({ letters, registerActions }: Props) {
   }
 
   const handleTapTile = (id: number) => {
-    setSelectedId((selectedId) => (selectedId === id ? null : id))
+    select(selectedId === id ? null : id)
   }
 
   const handleToggleLock = (id: number) => {
-    setSelectedId(null)
+    select(null)
     setTileData((tiles) => toggleLocked(tiles, id))
   }
 
   const handleMoveTile = (id: number, newPos: Pos) => {
     slotsRef.current = null
-    setSelectedId(null)
+    select(null)
 
     setTileData((tiles) => {
       const maxZ = Math.max(...tiles.map((t) => t.zIndex))
@@ -209,7 +217,7 @@ export default function TileTool({ letters, registerActions }: Props) {
   // run again for other reasons.
   useLayoutEffect(() => {
     const oldTiles = tileDataRef.current
-    const tiles = syncTilesByPosition(oldTiles, letters, createTile)
+    const tiles = syncTilesInLetterOrder(oldTiles, letters, createTile)
 
     const unchanged =
       tiles.length === oldTiles.length &&
@@ -220,8 +228,6 @@ export default function TileTool({ letters, registerActions }: Props) {
 
     // Where the tiles go depends on the measured layout, so they can only be
     // updated once it has rendered, here
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedId(null)
     setTileData(tiles)
 
     if (oldSlots) {
@@ -234,12 +240,14 @@ export default function TileTool({ letters, registerActions }: Props) {
     // where the layout would, moved clear of whatever is already there
     const flexPositions = getFlexPositions()
     const bounds = getBounds()
-    const added = tiles.filter((tile) => !oldTiles.includes(tile))
-
+    // The layout has a position for each letter, in letter order, which is
+    // the order of the tiles
     setTileData((tiles) =>
-      added.reduce(
-        (placed, tile) =>
-          placeClearOfTiles(placed, tile.id, flexPositions[tile.id], bounds),
+      tiles.reduce(
+        (placed, tile, index) =>
+          oldTiles.includes(tile)
+            ? placed
+            : placeClearOfTiles(placed, tile.id, flexPositions[index], bounds),
         tiles,
       ),
     )
@@ -308,7 +316,7 @@ export default function TileTool({ letters, registerActions }: Props) {
           ref={canvasRef}
           onPointerDown={(e) => {
             // Tapping empty space deselects
-            if (e.target === e.currentTarget) setSelectedId(null)
+            if (e.target === e.currentTarget) select(null)
           }}
         >
           {showTiles && tiles}
@@ -319,13 +327,13 @@ export default function TileTool({ letters, registerActions }: Props) {
           className="hidden-tile-canvas"
           ref={shadowCanvasRef}
         >
-          {letters.map((letter, index) => (
+          {letters.map((letter) => (
             <div
-              key={index}
+              key={letter.id}
               className="tile"
               style={{ height: "40px", width: "40px" }}
             >
-              {letter}
+              {letter.char}
             </div>
           ))}
         </div>

@@ -8,24 +8,25 @@ import { rubberBand } from "../lib/rubber-band"
 import { useEffect, useRef, useState } from "react"
 import { Reorder } from "motion/react"
 import { resistSpringCss, tileSpring } from "../lib/animation"
+import type { Letter } from "../lib/letters"
 
 type Props = {
-  letters: string[]
+  letters: Letter[]
+  selectedId: number | null
+  select: (id: number | null) => void
   registerActions: (actions: ToolActions) => void
 }
 
-export default function LineTool({ letters, registerActions }: Props) {
-  const {
-    tiles,
-    setTiles,
-    activeIndex,
-    setActiveIndex,
-    shuffleTiles,
-    resetPositions,
-    toggleLock,
-  } = useMoveableLetters(letters)
+export default function LineTool({
+  letters,
+  selectedId,
+  select,
+  registerActions,
+}: Props) {
+  const { tiles, setTiles, shuffleTiles, resetPositions, toggleLock } =
+    useMoveableLetters(letters, select)
 
-  const [dragId, setDragId] = useState<string | null>(null)
+  const [dragId, setDragId] = useState<number | null>(null)
   // Whether the current press turned into a drag, so it isn't also a tap
   const draggedRef = useRef(false)
 
@@ -35,10 +36,10 @@ export default function LineTool({ letters, registerActions }: Props) {
   // event sees it immediately, without waiting for a re-render.
   const resistPointerRef = useRef<{
     pointerId: number
-    id: string
+    id: number
     startX: number
   } | null>(null)
-  const [resisting, setResisting] = useState<{ id: string; x: number } | null>(
+  const [resisting, setResisting] = useState<{ id: number; x: number } | null>(
     null,
   )
 
@@ -100,7 +101,7 @@ export default function LineTool({ letters, registerActions }: Props) {
         onReorder={onReorder}
         onPointerDown={(e) => {
           // Tapping empty space deselects
-          if (e.target === e.currentTarget) setActiveIndex(null)
+          if (e.target === e.currentTarget) select(null)
         }}
         className="line-tool-container"
         style={
@@ -110,7 +111,7 @@ export default function LineTool({ letters, registerActions }: Props) {
           } as React.CSSProperties
         }
       >
-        {tiles.map((tile, index) => {
+        {tiles.map((tile) => {
           return (
             <Reorder.Item
               as="div"
@@ -119,7 +120,7 @@ export default function LineTool({ letters, registerActions }: Props) {
                   tile
                   line-tool-tile
                   ${tile.id === dragId ? "dragging" : ""}
-                  ${index === activeIndex ? "active" : ""}
+                  ${tile.id === selectedId ? "active" : ""}
                   ${tile.locked ? "locked" : ""}
                   ${resisting?.id === tile.id ? "resisting" : ""}
                 `}
@@ -138,11 +139,11 @@ export default function LineTool({ letters, registerActions }: Props) {
               }}
               onTap={() => {
                 if (draggedRef.current) return
-                setActiveIndex(index === activeIndex ? null : index)
+                select(tile.id === selectedId ? null : tile.id)
               }}
               onDragStart={() => {
                 draggedRef.current = true
-                setActiveIndex(null)
+                select(null)
                 setDragId(tile.id)
               }}
               onDragEnd={() => setDragId(null)}
@@ -151,7 +152,7 @@ export default function LineTool({ letters, registerActions }: Props) {
             >
               {tile.letter}
               <TileLock
-                selected={index === activeIndex}
+                selected={tile.id === selectedId}
                 locked={tile.locked}
                 onToggle={() => toggleLock(tile.id)}
               />

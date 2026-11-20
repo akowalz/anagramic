@@ -2,25 +2,27 @@ import { useState } from 'react'
 import { shuffleUnlocked } from '../lib/shuffle'
 import { toggleLocked } from '../lib/locking'
 import { syncRearrangedTiles } from '../lib/sync-tiles'
+import type { Letter } from '../lib/letters'
 
 export type Tile = {
-  id: string,
+  // The id of the tile's letter
+  id: number,
   letter: string,
   initialPosition: number,
   // Locked tiles stay where they are when shuffling
   locked: boolean,
 }
 
-function createTile(letter: string, index: number): Tile {
+function createTile(letter: Letter, index: number): Tile {
   return {
-    id: Math.random().toString(36).substring(3, 9),
+    id: letter.id,
     initialPosition: index,
-    letter,
+    letter: letter.char,
     locked: false,
   }
 }
 
-function initializeLetters(letters: string[]): Tile[] {
+function initializeLetters(letters: Letter[]): Tile[] {
   return letters.map((letter, index) => createTile(letter, index))
 }
 
@@ -37,11 +39,17 @@ export function swapTiles(tiles: Tile[], indexA: number, indexB: number): Tile[]
   return newTiles
 }
 
-export function useMoveableLetters(letters: string[]) {
+/*
+ * The selected tile is the app's, since it's shared with the delete key: pass
+ * the setter for it as `select`.
+ */
+export function useMoveableLetters(
+  letters: Letter[],
+  select: (id: number | null) => void,
+) {
   const [tiles, setTiles] = useState<Tile[]>(
     initializeLetters(letters)
   )
-  const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
   // Letters get typed and deleted, so keep the tiles in step with them.
   // Adjusting state while rendering is React's way of reacting to a changed
@@ -49,17 +57,16 @@ export function useMoveableLetters(letters: string[]) {
   const [syncedLetters, setSyncedLetters] = useState(letters)
   if (letters !== syncedLetters) {
     setSyncedLetters(letters)
-    setActiveIndex(null)
     setTiles((tiles) => syncRearrangedTiles(tiles, letters, createTile))
   }
 
   function shuffleTiles() {
-    setActiveIndex(null)
+    select(null)
     setTiles((tiles) => shuffleUnlocked(tiles, (tile) => tile.locked))
   }
 
   function resetPositions() {
-    setActiveIndex(null)
+    select(null)
     setTiles((tiles) =>
       sortByInitialPosition(tiles).map((tile) => ({ ...tile, locked: false }))
     )
@@ -67,19 +74,17 @@ export function useMoveableLetters(letters: string[]) {
 
   function swap(indexA: number, indexB: number) {
     setTiles(swapTiles(tiles, indexA, indexB))
-    setActiveIndex(null)
+    select(null)
   }
 
-  function toggleLock(id: string) {
-    setActiveIndex(null)
+  function toggleLock(id: number) {
+    select(null)
     setTiles((tiles) => toggleLocked(tiles, id))
   }
 
   return {
     tiles,
     setTiles,
-    activeIndex,
-    setActiveIndex,
     shuffleTiles,
     resetPositions,
     swapTiles: swap,

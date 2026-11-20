@@ -1,44 +1,44 @@
-/*
- * Letters are typed one at a time and only ever added or deleted at the end.
- * Every tool keeps its own tiles for those letters, so when the letters change
- * the tools bring their tiles in line: tiles for letters that are still there
- * stay as they are (keeping their position, lock and so on), tiles for deleted
- * letters go, and tiles are created for new letters.
- */
+import type { Letter } from "./letters"
 
 /*
- * For tiles that stay in letter order, so the tile at an index is the tile for
- * the letter at that index.
+ * Letters are typed at the end, and deleted from anywhere. Every tool keeps
+ * its own tiles for those letters, each with the id of its letter, so when
+ * the letters change the tools bring their tiles in line: tiles for letters
+ * that are still there stay as they are (keeping their position, lock and so
+ * on), tiles for deleted letters go, and tiles are created for new letters.
  */
-export function syncTilesByPosition<T extends { letter: string }>(
+
+/* For tiles that stay in letter order */
+export function syncTilesInLetterOrder<T extends { id: number }>(
   tiles: T[],
-  letters: string[],
-  createTile: (letter: string, index: number) => T,
+  letters: Letter[],
+  createTile: (letter: Letter) => T,
 ): T[] {
-  return letters.map((letter, index) =>
-    tiles[index]?.letter === letter ? tiles[index] : createTile(letter, index),
-  )
+  const byId = new Map(tiles.map((tile) => [tile.id, tile]))
+  return letters.map((letter) => byId.get(letter.id) ?? createTile(letter))
 }
 
 /*
- * For tiles that get rearranged: each one remembers which letter it is for
- * with `initialPosition`. Tiles keep their current order, and new tiles go at
- * the end.
+ * For tiles that get rearranged: tiles keep their current order, and new
+ * tiles go at the end. `initialPosition` is kept up to date with where each
+ * tile's letter is in the letters, so the tiles can be put back in order.
  */
 export function syncRearrangedTiles<
-  T extends { letter: string; initialPosition: number },
->(
-  tiles: T[],
-  letters: string[],
-  createTile: (letter: string, index: number) => T,
-): T[] {
-  const kept = tiles.filter(
-    (tile) => letters[tile.initialPosition] === tile.letter,
-  )
-  const keptIndices = new Set(kept.map((tile) => tile.initialPosition))
+  T extends { id: number; initialPosition: number },
+>(tiles: T[], letters: Letter[], createTile: (letter: Letter, index: number) => T): T[] {
+  const positions = new Map(letters.map((letter, index) => [letter.id, index]))
+
+  const kept = tiles.flatMap((tile) => {
+    const position = positions.get(tile.id)
+    if (position === undefined) return []
+    return position === tile.initialPosition
+      ? [tile]
+      : [{ ...tile, initialPosition: position }]
+  })
+  const keptIds = new Set(kept.map((tile) => tile.id))
 
   const added = letters.flatMap((letter, index) =>
-    keptIndices.has(index) ? [] : [createTile(letter, index)],
+    keptIds.has(letter.id) ? [] : [createTile(letter, index)],
   )
 
   return [...kept, ...added]
