@@ -11,7 +11,7 @@
   padding: 0;
   font-size: 16px;
   border-radius: 50%;
-  box-shadow: 1px 1px 0 var(--dark);
+  box-shadow: 1px 1px 0 var(--border);
   touch-action: manipulation;
 
   animation: tile-lock-pop 150ms ease-out;
@@ -50,9 +50,9 @@
   height: 18px;
   box-sizing: border-box;
   border-radius: 50%;
-  border: 2px solid var(--darkest);
-  background: white;
-  color: var(--darkest);
+  border: 2px solid var(--ink);
+  background: var(--surface);
+  color: var(--text);
   pointer-events: none;
 }
 

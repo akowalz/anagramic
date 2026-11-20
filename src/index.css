@@ -11,7 +11,7 @@ body {
 #root {
   height: 100dvh;
   box-sizing: border-box;
-  color: var(--darkest);
+  color: var(--text);
   max-width: 900px;
   margin: 0 auto;
 }
@@ -34,19 +34,46 @@ body {
 
 /* Global theme + typography */
 :root {
-  /* Colors */
+  color-scheme: light dark;
+
+  /* Palette */
   --darkest: #2d232e;
   --darker: #474448;
   --dark: #534b52;
-  --transparent-dark: #323232d2; 
   --middle: #ebebeb;
-  --light: #eeeeee;
   --lighter: #f4f4f4;
   --lightest: #f7f7f7;
   --highlight: #EAB308;
 
-  /* App background alias */
+  /*
+   * Theme. Components use these, never the palette directly, so the dark
+   * theme below only has to swap this list.
+   */
   --app-bg: var(--lighter);
+  --text: var(--darkest);
+  --text-muted: var(--dark);
+  --text-faint: #777;
+  --link-hover: var(--darker);
+
+  --surface: white; /* tiles, buttons, badges */
+  --surface-sunken: var(--lightest); /* tool picker, floating box */
+  --surface-hover: var(--lighter);
+  --surface-selected: var(--middle);
+
+  --ink: var(--darkest); /* tile and picker outlines */
+  --border: var(--dark); /* button and box outlines */
+  --shadow: black; /* hard offset shadows */
+  --divider: #ddd;
+
+  --locked-bg: var(--darker);
+  --locked-bg-hover: var(--dark);
+  --locked-text: white;
+
+  --wheel-track: lightgrey;
+
+  --key-bg: #d9d7da;
+  --key-bg-hover: #cecdd0;
+  --key-bg-active: #bebcc0;
 
   /* Fonts (loaded from Google Fonts in index.html) */
   --font-ui: "IBM Plex Sans", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
@@ -61,10 +88,45 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/*
+ * Dark theme, following the device setting. The same idea in reverse: tiles
+ * are dark faces with light outlines and light hard shadows, and locked tiles
+ * flip to light.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --app-bg: #1d181e;
+    --text: var(--lighter);
+    --text-muted: #b5afb6;
+    --text-faint: #8a838b;
+    --link-hover: white;
+
+    --surface: var(--darkest);
+    --surface-sunken: #241d25;
+    --surface-hover: #3a303b;
+    --surface-selected: #433944;
+
+    --ink: #ebe8ec;
+    --border: #8a838b;
+    --shadow: #a59fa6;
+    --divider: #4a414b;
+
+    --locked-bg: #e6e3e7;
+    --locked-bg-hover: #cfcad0;
+    --locked-text: var(--darkest);
+
+    --wheel-track: #3a323b;
+
+    --key-bg: #3b333c;
+    --key-bg-hover: #463d47;
+    --key-bg-active: #514852;
+  }
+}
+
 /* Links */
 @media (hover: hover) {
   a:hover {
-    color: var(--darker);
+    color: var(--link-hover);
   }
 }
 
@@ -81,10 +143,10 @@ button {
   padding: 8px;
   border-radius: 4px;
   font-style: italic;
-  background: white;
-  color: var(--darkest);
-  border: 1px solid var(--dark);
-  box-shadow: 2px 2px 0 black;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: 2px 2px 0 var(--shadow);
 }
 
 button > svg {
@@ -94,16 +156,16 @@ button > svg {
 }
 
 button.active {
-  background: var(--lightest);
-  border: 2px solid var(--dark);
+  background: var(--surface-sunken);
+  border: 2px solid var(--border);
   box-shadow: none;
 }
 
 @media (hover: hover) {
   button:hover {
     cursor: pointer;
-    background: var(--lighter);
-    color: var(--darkest);
+    background: var(--surface-hover);
+    color: var(--text);
   }
 }
 
@@ -115,8 +177,8 @@ button.active {
 
 /* Base tile styles */
 .tile {
-  --border-color: var(--darkest);
-  --background-color: white;
+  --border-color: var(--ink);
+  --background-color: var(--surface);
 
   display: grid;
   place-items: center;
@@ -132,23 +194,23 @@ button.active {
 
 .tile.active {
   --border-color: var(--highlight);
-  --background-color: var(--lighter);
+  --background-color: var(--surface-hover);
 }
 
 @media (hover: hover) {
   .tile:hover {
-    --background-color: var(--lighter)
+    --background-color: var(--surface-hover);
   }
 }
 
 /* Locked tiles stay where they are when shuffling */
 .tile.locked {
-  --background-color: var(--darker);
-  color: white;
+  --background-color: var(--locked-bg);
+  color: var(--locked-text);
 }
 
 @media (hover: hover) {
   .tile.locked:hover {
-    --background-color: var(--dark);
+    --background-color: var(--locked-bg-hover);
   }
 }

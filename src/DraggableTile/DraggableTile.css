@@ -18,8 +18,8 @@
 .draggable-tile.dragging {
   transition: none;
   cursor: grabbing;
-  background-color: var(--lighter);
-  box-shadow: 4px 4px 0 black;
+  background-color: var(--surface-hover);
+  box-shadow: 4px 4px 0 var(--shadow);
   z-index: 999;
 }
 

@@ -43,7 +43,7 @@ h1:hover {
   translate: -50% -50%;
   font-size: 1.2em;
   font-weight: 600;
-  color: var(--dark);
+  color: var(--text-muted);
   pointer-events: none;
 }
 

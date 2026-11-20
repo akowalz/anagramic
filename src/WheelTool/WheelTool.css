@@ -24,7 +24,7 @@
   position: absolute;
   width: calc(100% - var(--wheel-outline-width));
   aspect-ratio: 1/1;
-  border: var(--wheel-outline-width) solid lightgrey;
+  border: var(--wheel-outline-width) solid var(--wheel-track);
   border-radius: 50%;
   top: 50%;
   left: 50%;

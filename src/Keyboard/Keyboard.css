@@ -1,9 +1,5 @@
 .keyboard {
   --key-gap: 6px;
-  --key-bg: #d9d7da;
-  --key-bg-hover: #cecdd0;
-  --key-bg-active: #bebcc0;
-
   width: 100%;
   max-width: 520px;
   margin: 0 auto;
@@ -59,7 +55,7 @@
   font-size: clamp(16px, 4.8vw, 20px);
   font-style: normal;
   font-weight: 700;
-  color: var(--darkest);
+  color: var(--text);
 
   background: var(--key-bg);
   border: none;
@@ -100,7 +96,7 @@
   height: clamp(40px, 6.8dvh, 54px);
   margin: 0 calc(var(--key-gap) / 2);
   padding: 0;
-  color: var(--dark);
+  color: var(--text-muted);
   background: transparent;
   border: 2px solid var(--key-bg);
   border-radius: 4px;
