@@ -7,155 +7,96 @@ import {
   type Ref,
 } from "react"
 import { flushSync } from "react-dom"
-import Tile from "../DraggableTile/DraggableTile"
+import DraggableTile from "../DraggableTile/DraggableTile"
 import "./TilesTool.css"
-import { type ToolActions } from "../Types/ToolActions"
-import { shuffleUnlocked } from "../lib/shuffle"
+import type { ToolActions } from "../Types/ToolActions"
 import { shuffleTilePositions } from "../lib/shuffle-positions"
-import { toggleLocked } from "../lib/locking"
 import { resolveOverlaps, type Bounds, type Pos } from "../lib/resolve-overlaps"
 import { fitToBounds, placeClearOfTiles } from "../lib/place-tiles"
-import { syncSlots, syncTilesInLetterOrder } from "../lib/sync-tiles"
-import type { Letter } from "../lib/letters"
+import type { Board } from "../lib/board"
+import type { BoardActions } from "../hooks/useBoard"
 
 type Props = {
-  letters: Letter[]
-  selectedId: number | null
-  select: (id: number | null) => void
+  board: Board
+  actions: BoardActions
   ref: Ref<ToolActions>
 }
 
-type TileData = {
-  // The id of the tile's letter
+/*
+ * Where the tiles are once any has been dragged by hand. Until then, and
+ * again after a reset, the tiles are tidy: laid out like text, wrapping onto
+ * new rows, in the board's arrangement.
+ */
+type Placement = {
+  positions: Record<number, Pos>
+  zIndex: Record<number, number>
+}
+
+type PlacedTile = {
   id: number
-  pos: Pos
-  letter: string
-  zIndex: number
-  // Locked tiles stay where they are when shuffling
+  char: string
   locked: boolean
+  pos: Pos
+  zIndex: number
 }
 
-/* Tiles stay in the order of their letters */
-function createTile(letter: Letter): TileData {
-  return {
-    letter: letter.char,
-    id: letter.id,
-    pos: { x: 0, y: 0 },
-    zIndex: 0,
-    locked: false,
-  }
+function samePositions(a: Pos[], b: Pos[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((pos, index) => pos.x === b[index].x && pos.y === b[index].y)
+  )
 }
 
-function tilesFromLetters(letters: Letter[]): TileData[] {
-  return letters.map(createTile)
+function positionsOf(tiles: { id: number; pos: Pos }[]): Record<number, Pos> {
+  return Object.fromEntries(tiles.map((tile) => [tile.id, tile.pos]))
 }
 
-export default function TileTool({
-  letters,
-  selectedId,
-  select,
-  ref,
-}: Props) {
+/*
+ * Freeform: drag the tiles anywhere. Until a tile is dragged they're tidy and
+ * follow the board's arrangement, so shuffling here shuffles it for the other
+ * tools too. Once moved by hand, the tiles' positions are this tool's own.
+ */
+export default function TilesTool({ board, actions, ref }: Props) {
   const canvasRef = useRef<HTMLDivElement>(null)
   const shadowCanvasRef = useRef<HTMLDivElement>(null)
 
-  const [showTiles, setShowTiles] = useState<boolean>(false)
-  const [tileData, setTileData] = useState<TileData[]>(
-    tilesFromLetters(letters),
-  )
+  // Where each place in the tidy layout is, measured from a hidden copy of it
+  const [slots, setSlots] = useState<Pos[]>([])
+  // Null while the tiles are tidy
+  const [placement, setPlacement] = useState<Placement | null>(null)
 
-  // The tiles as of the last render, for the layout effects below, which
-  // compare them with the new letters without re-running on every move
-  const tileDataRef = useRef(tileData)
-  useLayoutEffect(() => {
-    tileDataRef.current = tileData
+  const slotOf = new Map(board.order.map((id, index) => [id, index]))
+
+  // Tiles are rendered in the order typed, not the arrangement, so they keep
+  // their place in the DOM and animate to their new positions on a shuffle. A
+  // tile isn't shown until it has a position.
+  const tiles: PlacedTile[] = board.letters.flatMap((letter) => {
+    const slot = slotOf.get(letter.id) ?? -1
+    const pos = placement ? placement.positions[letter.id] : slots[slot]
+    if (!pos) return []
+
+    return [
+      {
+        id: letter.id,
+        char: letter.char,
+        locked: board.locked.has(letter.id),
+        pos,
+        zIndex: placement?.zIndex[letter.id] ?? 0,
+      },
+    ]
   })
 
-  /* Get position of tiles if they had be positioned using flexbox */
-  const getFlexPositions = useCallback((): Pos[] => {
-    if (!shadowCanvasRef.current || !canvasRef.current)
-      throw "cant find canvas refs"
+  /* Measure the tidy layout, unless the tool is hidden and has no layout */
+  const measureSlots = useCallback(() => {
+    const shadowCanvas = shadowCanvasRef.current
+    if (!shadowCanvas || shadowCanvas.offsetWidth === 0) return
 
-    const shadowTiles = Array.from(
-      shadowCanvasRef.current.querySelectorAll<HTMLElement>(".tile"),
+    const measured = Array.from(
+      shadowCanvas.querySelectorAll<HTMLElement>(".tile"),
+      (tile) => ({ x: tile.offsetLeft, y: tile.offsetTop }),
     )
-    if (!shadowTiles) throw "cant find tiles"
-
-    return shadowTiles.map((t) => ({
-      x: t.offsetLeft,
-      y: t.offsetTop,
-    }))
+    setSlots((slots) => (samePositions(slots, measured) ? slots : measured))
   }, [])
-
-  /*
-   * Slot (index into the flex positions) each tile occupies while the tiles are
-   * still laid out in the flex arrangement, i.e. after mount, reset or shuffle.
-   * Null once the user drags a tile. While set, tiles follow the layout when
-   * the canvas resizes, e.g. when the footer buttons appear after mount.
-   */
-  const slotsRef = useRef<number[] | null>(null)
-
-  const placeInSlots = useCallback(
-    (slots: number[]) => {
-      const flexPositions = getFlexPositions()
-      slotsRef.current = slots
-
-      setTileData((tileData) =>
-        tileData.map((tile, index) => {
-          const posForTile = flexPositions[slots[index]]
-          if (!posForTile) throw "no flex position found"
-
-          return {
-            ...tile,
-            pos: posForTile,
-          }
-        }),
-      )
-    },
-    [getFlexPositions],
-  )
-
-  function resetTiles() {
-    select(null)
-    setTileData((tiles) => tiles.map((tile) => ({ ...tile, locked: false })))
-    placeInSlots(tileData.map((_, index) => index))
-  }
-
-  function shuffleTiles() {
-    select(null)
-
-    // Still in the flex layout: shuffle slots so tiles keep following it
-    const slots = slotsRef.current
-    if (slots) {
-      placeInSlots(
-        shuffleUnlocked(slots, (_, index) => tileData[index].locked),
-      )
-    } else {
-      setTileData((tiles) => shuffleTilePositions(tiles, (tile) => tile.locked))
-    }
-  }
-
-  const handleTapTile = (id: number) => {
-    select(selectedId === id ? null : id)
-  }
-
-  const handleToggleLock = (id: number) => {
-    select(null)
-    setTileData((tiles) => toggleLocked(tiles, id))
-  }
-
-  const handleMoveTile = (id: number, newPos: Pos) => {
-    slotsRef.current = null
-    select(null)
-
-    setTileData((tiles) => {
-      const maxZ = Math.max(...tiles.map((t) => t.zIndex))
-
-      return tiles.map((tile) =>
-        tile.id === id ? { ...tile, pos: newPos, zIndex: maxZ + 1 } : tile,
-      )
-    })
-  }
 
   /*
    * Area tiles must stay within, in canvas coordinates. The canvas is narrower
@@ -183,99 +124,53 @@ export default function TileTool({
     }
   }, [])
 
-  const handleDropTile = (id: number, newPos: Pos) => {
-    const bounds = getBounds()
-
-    setTileData((tiles) => {
-      const maxZ = Math.max(...tiles.map((t) => t.zIndex))
-
-      const placed = tiles.map((tile) =>
-        tile.id === id ? { ...tile, pos: newPos, zIndex: maxZ + 1 } : tile,
-      )
-
-      return resolveOverlaps(placed, id, bounds)
-    })
-  }
-
-  useImperativeHandle(ref, () => ({ reset: resetTiles, shuffle: shuffleTiles }))
-
-  // Start in the flex layout, in letter order. Only runs on mount, since
-  // placeInSlots never changes.
+  // The tidy layout changes with the number of letters. A layout effect so
+  // tiles are in place before the next paint.
+  const letterCount = board.letters.length
   useLayoutEffect(() => {
-    placeInSlots(tileDataRef.current.map((_, index) => index))
-    setShowTiles(true)
-  }, [placeInSlots])
+    measureSlots()
+  }, [letterCount, measureSlots])
 
-  // Keep the tiles in step with the letters as they're typed and deleted. A
-  // layout effect because it measures the layout, which already has the new
-  // letters, and the tiles should be in place before the next paint. It does
-  // nothing when the tiles already match the letters, so it's fine that it can
-  // run again for other reasons.
+  // Follow the layout when the canvas changes size, e.g. while the keyboard
+  // opens, or when this tool is shown after being hidden
+  const tidy = placement === null
+  const locked = board.locked
   useLayoutEffect(() => {
-    const oldTiles = tileDataRef.current
-    const tiles = syncTilesInLetterOrder(oldTiles, letters, createTile)
-
-    const unchanged =
-      tiles.length === oldTiles.length &&
-      tiles.every((tile, index) => tile === oldTiles[index])
-    if (unchanged) return
-
-    const oldSlots = slotsRef.current
-
-    // Where the tiles go depends on the measured layout, so they can only be
-    // updated once it has rendered, here
-    setTileData(tiles)
-
-    if (oldSlots) {
-      // Still in the flex layout: the tiles stay in it, with new ones last
-      placeInSlots(syncSlots(oldTiles, oldSlots, tiles))
-      return
-    }
-
-    // Tiles were moved by hand: leave them where they are, and put new tiles
-    // where the layout would, moved clear of whatever is already there
-    const flexPositions = getFlexPositions()
-    const bounds = getBounds()
-    // The layout has a position for each letter, in letter order, which is
-    // the order of the tiles
-    setTileData((tiles) =>
-      tiles.reduce(
-        (placed, tile, index) =>
-          oldTiles.includes(tile)
-            ? placed
-            : placeClearOfTiles(placed, tile.id, flexPositions[index], bounds),
-        tiles,
-      ),
-    )
-  }, [letters, placeInSlots, getFlexPositions, getBounds])
-
-  // A layout effect so the observer is attached before the first paint and
-  // catches the footer buttons appearing, which happens before that paint too
-  useLayoutEffect(() => {
+    const canvas = canvasRef.current
     const shadowCanvas = shadowCanvasRef.current
-    if (!shadowCanvas) return
+    if (!canvas || !shadowCanvas) return
 
     let frame = 0
     const observer = new ResizeObserver(() => {
-      const canvas = canvasRef.current
-      const slots = slotsRef.current
-      // Skip while hidden (another tool is active); nothing to lay out
-      if (!canvas || shadowCanvas.offsetWidth === 0) return
+      if (shadowCanvas.offsetWidth === 0) return
 
-      // Tiles that were moved by hand keep their positions, but any the canvas
-      // no longer has room for (e.g. when the keyboard opens) are pulled back in
-      if (!slots) {
-        setTileData((tiles) => fitToBounds(tiles, getBounds()))
+      if (tidy) {
+        // Move the tiles in the same frame as the layout, without the
+        // transition, so they stay put relative to it rather than sliding
+        canvas.classList.add("snapping")
+        flushSync(measureSlots)
+        cancelAnimationFrame(frame)
+        frame = requestAnimationFrame(() =>
+          canvas.classList.remove("snapping"),
+        )
         return
       }
 
-      // Move the tiles in the same frame as the layout change, without the
-      // transform transition, so they stay put relative to the layout rather
-      // than visibly sliding (e.g. when the footer buttons appear on load).
-      canvas.classList.add("snapping")
-      flushSync(() => placeInSlots(slots))
-      cancelAnimationFrame(frame)
-      frame = requestAnimationFrame(() => canvas.classList.remove("snapping"))
+      // Tiles placed by hand stay put, but any the canvas no longer has room
+      // for are pulled back in
+      measureSlots()
+      const bounds = getBounds()
+      setPlacement((placement) => {
+        if (!placement) return placement
+
+        const placed = Object.entries(placement.positions).map(
+          ([id, pos]) => ({ id: Number(id), pos, locked: locked.has(Number(id)) }),
+        )
+        const fitted = fitToBounds(placed, bounds)
+        return fitted === placed
+          ? placement
+          : { ...placement, positions: positionsOf(fitted) }
+      })
     })
     observer.observe(shadowCanvas)
 
@@ -283,57 +178,145 @@ export default function TileTool({
       observer.disconnect()
       cancelAnimationFrame(frame)
     }
-  }, [placeInSlots, getBounds])
+  }, [tidy, locked, measureSlots, getBounds])
 
-  const tiles = tileData.map((tile) => {
-    return (
-      <Tile
-        letter={tile.letter}
-        id={tile.id}
-        key={tile.id}
-        pos={{ ...tile.pos }}
-        zIndex={tile.zIndex}
-        selected={tile.id === selectedId}
-        locked={tile.locked}
-        onMove={handleMoveTile}
-        onDrop={handleDropTile}
-        onTap={handleTapTile}
-        onToggleLock={handleToggleLock}
-        containerRef={canvasRef}
-      />
+  // Once tiles have been placed by hand, a newly typed letter goes where the
+  // tidy layout would put it, moved clear of the tiles already there
+  useLayoutEffect(() => {
+    if (!placement) return
+    if (canvasRef.current?.offsetWidth === 0) return
+
+    const unplaced = board.order.flatMap((id, slot) =>
+      placement.positions[id] || !slots[slot] ? [] : [{ id, pos: slots[slot] }],
     )
-  })
+    if (unplaced.length === 0) return
+
+    const bounds = getBounds()
+    const present = new Set(board.order)
+    const placed = Object.entries(placement.positions).flatMap(([id, pos]) =>
+      present.has(Number(id))
+        ? [{ id: Number(id), pos, locked: board.locked.has(Number(id)) }]
+        : [],
+    )
+    const withNew = unplaced.reduce(
+      (tiles, tile) =>
+        placeClearOfTiles(
+          [...tiles, { ...tile, locked: false }],
+          tile.id,
+          tile.pos,
+          bounds,
+        ),
+      placed,
+    )
+
+    // Where tiles go depends on the measured layout, so they can only be
+    // placed once it has rendered, here
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPlacement({ ...placement, positions: positionsOf(withNew) })
+  }, [placement, board, slots, getBounds])
+
+  useImperativeHandle(ref, () => ({
+    reset() {
+      setPlacement(null)
+      actions.reset()
+    },
+    shuffle() {
+      if (!placement) {
+        actions.shuffle()
+        return
+      }
+
+      // Placed by hand: swap the tiles' spots, leaving locked ones put
+      actions.select(null)
+      setPlacement({
+        ...placement,
+        positions: positionsOf(shuffleTilePositions(tiles, (t) => t.locked)),
+      })
+    },
+  }))
+
+  function handleTap(id: number) {
+    actions.select(board.selectedId === id ? null : id)
+  }
+
+  // Dragging a tile places every tile by hand, starting from where they are
+  function handleMove(id: number, pos: Pos) {
+    actions.select(null)
+
+    setPlacement((placement) => {
+      const current = placement ?? {
+        positions: positionsOf(tiles),
+        zIndex: {},
+      }
+      const top = Math.max(0, ...Object.values(current.zIndex))
+      const zIndex = current.zIndex[id] === top && top > 0 ? top : top + 1
+
+      return {
+        positions: { ...current.positions, [id]: pos },
+        zIndex: { ...current.zIndex, [id]: zIndex },
+      }
+    })
+  }
+
+  // A dropped tile pushes aside any it lands on
+  function handleDrop(id: number, pos: Pos) {
+    const bounds = getBounds()
+
+    setPlacement((placement) => {
+      const current = placement ?? { positions: positionsOf(tiles), zIndex: {} }
+      const dropped = tiles.map((tile) => ({
+        id: tile.id,
+        locked: tile.locked,
+        pos: tile.id === id ? pos : (current.positions[tile.id] ?? tile.pos),
+      }))
+
+      return {
+        ...current,
+        positions: positionsOf(resolveOverlaps(dropped, id, bounds)),
+      }
+    })
+  }
 
   return (
-    <>
-      <div className="tile-canvas-container">
-        <div
-          className="tile-canvas"
-          ref={canvasRef}
-          onPointerDown={(e) => {
-            // Tapping empty space deselects
-            if (e.target === e.currentTarget) select(null)
-          }}
-        >
-          {showTiles && tiles}
-        </div>
-
-        <div
-          id="shadow-canvas"
-          className="hidden-tile-canvas"
-          ref={shadowCanvasRef}
-        >
-          {letters.map((letter) => (
-            <div
-              key={letter.id}
-              className="tile"
-              style={{ height: "40px", width: "40px" }}
-            >
-              {letter.char}
-            </div>
-          ))}
-        </div>
+    <div className="tile-canvas-container">
+      <div
+        className="tile-canvas"
+        ref={canvasRef}
+        onPointerDown={(e) => {
+          // Tapping empty space deselects
+          if (e.target === e.currentTarget) actions.select(null)
+        }}
+      >
+        {tiles.map((tile) => (
+          <DraggableTile
+            key={tile.id}
+            id={tile.id}
+            letter={tile.char}
+            pos={tile.pos}
+            zIndex={tile.zIndex}
+            selected={tile.id === board.selectedId}
+            locked={tile.locked}
+            onMove={handleMove}
+            onDrop={handleDrop}
+            onTap={handleTap}
+            onToggleLock={actions.toggleLock}
+            containerRef={canvasRef}
+          />
+        ))}
       </div>
-    </>
+
+      {/* The tidy layout, laid out by the browser and measured for slots */}
+      <div id="shadow-canvas" ref={shadowCanvasRef}>
+        {board.letters.map((letter) => (
+          <div
+            key={letter.id}
+            className="tile"
+            style={{ height: "40px", width: "40px" }}
+          >
+            {letter.char}
+          </div>
+        ))}
+      </div>
+    </div>
   )
 }

@@ -1,30 +1,30 @@
 import "./LineTool.css"
 import type { ToolActions } from "../Types/ToolActions"
-import { type Tile, useMoveableLetters } from "../hooks/useMoveableLetters"
 import TileLock from "../TileLock/TileLock"
 import { TAP_THRESHOLD } from "../DraggableTile/DraggableTile"
 import { rubberBand } from "../lib/rubber-band"
+import { tilesInOrder, type Board, type BoardTile } from "../lib/board"
+import type { BoardActions } from "../hooks/useBoard"
 
 import { useImperativeHandle, useRef, useState, type Ref } from "react"
 import { Reorder } from "motion/react"
 import { resistSpringCss, tileSpring } from "../lib/animation"
-import type { Letter } from "../lib/letters"
 
 type Props = {
-  letters: Letter[]
-  selectedId: number | null
-  select: (id: number | null) => void
+  board: Board
+  actions: BoardActions
   ref: Ref<ToolActions>
 }
 
-export default function LineTool({
-  letters,
-  selectedId,
-  select,
-  ref,
-}: Props) {
-  const { tiles, setTiles, shuffleTiles, resetPositions, toggleLock } =
-    useMoveableLetters(letters, select)
+/* The letters in a row, in the board's arrangement. Drag to reorder them. */
+export default function LineTool({ board, actions, ref }: Props) {
+  const tiles = tilesInOrder(board)
+
+  useImperativeHandle(
+    ref,
+    () => ({ reset: actions.reset, shuffle: actions.shuffle }),
+    [actions],
+  )
 
   const [dragId, setDragId] = useState<number | null>(null)
   // Whether the current press turned into a drag, so it isn't also a tap
@@ -43,7 +43,7 @@ export default function LineTool({
     null,
   )
 
-  function startResisting(tile: Tile, e: React.PointerEvent<HTMLElement>) {
+  function startResisting(tile: BoardTile, e: React.PointerEvent<HTMLElement>) {
     if (!tile.locked) return
     if (e.button !== 0 || resistPointerRef.current) return
 
@@ -56,7 +56,7 @@ export default function LineTool({
     setResisting({ id: tile.id, x: 0 })
   }
 
-  function resist(tile: Tile, e: React.PointerEvent<HTMLElement>) {
+  function resist(tile: BoardTile, e: React.PointerEvent<HTMLElement>) {
     const pointer = resistPointerRef.current
     if (pointer?.pointerId !== e.pointerId || pointer.id !== tile.id) return
 
@@ -81,83 +81,74 @@ export default function LineTool({
     setResisting(null)
   }
 
-  useImperativeHandle(ref, () => ({
-    reset: resetPositions,
-    shuffle: shuffleTiles,
-  }))
-
-  function onReorder(args: Tile[]) {
-    setTiles(args)
-  }
-
   return (
-    <>
-      <Reorder.Group
-        axis="x"
-        as="div"
-        values={tiles}
-        onReorder={onReorder}
-        onPointerDown={(e) => {
-          // Tapping empty space deselects
-          if (e.target === e.currentTarget) select(null)
-        }}
-        className="line-tool-container"
-        style={
-          {
-            "--tile-count": tiles.length,
-            "--resist-spring": resistSpringCss,
-          } as React.CSSProperties
-        }
-      >
-        {tiles.map((tile) => {
-          return (
-            <Reorder.Item
-              as="div"
-              value={tile}
-              className={`
-                  tile
-                  line-tool-tile
-                  ${tile.id === dragId ? "dragging" : ""}
-                  ${tile.id === selectedId ? "active" : ""}
-                  ${tile.locked ? "locked" : ""}
-                  ${resisting?.id === tile.id ? "resisting" : ""}
-                `}
-              key={tile.id}
-              drag={tile.locked ? false : "x"}
-              style={{
-                translate: `${resisting?.id === tile.id ? resisting.x : 0}px 0`,
-              }}
-              onPointerDown={(e) => startResisting(tile, e)}
-              onPointerMove={(e) => resist(tile, e)}
-              onPointerUp={stopResisting}
-              onPointerCancel={stopResisting}
-              onLostPointerCapture={stopResisting}
-              onTapStart={() => {
-                draggedRef.current = false
-              }}
-              onTap={() => {
-                if (draggedRef.current) return
-                select(tile.id === selectedId ? null : tile.id)
-              }}
-              onDragStart={() => {
-                draggedRef.current = true
-                select(null)
-                setDragId(tile.id)
-              }}
-              onDragEnd={() => setDragId(null)}
-              transition={tileSpring}
-              layout
-            >
-              {tile.letter}
-              <TileLock
-                selected={tile.id === selectedId}
-                locked={tile.locked}
-                onToggle={() => toggleLock(tile.id)}
-              />
-            </Reorder.Item>
-          )
-        })}
-      </Reorder.Group>
-    </>
+    <Reorder.Group
+      axis="x"
+      as="div"
+      values={board.order}
+      onReorder={actions.reorder}
+      onPointerDown={(e) => {
+        // Tapping empty space deselects
+        if (e.target === e.currentTarget) actions.select(null)
+      }}
+      className="line-tool-container"
+      style={
+        {
+          "--tile-count": tiles.length,
+          "--resist-spring": resistSpringCss,
+        } as React.CSSProperties
+      }
+    >
+      {tiles.map((tile) => {
+        const selected = tile.id === board.selectedId
+
+        return (
+          <Reorder.Item
+            as="div"
+            value={tile.id}
+            className={`
+                tile
+                line-tool-tile
+                ${tile.id === dragId ? "dragging" : ""}
+                ${selected ? "active" : ""}
+                ${tile.locked ? "locked" : ""}
+                ${resisting?.id === tile.id ? "resisting" : ""}
+              `}
+            key={tile.id}
+            drag={tile.locked ? false : "x"}
+            style={{
+              translate: `${resisting?.id === tile.id ? resisting.x : 0}px 0`,
+            }}
+            onPointerDown={(e) => startResisting(tile, e)}
+            onPointerMove={(e) => resist(tile, e)}
+            onPointerUp={stopResisting}
+            onPointerCancel={stopResisting}
+            onLostPointerCapture={stopResisting}
+            onTapStart={() => {
+              draggedRef.current = false
+            }}
+            onTap={() => {
+              if (draggedRef.current) return
+              actions.select(selected ? null : tile.id)
+            }}
+            onDragStart={() => {
+              draggedRef.current = true
+              actions.select(null)
+              setDragId(tile.id)
+            }}
+            onDragEnd={() => setDragId(null)}
+            transition={tileSpring}
+            layout
+          >
+            {tile.char}
+            <TileLock
+              selected={selected}
+              locked={tile.locked}
+              onToggle={() => actions.toggleLock(tile.id)}
+            />
+          </Reorder.Item>
+        )
+      })}
+    </Reorder.Group>
   )
 }

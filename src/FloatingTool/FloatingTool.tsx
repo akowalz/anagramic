@@ -1,30 +1,25 @@
 import "./FloatingTool.css"
-import {
-  useCallback,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-  type Ref,
-} from "react"
+import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react"
 import { type Coord } from "../lib/coordinate-plane"
 import type { ToolActions } from "../Types/ToolActions"
 import { tileSpringCss, tileSpringCssMs } from "../lib/animation"
 import { syncTilesInLetterOrder } from "../lib/sync-tiles"
 import type { Letter } from "../lib/letters"
+import type { Board } from "../lib/board"
+import type { BoardActions } from "../hooks/useBoard"
+import TileLock from "../TileLock/TileLock"
 
 type Props = {
-  letters: Letter[]
-  // Tiles can't be tapped here, but the delete key still selects them
-  selectedId: number | null
+  board: Board
+  actions: BoardActions
   active: boolean
   ref: Ref<ToolActions>
 }
 
-type FloatingTile = {
-  // The id of the tile's letter
+/* Where a letter is drifting, kept by this tool alone */
+type Drift = {
+  // The id of the letter
   id: number
-  letter: string
   coords: Coord
   xDir: number
   yDir: number
@@ -48,26 +43,21 @@ function randomDirection(): { xDir: number; yDir: number } {
   }
 }
 
-function initializeTile(letter: Letter): FloatingTile {
+function newDrift(letter: Letter): Drift {
   return {
     id: letter.id,
-    letter: letter.char,
     coords: randomCoords(),
     ...randomDirection(),
   }
 }
 
-function initializeTiles(letters: Letter[]): FloatingTile[] {
-  return letters.map((letter) => initializeTile(letter))
-}
-
-function updateTile(tile: FloatingTile, deltaSeconds: number): FloatingTile {
+function updateDrift(drift: Drift, deltaSeconds: number): Drift {
   const distance = UNITS_PER_SECOND * deltaSeconds
 
-  let newX = tile.coords.x + tile.xDir * distance
-  let newY = tile.coords.y + tile.yDir * distance
-  let xDir = tile.xDir
-  let yDir = tile.yDir
+  let newX = drift.coords.x + drift.xDir * distance
+  let newY = drift.coords.y + drift.yDir * distance
+  let xDir = drift.xDir
+  let yDir = drift.yDir
 
   if (Math.abs(newX) > 1) {
     xDir *= -1
@@ -79,13 +69,7 @@ function updateTile(tile: FloatingTile, deltaSeconds: number): FloatingTile {
     newY = Math.max(-1, Math.min(1, newY))
   }
 
-  return {
-    id: tile.id,
-    letter: tile.letter,
-    coords: { x: newX, y: newY },
-    xDir,
-    yDir,
-  }
+  return { id: drift.id, coords: { x: newX, y: newY }, xDir, yDir }
 }
 
 function coordToTranslate(coord: Coord) {
@@ -100,21 +84,21 @@ function coordToTranslate(coord: Coord) {
 
 const SHUFFLE_DURATION_MS = tileSpringCssMs
 
-export default function FloatingTool({
-  letters,
-  selectedId,
-  active,
-  ref,
-}: Props) {
-  const [tiles, setTiles] = useState<FloatingTile[]>(initializeTiles(letters))
+/*
+ * The letters drift around a box. Locked letters hold still, and tiles can't be
+ * tapped here, but the delete key still selects them.
+ */
+export default function FloatingTool({ board, actions, active, ref }: Props) {
+  const { letters, locked, selectedId } = board
+  const [drifts, setDrifts] = useState(() => letters.map(newDrift))
 
-  // Letters get typed and deleted, so keep the tiles in step with them.
+  // Letters get typed and deleted, so keep the drifts in step with them.
   // Adjusting state while rendering is React's way of reacting to a changed
-  // prop without an extra render with stale tiles.
+  // prop without an extra render with stale drifts.
   const [syncedLetters, setSyncedLetters] = useState(letters)
   if (letters !== syncedLetters) {
     setSyncedLetters(letters)
-    setTiles((tiles) => syncTilesInLetterOrder(tiles, letters, initializeTile))
+    setDrifts((drifts) => syncTilesInLetterOrder(drifts, letters, newDrift))
   }
 
   const [shuffling, setShuffling] = useState(false)
@@ -122,15 +106,16 @@ export default function FloatingTool({
   const rafIdRef = useRef<number>(0)
   const shuffleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const shuffleTiles = useCallback(() => {
+  function shuffle() {
+    actions.select(null)
     setShuffling(true)
 
-    setTiles((tiles) =>
-      tiles.map((tile) => ({
-        ...tile,
-        coords: randomCoords(),
-        ...randomDirection(),
-      })),
+    setDrifts((drifts) =>
+      drifts.map((drift) =>
+        locked.has(drift.id)
+          ? drift
+          : { ...drift, coords: randomCoords(), ...randomDirection() },
+      ),
     )
 
     if (shuffleTimeoutRef.current) clearTimeout(shuffleTimeoutRef.current)
@@ -138,9 +123,9 @@ export default function FloatingTool({
     shuffleTimeoutRef.current = setTimeout(() => {
       setShuffling(false)
     }, SHUFFLE_DURATION_MS)
-  }, [])
+  }
 
-  useImperativeHandle(ref, () => ({ shuffle: shuffleTiles }), [shuffleTiles])
+  useImperativeHandle(ref, () => ({ shuffle }))
 
   // Don't leave a shuffle timer running after unmounting
   useEffect(() => {
@@ -159,8 +144,10 @@ export default function FloatingTool({
         // Cap delta to avoid large jumps (e.g. after tab was backgrounded)
         const clampedDelta = Math.min(deltaSeconds, 0.1)
 
-        setTiles((prevTiles) =>
-          prevTiles.map((tile) => updateTile(tile, clampedDelta)),
+        setDrifts((drifts) =>
+          drifts.map((drift) =>
+            locked.has(drift.id) ? drift : updateDrift(drift, clampedDelta),
+          ),
         )
       }
 
@@ -174,26 +161,36 @@ export default function FloatingTool({
       cancelAnimationFrame(rafIdRef.current)
       lastFrameTimeRef.current = null
     }
-  }, [active, shuffling])
+  }, [active, shuffling, locked])
+
+  const driftById = new Map(drifts.map((drift) => [drift.id, drift]))
 
   return (
     <div className="floating-tool-container">
       <div className="floating-tool-box">
-        {tiles.map((tile: FloatingTile) => {
+        {letters.map((letter) => {
+          const drift = driftById.get(letter.id)
+          if (!drift) return null
+
           return (
             <div
-              key={tile.id}
+              key={letter.id}
               className={`tile floating-tool-tile ${
-                tile.id === selectedId ? "active" : ""
-              }`}
+                letter.id === selectedId ? "active" : ""
+              } ${locked.has(letter.id) ? "locked" : ""}`}
               style={{
-                ...coordToTranslate(tile.coords),
+                ...coordToTranslate(drift.coords),
                 ...(shuffling && {
                   transition: `translate ${tileSpringCss}`,
                 }),
               }}
             >
-              {tile.letter}
+              {letter.char}
+              <TileLock
+                selected={false}
+                locked={locked.has(letter.id)}
+                onToggle={() => {}}
+              />
             </div>
           )
         })}

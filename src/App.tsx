@@ -1,12 +1,13 @@
 import "./App.css"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { TOOL_BUTTONS, type ToolActions } from "./Types/ToolActions"
 import { type Tool } from "./Types/Tool"
 
 import ToolPicker from "./ToolPicker/ToolPicker"
 import Keyboard from "./Keyboard/Keyboard"
 import { useTypedKeys } from "./hooks/useTypedKeys"
+import { useBoard } from "./hooks/useBoard"
 
 import TilesTool from "./TilesTool/TilesTool"
 import LineTool from "./LineTool/LineTool"
@@ -16,42 +17,31 @@ import ShuffleIcon from "./Icons/ShuffleIcon"
 import ResetIcon from "./Icons/ResetIcon"
 import KeyboardIcon from "./Icons/KeyboardIcon"
 import AboutPage from "./AboutPage/AboutPage"
-import {
-  createLetter,
-  lettersFromString,
-  lettersToString,
-  pressDelete,
-  type Selection,
-} from "./lib/letters"
+import { lettersToString } from "./lib/letters"
+import { boardFromString, type Board } from "./lib/board"
 
 /* Letters from a shared link (?fodder=...) */
-function lettersFromUrl(): Selection {
+function boardFromUrl(): Board {
   const params = new URLSearchParams(window.location.search)
   const fodder = params.get("fodder") ?? ""
 
-  const letters = lettersFromString(fodder.replace(/[^a-z]/gi, "").toUpperCase())
-  return { letters, selectedId: null }
+  return boardFromString(fodder.replace(/[^a-z]/gi, "").toUpperCase())
 }
 
 function App() {
   const [showAboutPage, setShowAboutPage] = useState(false)
-  // The letters, and the selected one. Together, since the delete key
-  // changes both at once.
-  const [{ letters, selectedId }, setSelection] =
-    useState<Selection>(lettersFromUrl)
+  // The letters, their arrangement, locks and selection, shared by the tools
+  const [board, actions] = useBoard(boardFromUrl)
+  const { letters } = board
 
   const [keyboardOpen, setKeyboardOpen] = useState(true)
   const [tool, setTool] = useState<Tool>("Tiles")
-
-  const select = useCallback((id: number | null) => {
-    setSelection((selection) => ({ ...selection, selectedId: id }))
-  }, [])
 
   // Each tool uses the selection in its own way (in the wheel, tapping
   // another tile swaps with it), so a new tool starts with nothing selected
   function switchTool(newTool: Tool) {
     setTool(newTool)
-    select(null)
+    actions.select(null)
   }
 
   const tooltips = {
@@ -61,18 +51,7 @@ function App() {
     Floating: "Just let the letters float by",
   }
 
-  const addLetter = useCallback((char: string) => {
-    setSelection(({ letters }) => ({
-      letters: [...letters, createLetter(char)],
-      selectedId: null,
-    }))
-  }, [])
-
-  const deleteLetter = useCallback(() => {
-    setSelection(pressDelete)
-  }, [])
-
-  useTypedKeys(!showAboutPage, addLetter, deleteLetter)
+  useTypedKeys(!showAboutPage, actions.typeLetter, actions.pressDelete)
 
   // Keep the link in step with the letters so it can be shared
   useEffect(() => {
@@ -131,9 +110,8 @@ function App() {
               className={`tool-container ${tool === "Tiles" ? "" : "hidden"}`}
             >
               <TilesTool
-                letters={letters}
-                selectedId={selectedId}
-                select={select}
+                board={board}
+                actions={actions}
                 ref={tilesRef}
               />
             </div>
@@ -141,9 +119,8 @@ function App() {
               className={`tool-container ${tool === "Line" ? "" : "hidden"}`}
             >
               <LineTool
-                letters={letters}
-                selectedId={selectedId}
-                select={select}
+                board={board}
+                actions={actions}
                 ref={lineRef}
               />
             </div>
@@ -151,9 +128,8 @@ function App() {
               className={`tool-container ${tool === "Wheel" ? "" : "hidden"}`}
             >
               <WheelTool
-                letters={letters}
-                selectedId={selectedId}
-                select={select}
+                board={board}
+                actions={actions}
                 ref={wheelRef}
               />
             </div>
@@ -161,8 +137,8 @@ function App() {
               className={`tool-container ${tool === "Floating" ? "" : "hidden"}`}
             >
               <FloatingTool
-                letters={letters}
-                selectedId={selectedId}
+                board={board}
+                actions={actions}
                 active={tool === "Floating"}
                 ref={floatingRef}
               />
@@ -199,8 +175,8 @@ function App() {
           <Keyboard
             open={keyboardOpen}
             onHide={() => setKeyboardOpen(false)}
-            onLetter={addLetter}
-            onDelete={deleteLetter}
+            onLetter={actions.typeLetter}
+            onDelete={actions.pressDelete}
           />
         </>
       )}

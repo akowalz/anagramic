@@ -1,63 +1,63 @@
 import "./WheelTool.css"
 import type { ToolActions } from "../Types/ToolActions"
-import { useMoveableLetters } from "../hooks/useMoveableLetters"
 import { coordToPosition, positionToStyle } from "../lib/coordinate-plane.ts"
 import TileLock from "../TileLock/TileLock"
+import { tilesInOrder, type Board } from "../lib/board"
+import type { BoardActions } from "../hooks/useBoard"
 
 import { useImperativeHandle, useState, type Ref } from "react"
 
 import * as motion from "motion/react-client"
 import { tileSpring } from "../lib/animation"
-import type { Letter } from "../lib/letters"
 
 type Props = {
-  letters: Letter[]
-  selectedId: number | null
-  select: (id: number | null) => void
+  board: Board
+  actions: BoardActions
   ref: Ref<ToolActions>
 }
 
-export default function WheelTool({
-  letters,
-  selectedId,
-  select,
-  ref,
-}: Props) {
-  const { tiles, shuffleTiles, resetPositions, swapTiles, toggleLock } =
-    useMoveableLetters(letters, select)
+/*
+ * The letters around a circle, in the board's arrangement. Tap one tile and
+ * then another to swap them.
+ */
+export default function WheelTool({ board, actions, ref }: Props) {
+  const tiles = tilesInOrder(board)
+  const selectedIndex = tiles.findIndex((tile) => tile.id === board.selectedId)
 
-  const selectedIndex = tiles.findIndex((tile) => tile.id === selectedId)
-  const activeIndex = selectedIndex === -1 ? null : selectedIndex
+  useImperativeHandle(
+    ref,
+    () => ({ reset: actions.reset, shuffle: actions.shuffle }),
+    [actions],
+  )
 
   // A locked tile that was just tapped to swap, shaken to show it can't move
   const [refusedId, setRefusedId] = useState<number | null>(null)
 
-  useImperativeHandle(ref, () => ({
-    reset: resetPositions,
-    shuffle: shuffleTiles,
-  }))
-
   function onClickTile(index: number) {
-    if (activeIndex === index) {
-      select(null)
+    const tile = tiles[index]
+
+    if (selectedIndex === index) {
+      actions.select(null)
       return
     }
 
-    if (activeIndex !== null) {
+    if (selectedIndex !== -1) {
+      const selectedTile = tiles[selectedIndex]
+
       // Locked tiles can't be swapped: shake the locked one and select the
       // tapped tile instead (e.g. to show its unlock button)
-      const lockedIndex = [index, activeIndex].find((i) => tiles[i].locked)
-      if (lockedIndex !== undefined) {
-        setRefusedId(tiles[lockedIndex].id)
-        select(tiles[index].id)
+      const lockedTile = [tile, selectedTile].find((t) => t.locked)
+      if (lockedTile) {
+        setRefusedId(lockedTile.id)
+        actions.select(tile.id)
         return
       }
 
-      swapTiles(activeIndex, index)
+      actions.swap(selectedTile.id, tile.id)
       return
     }
 
-    select(tiles[index].id)
+    actions.select(tile.id)
   }
 
   const tileStyles = tiles.map((_, index) => {
@@ -71,44 +71,42 @@ export default function WheelTool({
   })
 
   return (
-    <>
-      <div
-        className="wheel-tool-container"
-        onClick={() => select(null)}
-      >
-        <div className="wheel-boundary">
-          {tiles.map((tile, index) => {
-            return (
-              <motion.li
-                className={`tile wheel-tool-tile ${
-                  index === activeIndex ? "active" : ""
-                } ${tile.locked ? "locked" : ""} ${
-                  tile.id === refusedId ? "refused" : ""
-                }`}
-                key={tile.id}
-                onAnimationEnd={(e) => {
-                  // Ignore animations bubbling up from the lock button
-                  if (e.target === e.currentTarget) setRefusedId(null)
-                }}
-                style={tileStyles[index]}
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onClickTile(index)
-                }}
-                transition={tileSpring}
-                layout
-              >
-                {tile.letter}
-                <TileLock
-                  selected={index === activeIndex}
-                  locked={tile.locked}
-                  onToggle={() => toggleLock(tile.id)}
-                />
-              </motion.li>
-            )
-          })}
-        </div>
+    <div
+      className="wheel-tool-container"
+      onClick={() => actions.select(null)}
+    >
+      <div className="wheel-boundary">
+        {tiles.map((tile, index) => {
+          const selected = index === selectedIndex
+
+          return (
+            <motion.li
+              className={`tile wheel-tool-tile ${selected ? "active" : ""} ${
+                tile.locked ? "locked" : ""
+              } ${tile.id === refusedId ? "refused" : ""}`}
+              key={tile.id}
+              onAnimationEnd={(e) => {
+                // Ignore animations bubbling up from the lock button
+                if (e.target === e.currentTarget) setRefusedId(null)
+              }}
+              style={tileStyles[index]}
+              onClick={(e) => {
+                e.stopPropagation()
+                onClickTile(index)
+              }}
+              transition={tileSpring}
+              layout
+            >
+              {tile.char}
+              <TileLock
+                selected={selected}
+                locked={tile.locked}
+                onToggle={() => actions.toggleLock(tile.id)}
+              />
+            </motion.li>
+          )
+        })}
       </div>
-    </>
+    </div>
   )
 }
