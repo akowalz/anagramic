@@ -25,10 +25,13 @@ Dependencies are managed with npm (`package-lock.json`). Run `npm install` first
 
 - `npm run dev` — start the Vite dev server (http://localhost:5173 by default)
 - `npx tsc -b` — type check the project (uses the project references in
-  `tsconfig.json`, which cover `tsconfig.app.json` and `tsconfig.node.json`)
+  `tsconfig.json`, which cover `tsconfig.app.json`, `tsconfig.node.json` and
+  `tsconfig.e2e.json` for the UI tests)
 - `npm run lint` — run ESLint
 - `npm run build` — type check and produce a production build in `dist/`
 - `npm run preview` — serve the production build locally
+- `npm test` — unit tests (Vitest); `npx vitest run` for a single run
+- `npm run test:ui` — UI tests in a real browser (Playwright); see "Tests" below
 - `npm run share [name]` - share a public link with ngrok (handy if using remote-control to make changes); see "Sharing a dev server" below
 
 Run the type check and lint after making changes.
@@ -85,11 +88,24 @@ Notes:
 Do not install new dependencies without asking first. If you want to install a new
 dependency, make a strong case for it and only use if necessary.
 
-There is a small Vitest suite covering pure logic (run with `npm test`, or
-`npx vitest run` for a single run). Tests live next to the code they cover as
-`*.test.ts`. Keep testable logic in plain functions (e.g. in `src/lib/`) so it
-can be tested without a DOM.
+## Tests
 
-Interactions (dragging, tapping, animation) are not covered by tests, so UI
-changes must still be verified by hand. If you need to verify a change, pause
-and ask for a manual verification of the changes.
+- **Unit tests** (Vitest, `npm test`) cover pure logic. They live next to the
+  code they cover as `*.test.ts`. Keep testable logic in plain functions (e.g.
+  in `src/lib/`) so it can be tested without a DOM.
+- **UI tests** (Playwright, `npm run test:ui`) drive the app in a real Chrome
+  at phone size: typing and delete, each tool's taps, drags, locks, shuffle
+  and reset, and layout. They live in `e2e/`, one file per tool plus
+  `app.spec.ts`, with shared helpers in `e2e/helpers.ts`. They start their own
+  dev server on port 5199 and use the Chrome installed on this machine.
+  `Math.random` is seeded and CSS transitions are turned off, so runs are
+  repeatable and positions can be read straight away.
+
+Run both after changing behaviour, and add UI tests for new behaviour. A
+`test.fail(...)` marks a known bug: it's expected to fail, and Playwright
+reports it once it passes so the marker can be removed.
+
+The UI tests don't cover real touch input, how animations look, or iOS
+specifics (e.g. the Home Screen app), so UI changes still need checking by
+hand. If you need to verify a change, pause and ask for a manual verification
+of the changes.

@@ -52,6 +52,6 @@ export default defineConfig({
     worktreeBanner(),
   ],
   test: {
-    exclude: [...configDefaults.exclude, ".claude/**", ".worktrees/**"],
+    exclude: [...configDefaults.exclude, ".claude/**", ".worktrees/**", "e2e/**"],
   },
 })
