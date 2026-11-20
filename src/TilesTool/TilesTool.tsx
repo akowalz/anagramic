@@ -1,4 +1,10 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react"
 import { flushSync } from "react-dom"
 import Tile from "../DraggableTile/DraggableTile"
 import "./TilesTool.css"
@@ -7,6 +13,8 @@ import { shuffleUnlocked } from "../lib/shuffle"
 import { shuffleTilePositions } from "../lib/shuffle-positions"
 import { toggleLocked } from "../lib/locking"
 import { resolveOverlaps, type Bounds, type Pos } from "../lib/resolve-overlaps"
+import { fitToBounds, placeClearOfTiles } from "../lib/place-tiles"
+import { syncSlots, syncTilesByPosition } from "../lib/sync-tiles"
 
 type Props = {
   letters: string[]
@@ -22,14 +30,19 @@ type TileData = {
   locked: boolean
 }
 
-function tilesFromLetters(letters: string[]): TileData[] {
-  return letters.map((letter, index) => ({
+/* A tile's id is the index of its letter, and tiles stay in that order */
+function createTile(letter: string, index: number): TileData {
+  return {
     letter,
     id: index,
     pos: { x: 0, y: 0 },
     zIndex: 0,
     locked: false,
-  }))
+  }
+}
+
+function tilesFromLetters(letters: string[]): TileData[] {
+  return letters.map((letter, index) => createTile(letter, index))
 }
 
 export default function TileTool({ letters, registerActions }: Props) {
@@ -50,7 +63,7 @@ export default function TileTool({ letters, registerActions }: Props) {
   })
 
   /* Get position of tiles if they had be positioned using flexbox */
-  function getFlexPositions(): Pos[] {
+  const getFlexPositions = useCallback((): Pos[] => {
     if (!shadowCanvasRef.current || !canvasRef.current)
       throw "cant find canvas refs"
 
@@ -63,7 +76,7 @@ export default function TileTool({ letters, registerActions }: Props) {
       x: t.offsetLeft,
       y: t.offsetTop,
     }))
-  }
+  }, [])
 
   /*
    * Slot (index into the flex positions) each tile occupies while the tiles are
@@ -73,27 +86,32 @@ export default function TileTool({ letters, registerActions }: Props) {
    */
   const slotsRef = useRef<number[] | null>(null)
 
-  function placeInSlots(slots: number[]) {
-    const flexPositions = getFlexPositions()
-    slotsRef.current = slots
+  const placeInSlots = useCallback(
+    (slots: number[]) => {
+      const flexPositions = getFlexPositions()
+      slotsRef.current = slots
 
-    setTileData((tileData) =>
-      tileData.map((tile, index) => {
-        const posForTile = flexPositions[slots[index]]
-        if (!posForTile) throw "no flex position found"
+      setTileData((tileData) =>
+        tileData.map((tile, index) => {
+          const posForTile = flexPositions[slots[index]]
+          if (!posForTile) throw "no flex position found"
 
-        return {
-          ...tile,
-          pos: posForTile,
-        }
-      }),
-    )
-  }
+          return {
+            ...tile,
+            pos: posForTile,
+          }
+        }),
+      )
+    },
+    [getFlexPositions],
+  )
 
   function resetTiles() {
     setSelectedId(null)
     setTileData((tiles) => tiles.map((tile) => ({ ...tile, locked: false })))
-    placeInSlots(letters.map((_, index) => index))
+    // The actions registered with the app are created once, so use the latest
+    // tiles rather than the letters from when they were created
+    placeInSlots(tileDataRef.current.map((_, index) => index))
   }
 
   function shuffleTiles() {
@@ -131,26 +149,34 @@ export default function TileTool({ letters, registerActions }: Props) {
     })
   }
 
-  const handleDropTile = (id: number, newPos: Pos) => {
+  /*
+   * Area tiles must stay within, in canvas coordinates. The canvas is narrower
+   * than the screen on wide displays (#root has a max-width), so tiles can use
+   * the full viewport width. Vertically they stay within the canvas so they
+   * can't cover the header or footer buttons.
+   */
+  const getBounds = useCallback((): Bounds => {
     const canvas = canvasRef.current
-    // The canvas is narrower than the screen on wide displays (#root has a
-    // max-width), so let tiles use the full viewport width. Vertically they
-    // stay within the canvas so they can't cover the header or footer buttons.
-    let bounds: Bounds = {
-      left: -Infinity,
-      top: -Infinity,
-      right: Infinity,
-      bottom: Infinity,
-    }
-    if (canvas) {
-      const rect = canvas.getBoundingClientRect()
-      bounds = {
-        left: -rect.left,
-        top: 0,
-        right: document.documentElement.clientWidth - rect.left,
-        bottom: canvas.offsetHeight,
+    if (!canvas) {
+      return {
+        left: -Infinity,
+        top: -Infinity,
+        right: Infinity,
+        bottom: Infinity,
       }
     }
+
+    const rect = canvas.getBoundingClientRect()
+    return {
+      left: -rect.left,
+      top: 0,
+      right: document.documentElement.clientWidth - rect.left,
+      bottom: canvas.offsetHeight,
+    }
+  }, [])
+
+  const handleDropTile = (id: number, newPos: Pos) => {
+    const bounds = getBounds()
 
     setTileData((tiles) => {
       const maxZ = Math.max(...tiles.map((t) => t.zIndex))
@@ -176,6 +202,49 @@ export default function TileTool({ letters, registerActions }: Props) {
     setShowTiles(true)
   }, [])
 
+  // Keep the tiles in step with the letters as they're typed and deleted. A
+  // layout effect because it measures the layout, which already has the new
+  // letters, and the tiles should be in place before the next paint. It does
+  // nothing when the tiles already match the letters, so it's fine that it can
+  // run again for other reasons.
+  useLayoutEffect(() => {
+    const oldTiles = tileDataRef.current
+    const tiles = syncTilesByPosition(oldTiles, letters, createTile)
+
+    const unchanged =
+      tiles.length === oldTiles.length &&
+      tiles.every((tile, index) => tile === oldTiles[index])
+    if (unchanged) return
+
+    const oldSlots = slotsRef.current
+
+    // Where the tiles go depends on the measured layout, so they can only be
+    // updated once it has rendered, here
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSelectedId(null)
+    setTileData(tiles)
+
+    if (oldSlots) {
+      // Still in the flex layout: the tiles stay in it, with new ones last
+      placeInSlots(syncSlots(oldTiles, oldSlots, tiles))
+      return
+    }
+
+    // Tiles were moved by hand: leave them where they are, and put new tiles
+    // where the layout would, moved clear of whatever is already there
+    const flexPositions = getFlexPositions()
+    const bounds = getBounds()
+    const added = tiles.filter((tile) => !oldTiles.includes(tile))
+
+    setTileData((tiles) =>
+      added.reduce(
+        (placed, tile) =>
+          placeClearOfTiles(placed, tile.id, flexPositions[tile.id], bounds),
+        tiles,
+      ),
+    )
+  }, [letters, placeInSlots, getFlexPositions, getBounds])
+
   // A layout effect so the observer is attached before the first paint and
   // catches the footer buttons appearing, which happens before that paint too
   useLayoutEffect(() => {
@@ -187,7 +256,14 @@ export default function TileTool({ letters, registerActions }: Props) {
       const canvas = canvasRef.current
       const slots = slotsRef.current
       // Skip while hidden (another tool is active); nothing to lay out
-      if (!canvas || !slots || shadowCanvas.offsetWidth === 0) return
+      if (!canvas || shadowCanvas.offsetWidth === 0) return
+
+      // Tiles that were moved by hand keep their positions, but any the canvas
+      // no longer has room for (e.g. when the keyboard opens) are pulled back in
+      if (!slots) {
+        setTileData((tiles) => fitToBounds(tiles, getBounds()))
+        return
+      }
 
       // Move the tiles in the same frame as the layout change, without the
       // transform transition, so they stay put relative to the layout rather

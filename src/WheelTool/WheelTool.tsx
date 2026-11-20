@@ -58,9 +58,9 @@ export default function WheelTool({ letters, registerActions }: Props) {
     setActiveIndex(index)
   }
 
-  const tileStyles = letters.map((_, index) => {
+  const tileStyles = tiles.map((_, index) => {
     const TWO_PI = Math.PI * 2
-    const theta = TWO_PI / letters.length
+    const theta = TWO_PI / tiles.length
 
     const y = Math.cos(theta * index)
     const x = Math.sin(theta * index)

@@ -12,23 +12,6 @@
   text-align: left;
 }
 
-#header > .back-button {
-  display: flex;
-  align-items: center;
-  margin-left: auto;
-  color: var(--dark);
-}
-
-#header > .back-button:hover {
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-#header > .back-button > svg {
-  margin-right: 4px;
-  width: 16px;
-}
-
 h1 {
   font-size: 1.8em;
   margin-block-start: 0.2em;
@@ -42,6 +25,7 @@ h1:hover {
 }
 
 #tool-container {
+  position: relative;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -49,6 +33,18 @@ h1:hover {
   height: 100%;
   align-items: center;
   justify-content: center;
+}
+
+/* Shown over the tools until the first letter is typed */
+.empty-prompt {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  font-size: 1.2em;
+  font-weight: 600;
+  color: var(--dark);
+  pointer-events: none;
 }
 
 .tool-container {
@@ -66,5 +62,4 @@ h1:hover {
   justify-content: center;
   gap: 12px;
   padding: 12px;
-  padding-bottom: 32px;
 }
