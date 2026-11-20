@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { type Coord } from "../lib/coordinate-plane"
 import type { ToolActions } from "../Types/ToolActions"
 import { tileSpringCss, tileSpringCssMs } from "../lib/animation"
+import { syncTilesByPosition } from "../lib/sync-tiles"
 
 type Props = {
   letters: string[]
@@ -91,6 +92,16 @@ export default function FloatingTool({
   registerActions,
 }: Props) {
   const [tiles, setTiles] = useState<FloatingTile[]>(initializeTiles(letters))
+
+  // Letters get typed and deleted, so keep the tiles in step with them.
+  // Adjusting state while rendering is React's way of reacting to a changed
+  // prop without an extra render with stale tiles.
+  const [syncedLetters, setSyncedLetters] = useState(letters)
+  if (letters !== syncedLetters) {
+    setSyncedLetters(letters)
+    setTiles((tiles) => syncTilesByPosition(tiles, letters, initializeTile))
+  }
+
   const [shuffling, setShuffling] = useState(false)
   const lastFrameTimeRef = useRef<number | null>(null)
   const rafIdRef = useRef<number>(0)
