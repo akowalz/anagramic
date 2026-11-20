@@ -14,11 +14,22 @@ body {
   color: var(--darkest);
   max-width: 900px;
   margin: 0 auto;
-  padding:
-    env(safe-area-inset-top)
-    env(safe-area-inset-right)
-    env(safe-area-inset-bottom)
-    env(safe-area-inset-left);
+}
+
+/*
+ * Only as a Home Screen app does the page run under the status bar and home
+ * indicator (viewport-fit=cover), so only then pad for the safe areas. iOS
+ * also blurs everything just below the status bar without always reporting
+ * that as an inset, so leave extra room at the top to keep the header clear.
+ */
+@media (display-mode: standalone) {
+  #root {
+    padding:
+      calc(env(safe-area-inset-top) + 20px)
+      env(safe-area-inset-right)
+      env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
+  }
 }
 
 /* Global theme + typography */
