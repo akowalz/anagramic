@@ -4,6 +4,6 @@
     text { font-family: "Rubik", sans-serif; font-weight: 500; font-size: 440px; text-anchor: middle; }
   </style>
   <rect width="512" height="512" fill="#ffffff"/>
-  <text x="272" y="428" fill="#EAB308">A</text>
+  <text x="272" y="428" fill="#9a959b">A</text>
   <text x="256" y="412" fill="#2d232e">A</text>
 </svg>
