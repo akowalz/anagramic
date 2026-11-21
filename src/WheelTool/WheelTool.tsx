@@ -3,10 +3,9 @@ import type { ToolActions } from "../Types/ToolActions"
 import TileLock from "../TileLock/TileLock"
 import { tilesInOrder, type Board } from "../lib/board"
 import type { BoardActions } from "../hooks/useBoard"
-import { findDropTarget } from "../lib/drop-target"
-import type { Pos } from "../lib/resolve-overlaps"
-import { TAP_THRESHOLD, TILE_FOOTPRINT } from "../DraggableTile/DraggableTile"
-import { tileSpringCss } from "../lib/animation"
+import type { Hints } from "../hooks/useHints"
+import { currentHint, HINT_TEXT } from "../lib/hints"
+import Hint from "../Hint/Hint"
 
 import {
   useImperativeHandle,
@@ -19,6 +18,7 @@ import {
 type Props = {
   board: Board
   actions: BoardActions
+  hints: Hints
   ref: Ref<ToolActions>
 }
 
@@ -62,10 +62,11 @@ type Drag = {
  * move (a swap, a shuffle, a drag springing back) is a transition the GPU can
  * run on its own.
  */
-export default function WheelTool({ board, actions, ref }: Props) {
+export default function WheelTool({ board, actions, hints, ref }: Props) {
   const tiles = tilesInOrder(board)
   const slotOf = new Map(tiles.map((tile, index) => [tile.id, index]))
   const selectedIndex = tiles.findIndex((tile) => tile.id === board.selectedId)
+  const hint = currentHint("Wheel", hints.learned)
 
   useImperativeHandle(
     ref,
@@ -232,22 +233,20 @@ export default function WheelTool({ board, actions, ref }: Props) {
   }
 
   return (
-    <div className="wheel-tool-container" onClick={() => actions.select(null)}>
-      <div
-        ref={wheelRef}
-        className="wheel-boundary"
-        style={{ "--tile-spring": tileSpringCss } as React.CSSProperties}
-      >
-        {/*
-         * Rendered in the order typed, not the arrangement, so tiles keep
-         * their place in the page. Moving an element in the page loses its
-         * animation, and a dropped tile would jump instead of easing from
-         * the finger. data-slot is its place on the wheel.
-         */}
-        {board.letters.map((letter) => {
-          const index = slotOf.get(letter.id)
-          if (index === undefined) return null
-          const tile = tiles[index]
+    <div
+      className="wheel-tool-container"
+      onClick={() => actions.select(null)}
+    >
+      <div className="wheel-boundary">
+        {tiles.length > 0 && (
+          <Hint
+            className="wheel-hint"
+            text={hint && HINT_TEXT[hint]}
+            // Out of the way while a tile's lock button shows
+            hidden={selectedIndex !== -1}
+          />
+        )}
+        {tiles.map((tile, index) => {
           const selected = index === selectedIndex
           const dragging = drag?.id === tile.id
           // While hovering over a tile, it slides to the dragged tile's spot,

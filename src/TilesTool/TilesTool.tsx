@@ -15,10 +15,14 @@ import { resolveOverlaps, type Bounds, type Pos } from "../lib/resolve-overlaps"
 import { fitToBounds, placeClearOfTiles } from "../lib/place-tiles"
 import type { Board } from "../lib/board"
 import type { BoardActions } from "../hooks/useBoard"
+import type { Hints } from "../hooks/useHints"
+import { currentHint, HINT_TEXT } from "../lib/hints"
+import Hint from "../Hint/Hint"
 
 type Props = {
   board: Board
   actions: BoardActions
+  hints: Hints
   ref: Ref<ToolActions>
 }
 
@@ -56,7 +60,12 @@ function positionsOf(tiles: { id: number; pos: Pos }[]): Record<number, Pos> {
  * follow the board's arrangement, so shuffling here shuffles it for the other
  * tools too. Once moved by hand, the tiles' positions are this tool's own.
  */
-export default function TilesTool({ board, actions, ref }: Props) {
+export default function TilesTool({ board, actions, hints, ref }: Props) {
+  // Moving is learned once tiles have been dragged a couple of times
+  const MOVE_LEARNED_AFTER = 2
+  const [drags, setDrags] = useState(0)
+  const hint = currentHint("Tiles", hints.learned)
+
   const canvasRef = useRef<HTMLDivElement>(null)
   const shadowCanvasRef = useRef<HTMLDivElement>(null)
 
@@ -269,6 +278,9 @@ export default function TilesTool({ board, actions, ref }: Props) {
 
   // A dropped tile pushes aside any it lands on
   function handleDrop(id: number, pos: Pos) {
+    setDrags(drags + 1)
+    if (drags + 1 >= MOVE_LEARNED_AFTER) hints.learn("freeform-move")
+
     const bounds = getBounds()
 
     setPlacement((placement) => {
@@ -296,6 +308,16 @@ export default function TilesTool({ board, actions, ref }: Props) {
           if (e.target === e.currentTarget) actions.select(null)
         }}
       >
+        {tiles.length > 0 && (
+          <Hint
+            className="freeform-hint"
+            text={hint && HINT_TEXT[hint]}
+            // Out of the way while a tile's lock button shows
+            hidden={board.selectedId !== null}
+            // Just above the highest tile, wherever the tiles are
+            style={{ top: Math.min(...tiles.map((tile) => tile.pos.y)) }}
+          />
+        )}
         {tiles.map((tile) => (
           <DraggableTile
             key={tile.id}

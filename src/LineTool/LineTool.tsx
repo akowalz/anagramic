@@ -5,6 +5,9 @@ import { TAP_THRESHOLD } from "../DraggableTile/DraggableTile"
 import { rubberBand } from "../lib/rubber-band"
 import { tilesInOrder, type Board, type BoardTile } from "../lib/board"
 import type { BoardActions } from "../hooks/useBoard"
+import type { Hints } from "../hooks/useHints"
+import { currentHint, HINT_TEXT } from "../lib/hints"
+import Hint from "../Hint/Hint"
 
 import {
   useImperativeHandle,
@@ -19,11 +22,12 @@ import { resistSpringCss, tileSpring } from "../lib/animation"
 type Props = {
   board: Board
   actions: BoardActions
+  hints: Hints
   ref: Ref<ToolActions>
 }
 
 /* The letters in a row, in the board's arrangement. Drag to reorder them. */
-export default function LineTool({ board, actions, ref }: Props) {
+export default function LineTool({ board, actions, hints, ref }: Props) {
   const tiles = tilesInOrder(board)
 
   useImperativeHandle(
@@ -34,9 +38,10 @@ export default function LineTool({ board, actions, ref }: Props) {
 
   const [dragId, setDragId] = useState<number | null>(null)
 
-  // A hint above the letters until they've been dragged a couple of times
-  const HINT_DRAGS = 2
+  // Moving is learned once letters have been dragged a couple of times
+  const MOVE_LEARNED_AFTER = 2
   const [drags, setDrags] = useState(0)
+  const hint = currentHint("Line", hints.learned)
 
   // The shelf is sized to the row of tiles, measured so its width can animate
   const tilesRef = useRef<HTMLDivElement>(null)
@@ -127,15 +132,12 @@ export default function LineTool({ board, actions, ref }: Props) {
       {/* No shelf until there are letters: empty, it looked like a text box */}
       {tiles.length > 0 && (
         <div className="line-rack">
-          <div
-            className={`line-hint ${drags >= HINT_DRAGS ? "gone" : ""} ${
-              // Out of the way of the lock button above a selected tile
-              board.selectedId !== null ? "hidden" : ""
-            }`}
-            aria-hidden={drags >= HINT_DRAGS}
-          >
-            Tap and drag to move letters
-          </div>
+          {/* Out of the way while a tile's lock button shows */}
+          <Hint
+            className="line-hint"
+            text={hint && HINT_TEXT[hint]}
+            hidden={board.selectedId !== null}
+          />
           <div
             className="line-shelf"
             style={shelfWidth === null ? undefined : { width: shelfWidth + 24 }}
@@ -191,7 +193,10 @@ export default function LineTool({ board, actions, ref }: Props) {
                   }}
                   onDragEnd={() => {
                     setDragId(null)
-                    setDrags((drags) => drags + 1)
+                    setDrags(drags + 1)
+                    if (drags + 1 >= MOVE_LEARNED_AFTER) {
+                      hints.learn("line-move")
+                    }
                   }}
                   transition={tileSpring}
                   layout

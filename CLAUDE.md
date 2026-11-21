@@ -7,7 +7,9 @@ It's built with TypeScript, React, and Vite. The dependency list is very light
 intentionally.
 
 It is a fully front-end experience. It's just a static web app that users visit
-in their browser. There is no backend or persistence.
+in their browser. There is no backend, and the only thing persisted is which
+tutorial hints have been learned (in `localStorage`, see `src/lib/hints.ts`).
+Don't store anything else on the device without asking.
 
 The app is deployed using Vercel, pushing to main deploys. Agents are allowed to
 deploy the app and push to main, if approval is given by the user.

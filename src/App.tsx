@@ -1,13 +1,14 @@
 import "./App.css"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { TOOL_BUTTONS, type ToolActions } from "./Types/ToolActions"
 import { type Tool } from "./Types/Tool"
 
 import ToolPicker from "./ToolPicker/ToolPicker"
 import Keyboard from "./Keyboard/Keyboard"
 import { useTypedKeys } from "./hooks/useTypedKeys"
-import { useBoard } from "./hooks/useBoard"
+import { useBoard, type BoardActions } from "./hooks/useBoard"
+import { useHints } from "./hooks/useHints"
 
 import TilesTool from "./TilesTool/TilesTool"
 import LineTool from "./LineTool/LineTool"
@@ -44,15 +45,26 @@ function App() {
     actions.select(null)
   }
 
-  const tooltips = {
-    Tiles: "Drag to rearrange letters, tap to lock",
-    Line: "",
-    Wheel: "Tap to swap or lock letters",
-    Floating: "Just let the letters float by",
-  }
+  // The tutorial: hints above the letters, learned by doing what they say
+  const hints = useHints()
+  const { learn } = hints
 
-  // Line has no hint up here: it shows one just above its letters instead
-  const hint = tool === "Line" ? null : tooltips[tool]
+  // The board's actions, plus learning the hints they teach. Stable, since
+  // both the actions and `learn` are.
+  const toolActions: BoardActions = useMemo(
+    () => ({
+      ...actions,
+      toggleLock(id: number) {
+        learn("lock")
+        actions.toggleLock(id)
+      },
+      swap(idA: number, idB: number) {
+        learn("wheel-swap")
+        actions.swap(idA, idB)
+      },
+    }),
+    [actions, learn],
+  )
 
   useTypedKeys(!showAboutPage, actions.typeLetter, actions.pressDelete)
 
@@ -105,31 +117,45 @@ function App() {
         <>
           <div id="main-navigation">
             <ToolPicker activeTool={tool} setTool={switchTool} />
-            {hint && <div className="tooltip">{hint}</div>}
           </div>
 
           <div id="tool-container">
             <div
               className={`tool-container ${tool === "Tiles" ? "" : "hidden"}`}
             >
-              <TilesTool board={board} actions={actions} ref={tilesRef} />
+              <TilesTool
+                board={board}
+                actions={toolActions}
+                hints={hints}
+                ref={tilesRef}
+              />
             </div>
             <div
               className={`tool-container ${tool === "Line" ? "" : "hidden"}`}
             >
-              <LineTool board={board} actions={actions} ref={lineRef} />
+              <LineTool
+                board={board}
+                actions={toolActions}
+                hints={hints}
+                ref={lineRef}
+              />
             </div>
             <div
               className={`tool-container ${tool === "Wheel" ? "" : "hidden"}`}
             >
-              <WheelTool board={board} actions={actions} ref={wheelRef} />
+              <WheelTool
+                board={board}
+                actions={toolActions}
+                hints={hints}
+                ref={wheelRef}
+              />
             </div>
             <div
               className={`tool-container ${tool === "Floating" ? "" : "hidden"}`}
             >
               <FloatingTool
                 board={board}
-                actions={actions}
+                actions={toolActions}
                 active={tool === "Floating"}
                 ref={floatingRef}
               />

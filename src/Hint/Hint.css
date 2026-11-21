@@ -1,0 +1,18 @@
+/*
+ * A hint just above the letters, styled like the "Type to add letters" prompt.
+ * Where it goes is up to the tool (see each tool's CSS); it fades in and out.
+ */
+.hint {
+  position: absolute;
+  font-size: 1.2em;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-muted);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity var(--hint-fade) ease-out;
+}
+
+.hint.out {
+  opacity: 0;
+}

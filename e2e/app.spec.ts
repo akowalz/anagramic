@@ -188,28 +188,15 @@ test.describe("tools", () => {
     ])
   })
 
-  test("each tool shows the letters and its own hint", async ({ page }) => {
+  test("each tool shows the letters, with no hint bar", async ({ page }) => {
     await open(page, "cat")
 
-    const hints = {
-      Freeform: "Drag to rearrange letters, tap to lock",
-      // Line shows its hint above its letters instead
-      Line: null,
-      Wheel: "Tap to swap or lock letters",
-      Floating: "Just let the letters float by",
-    } as const
-
-    for (const [tool, hint] of Object.entries(hints)) {
-      await pickTool(page, tool as keyof typeof hints)
-      if (hint) {
-        await expect(page.locator(".tooltip")).toHaveText(hint)
-      } else {
-        await expect(page.locator(".tooltip")).toHaveCount(0)
-      }
-      await expect(tiles(page, tool as keyof typeof hints)).toHaveCount(3)
-      await expect(
-        tiles(page, tool as keyof typeof hints).first(),
-      ).toBeVisible()
+    for (const tool of ["Line", "Wheel", "Freeform", "Floating"] as const) {
+      await pickTool(page, tool)
+      await expect(tiles(page, tool)).toHaveCount(3)
+      await expect(tiles(page, tool).first()).toBeVisible()
+      // Hints show above the letters instead (see tutorial.spec.ts)
+      await expect(page.locator(".tooltip")).toHaveCount(0)
     }
   })
 

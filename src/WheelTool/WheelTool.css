@@ -108,3 +108,11 @@
     rotate: 2deg;
   }
 }
+
+/* The tutorial's hint (see Hint), centered above the top of the wheel */
+.wheel-hint {
+  left: 50%;
+  translate: -50% 0;
+  /* Clear of the tile at the top, which sits half above the wheel */
+  bottom: calc(100% + 32px);
+}

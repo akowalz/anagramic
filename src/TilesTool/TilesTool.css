@@ -35,3 +35,12 @@
   gap: 10px;
   color: blue;
 }
+
+/*
+ * The tutorial's hint (see Hint), across the middle of the canvas, its bottom
+ * just above the highest tile (the top is set from the tiles)
+ */
+.freeform-hint {
+  left: 50%;
+  translate: -50% calc(-100% - 12px);
+}
