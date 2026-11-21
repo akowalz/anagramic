@@ -1,4 +1,5 @@
 .line-tool-container {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -7,10 +8,48 @@
   line-height: 1;
 }
 
+/*
+ * The tiles stand in a rack, a low ledge in front of them hiding their bottom
+ * edge, to show they're held on a line rather than free to move anywhere.
+ */
+.line-rack {
+  position: relative;
+  display: flex;
+  padding-bottom: 6px;
+  /* Room either side for the ends of the ledge */
+  max-width: calc(100% - 24px);
+}
+
+.line-rack-tiles {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.line-rack::after {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  left: -10px;
+  right: -10px;
+  bottom: 0;
+  height: 12px;
+  box-sizing: border-box;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 2px 2px 6px 6px;
+  box-shadow: 2px 2px 0 var(--border);
+  pointer-events: none;
+}
+
 .line-tool-tile {
   --tile-size: 44px;
 
   position: relative;
+  /* A width as well as a basis, so the rack is sized to fit full-size tiles */
+  width: var(--tile-size);
   flex-basis: var(--tile-size);
   min-width: 0;
   margin-left: -3px;

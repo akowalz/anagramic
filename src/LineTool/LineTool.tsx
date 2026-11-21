@@ -82,16 +82,12 @@ export default function LineTool({ board, actions, ref }: Props) {
   }
 
   return (
-    <Reorder.Group
-      axis="x"
-      as="div"
-      values={board.order}
-      onReorder={actions.reorder}
+    <div
+      className="line-tool-container"
       onPointerDown={(e) => {
         // Tapping empty space deselects
         if (e.target === e.currentTarget) actions.select(null)
       }}
-      className="line-tool-container"
       style={
         {
           "--tile-count": tiles.length,
@@ -99,14 +95,23 @@ export default function LineTool({ board, actions, ref }: Props) {
         } as React.CSSProperties
       }
     >
-      {tiles.map((tile) => {
-        const selected = tile.id === board.selectedId
-
-        return (
-          <Reorder.Item
+      {tiles.length > 0 && (
+        <div className="line-rack">
+          <Reorder.Group
+            axis="x"
             as="div"
-            value={tile.id}
-            className={`
+            values={board.order}
+            onReorder={actions.reorder}
+            className="line-rack-tiles"
+          >
+            {tiles.map((tile) => {
+              const selected = tile.id === board.selectedId
+
+              return (
+                <Reorder.Item
+                  as="div"
+                  value={tile.id}
+                  className={`
                 tile
                 line-tool-tile
                 ${tile.id === dragId ? "dragging" : ""}
@@ -114,41 +119,44 @@ export default function LineTool({ board, actions, ref }: Props) {
                 ${tile.locked ? "locked" : ""}
                 ${resisting?.id === tile.id ? "resisting" : ""}
               `}
-            key={tile.id}
-            drag={tile.locked ? false : "x"}
-            style={{
-              translate: `${resisting?.id === tile.id ? resisting.x : 0}px 0`,
-            }}
-            onPointerDown={(e) => startResisting(tile, e)}
-            onPointerMove={(e) => resist(tile, e)}
-            onPointerUp={stopResisting}
-            onPointerCancel={stopResisting}
-            onLostPointerCapture={stopResisting}
-            onTapStart={() => {
-              draggedRef.current = false
-            }}
-            onTap={() => {
-              if (draggedRef.current) return
-              actions.select(selected ? null : tile.id)
-            }}
-            onDragStart={() => {
-              draggedRef.current = true
-              actions.select(null)
-              setDragId(tile.id)
-            }}
-            onDragEnd={() => setDragId(null)}
-            transition={tileSpring}
-            layout
-          >
-            {tile.char}
-            <TileLock
-              selected={selected}
-              locked={tile.locked}
-              onToggle={() => actions.toggleLock(tile.id)}
-            />
-          </Reorder.Item>
-        )
-      })}
-    </Reorder.Group>
+                  key={tile.id}
+                  drag={tile.locked ? false : "x"}
+                  style={{
+                    translate: `${resisting?.id === tile.id ? resisting.x : 0}px 0`,
+                  }}
+                  onPointerDown={(e) => startResisting(tile, e)}
+                  onPointerMove={(e) => resist(tile, e)}
+                  onPointerUp={stopResisting}
+                  onPointerCancel={stopResisting}
+                  onLostPointerCapture={stopResisting}
+                  onTapStart={() => {
+                    draggedRef.current = false
+                  }}
+                  onTap={() => {
+                    if (draggedRef.current) return
+                    actions.select(selected ? null : tile.id)
+                  }}
+                  onDragStart={() => {
+                    draggedRef.current = true
+                    actions.select(null)
+                    setDragId(tile.id)
+                  }}
+                  onDragEnd={() => setDragId(null)}
+                  transition={tileSpring}
+                  layout
+                >
+                  {tile.char}
+                  <TileLock
+                    selected={selected}
+                    locked={tile.locked}
+                    onToggle={() => actions.toggleLock(tile.id)}
+                  />
+                </Reorder.Item>
+              )
+            })}
+          </Reorder.Group>
+        </div>
+      )}
+    </div>
   )
 }
