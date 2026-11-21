@@ -20,8 +20,6 @@
  */
 .wheel-boundary {
   position: relative;
-  /* Tiles are placed in units of the wheel's size */
-  container-type: size;
   width: min(70cqw, 400px, calc(100cqh - 2 * var(--wheel-tile-width)));
   aspect-ratio: 1/1;
 }
@@ -109,10 +107,16 @@
   }
 }
 
-/* The tutorial's hint (see Hint), centered above the top of the wheel */
+/*
+ * The tutorial's hint (see Hint), in the empty middle of the wheel, where it
+ * can't run into the tool picker however little room there is above
+ */
 .wheel-hint {
+  top: 50%;
   left: 50%;
-  translate: -50% 0;
-  /* Clear of the tile at the top, which sits half above the wheel */
-  bottom: calc(100% + 32px);
+  translate: -50% -50%;
+  width: calc(100% - 2 * var(--wheel-outline-width) - 24px);
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
 }
