@@ -11,32 +11,8 @@
 .line-rack {
   position: relative;
   display: flex;
-  justify-content: center;
-  /* Wide enough for the prompt while empty, then grows with the letters */
-  min-width: 200px;
   /* Room either side for the ends of the rack */
   max-width: calc(100% - 24px);
-}
-
-/*
- * Until a letter is typed, the prompt stands on the empty shelf, where the
- * tiles will go
- */
-.line-rack-empty {
-  position: absolute;
-  z-index: 1;
-  left: 0;
-  right: 0;
-  /* Just above the top of the shelf (see .line-rack::before) */
-  bottom: 36px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  font-size: 1.2em;
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--text-muted);
-  pointer-events: none;
 }
 
 /*
@@ -66,8 +42,6 @@
   display: flex;
   align-items: center;
   min-width: 0;
-  /* A tile's height even while empty, so the shelf doesn't move once typing */
-  min-height: 50px;
 }
 
 .line-tool-tile {

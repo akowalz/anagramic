@@ -144,8 +144,7 @@ function App() {
               />
             </div>
 
-            {/* Line shows its own prompt, on its empty shelf */}
-            {letters.length === 0 && tool !== "Line" && (
+            {letters.length === 0 && (
               <div className="empty-prompt">Type to add letters</div>
             )}
           </div>

@@ -134,25 +134,18 @@ test("dragging doesn't resize the rack or leave tiles uneven", async ({
   await expect.poll(sizes).toEqual(sizesBefore)
 })
 
-test("an empty shelf holds the prompt, then grows with the letters", async ({
-  page,
-}) => {
+test("there's no shelf until there are letters", async ({ page }) => {
+  // An empty shelf looked like a text box
   await open(page)
   await pickTool(page, "Line")
-  const rack = page.locator(".line-rack")
-  const prompt = rack.getByText("Type to add letters")
-  await expect(prompt).toBeVisible()
-  const empty = await boxOf(rack)
+  await expect(page.locator(".line-rack")).toHaveCount(0)
+  await expect(
+    page.getByText("Type to add letters").filter({ visible: true }),
+  ).toBeVisible()
 
   await typeOnKeyboard(page, "c")
-  await expect(prompt).toHaveCount(0)
-  // The shelf stays where it was, the same size, for the first few letters
-  expect(await boxOf(rack)).toEqual(empty)
 
-  await typeOnKeyboard(page, "rossword")
-  const full = await boxOf(rack)
-  expect(full.width).toBeGreaterThan(empty.width)
-  expect(full.y + full.height).toBeCloseTo(empty.y + empty.height, 0)
+  await expect(page.locator(".line-rack")).toBeVisible()
 })
 
 test("the browser never pans while a tile is held", async ({ page }) => {
