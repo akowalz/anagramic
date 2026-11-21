@@ -170,6 +170,20 @@ test.describe("delete", () => {
 })
 
 test.describe("tools", () => {
+  test("Line's hint waits until there are letters to move", async ({
+    page,
+  }) => {
+    await open(page)
+    const hint = page.locator(".tooltip")
+    const height = (await hint.boundingBox())!.height
+    await expect(hint).toHaveText(/^\s*$/)
+
+    await typeOnKeyboard(page, "c")
+
+    await expect(hint).toHaveText("Tap and drag to move letters")
+    expect((await hint.boundingBox())!.height).toBe(height)
+  })
+
   test("opens on Line", async ({ page }) => {
     await open(page, "cat")
 
@@ -193,7 +207,7 @@ test.describe("tools", () => {
 
     const hints = {
       Freeform: "Drag to rearrange letters, tap to lock",
-      Line: "Drag to move letters, tap to lock",
+      Line: "Tap and drag to move letters",
       Wheel: "Tap to swap or lock letters",
       Floating: "Just let the letters float by",
     } as const

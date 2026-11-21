@@ -46,10 +46,15 @@ function App() {
 
   const tooltips = {
     Tiles: "Drag to rearrange letters, tap to lock",
-    Line: "Drag to move letters, tap to lock",
+    Line: "Tap and drag to move letters",
     Wheel: "Tap to swap or lock letters",
     Floating: "Just let the letters float by",
   }
+
+  // A simple tutorial in Line: its empty shelf says to type, so the hint up
+  // here waits until there are letters to move. A space keeps its height.
+  const hint =
+    tool === "Line" && letters.length === 0 ? "\u00a0" : tooltips[tool]
 
   useTypedKeys(!showAboutPage, actions.typeLetter, actions.pressDelete)
 
@@ -102,36 +107,24 @@ function App() {
         <>
           <div id="main-navigation">
             <ToolPicker activeTool={tool} setTool={switchTool} />
-            <div className="tooltip">{tooltips[tool]}</div>
+            <div className="tooltip">{hint}</div>
           </div>
 
           <div id="tool-container">
             <div
               className={`tool-container ${tool === "Tiles" ? "" : "hidden"}`}
             >
-              <TilesTool
-                board={board}
-                actions={actions}
-                ref={tilesRef}
-              />
+              <TilesTool board={board} actions={actions} ref={tilesRef} />
             </div>
             <div
               className={`tool-container ${tool === "Line" ? "" : "hidden"}`}
             >
-              <LineTool
-                board={board}
-                actions={actions}
-                ref={lineRef}
-              />
+              <LineTool board={board} actions={actions} ref={lineRef} />
             </div>
             <div
               className={`tool-container ${tool === "Wheel" ? "" : "hidden"}`}
             >
-              <WheelTool
-                board={board}
-                actions={actions}
-                ref={wheelRef}
-              />
+              <WheelTool board={board} actions={actions} ref={wheelRef} />
             </div>
             <div
               className={`tool-container ${tool === "Floating" ? "" : "hidden"}`}
