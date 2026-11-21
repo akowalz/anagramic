@@ -19,7 +19,7 @@ import {
 /*
  * The tools share one board: the same letters, in the same arrangement, with
  * the same locks. Freeform follows the arrangement until a tile is dragged by
- * hand; Floating keeps its own drift.
+ * hand; Floating keeps its own drift and ignores locks.
  */
 
 test.beforeEach(async ({ page }) => {
@@ -82,8 +82,6 @@ test("a letter locked in one tool is locked in all of them", async ({
   await expect(lockedTiles(page, "Wheel")).toHaveText(["G"])
   await pickTool(page, "Freeform")
   await expect(lockedTiles(page, "Freeform")).toHaveText(["G"])
-  await pickTool(page, "Floating")
-  await expect(lockedTiles(page, "Floating")).toHaveText(["G"])
 })
 
 test("a locked letter keeps its place when another tool shuffles", async ({
@@ -178,19 +176,22 @@ test.describe("Freeform once tiles are dragged by hand", () => {
   })
 })
 
-test("a locked letter holds still in Floating", async ({ page }) => {
+test("locks don't apply in Floating", async ({ page }) => {
   await open(page, "FLOAT")
   await pickTool(page, "Wheel")
   await tiles(page, "Wheel").nth(0).click()
   await lockSelected(page, "Wheel")
   await pickTool(page, "Floating")
-  const locked = lockedTiles(page, "Floating")
-  await expect(locked).toHaveText(["F"])
-  await expect(locked.locator(".tile-lock-badge")).toBeVisible()
-  const before = await boxOf(locked)
 
-  await page.waitForTimeout(500)
+  // Nothing shows as locked, and the letter still moves when shuffled
+  await expect(lockedTiles(page, "Floating")).toHaveCount(0)
+  await expect(page.locator(".floating-tool-tile .tile-lock-badge")).toHaveCount(0)
+  const tile = tiles(page, "Floating").filter({ hasText: "F" })
+  const before = await boxOf(tile)
   await footerButton(page, "Shuffle").click()
+  expect(await boxOf(tile)).not.toEqual(before)
 
-  expect(await boxOf(locked)).toEqual(before)
+  // The lock is still there in the other tools
+  await pickTool(page, "Wheel")
+  await expect(lockedTiles(page, "Wheel")).toHaveText(["F"])
 })

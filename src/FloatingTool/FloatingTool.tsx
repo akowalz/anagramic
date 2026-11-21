@@ -7,7 +7,6 @@ import { syncTilesInLetterOrder } from "../lib/sync-tiles"
 import type { Letter } from "../lib/letters"
 import type { Board } from "../lib/board"
 import type { BoardActions } from "../hooks/useBoard"
-import TileLock from "../TileLock/TileLock"
 
 type Props = {
   board: Board
@@ -85,11 +84,12 @@ function coordToTranslate(coord: Coord) {
 const SHUFFLE_DURATION_MS = tileSpringCssMs
 
 /*
- * The letters drift around a box. Locked letters hold still, and tiles can't be
- * tapped here, but the delete key still selects them.
+ * The letters drift around a box. Locks don't apply here: every letter
+ * drifts and shuffles, and none shows as locked. Tiles can't be tapped, but
+ * the delete key still selects them.
  */
 export default function FloatingTool({ board, actions, active, ref }: Props) {
-  const { letters, locked, selectedId } = board
+  const { letters, selectedId } = board
   const [drifts, setDrifts] = useState(() => letters.map(newDrift))
 
   // Letters get typed and deleted, so keep the drifts in step with them.
@@ -111,11 +111,11 @@ export default function FloatingTool({ board, actions, active, ref }: Props) {
     setShuffling(true)
 
     setDrifts((drifts) =>
-      drifts.map((drift) =>
-        locked.has(drift.id)
-          ? drift
-          : { ...drift, coords: randomCoords(), ...randomDirection() },
-      ),
+      drifts.map((drift) => ({
+        ...drift,
+        coords: randomCoords(),
+        ...randomDirection(),
+      })),
     )
 
     if (shuffleTimeoutRef.current) clearTimeout(shuffleTimeoutRef.current)
@@ -145,9 +145,7 @@ export default function FloatingTool({ board, actions, active, ref }: Props) {
         const clampedDelta = Math.min(deltaSeconds, 0.1)
 
         setDrifts((drifts) =>
-          drifts.map((drift) =>
-            locked.has(drift.id) ? drift : updateDrift(drift, clampedDelta),
-          ),
+          drifts.map((drift) => updateDrift(drift, clampedDelta)),
         )
       }
 
@@ -161,7 +159,7 @@ export default function FloatingTool({ board, actions, active, ref }: Props) {
       cancelAnimationFrame(rafIdRef.current)
       lastFrameTimeRef.current = null
     }
-  }, [active, shuffling, locked])
+  }, [active, shuffling])
 
   const driftById = new Map(drifts.map((drift) => [drift.id, drift]))
 
@@ -177,7 +175,7 @@ export default function FloatingTool({ board, actions, active, ref }: Props) {
               key={letter.id}
               className={`tile floating-tool-tile ${
                 letter.id === selectedId ? "active" : ""
-              } ${locked.has(letter.id) ? "locked" : ""}`}
+              }`}
               style={{
                 ...coordToTranslate(drift.coords),
                 ...(shuffling && {
@@ -186,11 +184,6 @@ export default function FloatingTool({ board, actions, active, ref }: Props) {
               }}
             >
               {letter.char}
-              <TileLock
-                selected={false}
-                locked={locked.has(letter.id)}
-                onToggle={() => {}}
-              />
             </div>
           )
         })}
