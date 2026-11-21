@@ -62,7 +62,9 @@
 
 /* Locked tiles bounce back after resisting a drag (motion owns transform) */
 .line-tool-tile {
-  transition: translate var(--resist-spring);
+  transition:
+    translate var(--resist-spring),
+    scale 120ms ease-out;
 }
 
 .line-tool-tile.resisting {
@@ -82,7 +84,12 @@
   z-index: 999 !important;
 }
 
+/*
+ * Lift the dragged tile by scaling it, not resizing it: resizing changes the
+ * row's layout, which made the shelf grow and left the other tiles a fraction
+ * of a pixel out of line after the drop.
+ */
 .line-tool-tile.dragging {
   box-shadow: 2px 2px 0 var(--border-color);
-  --tile-size: 50px;
+  scale: 1.12;
 }

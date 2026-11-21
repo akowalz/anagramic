@@ -108,3 +108,31 @@ test("reset puts the letters back in order and unlocks them", async ({
   expect(await lettersIn(page, "Line")).toBe(WORD)
   await expect(lockedTiles(page, "Line")).toHaveCount(0)
 })
+
+test("dragging doesn't resize the rack or leave tiles uneven", async ({
+  page,
+}) => {
+  await open(page, "cat")
+  await pickTool(page, "Line")
+  const rack = page.locator(".line-rack")
+  const rackBefore = await boxOf(rack)
+  const sizes = async () =>
+    (await boxesIn(page, "Line")).map(({ box }) =>
+      [box.y, box.width, box.height].map((n) => Math.round(n * 10) / 10),
+    )
+  const sizesBefore = await sizes()
+  const first = centerOf(await boxOf(tiles(page, "Line").nth(0)))
+  const last = centerOf(await boxOf(tiles(page, "Line").nth(2)))
+
+  await page.mouse.move(first.x, first.y)
+  await page.mouse.down()
+  await page.mouse.move(last.x + 5, last.y, { steps: 20 })
+  // The lifted tile is scaled up, but the rack stays the same size
+  expect(await boxOf(rack)).toEqual(rackBefore)
+  await page.mouse.up()
+
+  await expect(page.locator(".line-tool-tile.dragging")).toHaveCount(0)
+  expect(await lettersIn(page, "Line")).toBe("ATC")
+  expect(await boxOf(rack)).toEqual(rackBefore)
+  await expect.poll(sizes).toEqual(sizesBefore)
+})
