@@ -12,6 +12,11 @@ in their browser. There is no backend or persistence.
 The app is deployed using Vercel, pushing to main deploys. Agents are allowed to
 deploy the app and push to main, if approval is given by the user.
 
+**Always run the tests before deploying.** Before pushing to main, run the type
+check, lint, the unit tests and the UI tests (`npx tsc -b`, `npm run lint`,
+`npx vitest run`, `npm run test:ui`), and only push if they all pass. Nothing
+else runs them: Vercel deploys whatever is pushed.
+
 The app is primarily designed to be used on mobile, but it also looks nice on
 desktops. It's designed to look good on basically any screen size.
 
