@@ -8,7 +8,8 @@ type Props = {
 }
 
 export default function ToolPicker({ activeTool, setTool }: Props) {
-  const allTools: Tool[] = ["Tiles", "Line", "Wheel", "Floating"]
+  // Most rigid to least: a fixed row, a circle, anywhere, drifting
+  const allTools: Tool[] = ["Line", "Wheel", "Tiles", "Floating"]
 
   const toolNames = {
     Tiles: "Freeform",

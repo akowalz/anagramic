@@ -18,11 +18,15 @@ test.beforeEach(async ({ page }) => {
 test.describe("typing", () => {
   test("asks for letters until some are typed", async ({ page }) => {
     await open(page)
-    await expect(page.getByText("Type to add letters")).toBeVisible()
+    await expect(
+      page.getByText("Type to add letters").filter({ visible: true }),
+    ).toBeVisible()
 
     await typeOnKeyboard(page, "cat")
 
-    await expect(page.getByText("Type to add letters")).toBeHidden()
+    await expect(
+      page.getByText("Type to add letters").filter({ visible: true }),
+    ).toBeHidden()
     await pickTool(page, "Line")
     expect(await lettersIn(page, "Line")).toBe("CAT")
   })
@@ -133,8 +137,10 @@ test.describe("delete", () => {
 
     for (let i = 0; i < 4; i++) await pressDelete(page)
 
-    await expect(tiles(page, "Freeform")).toHaveCount(0)
-    await expect(page.getByText("Type to add letters")).toBeVisible()
+    await expect(tiles(page, "Line")).toHaveCount(0)
+    await expect(
+      page.getByText("Type to add letters").filter({ visible: true }),
+    ).toBeVisible()
     await expect(page).not.toHaveURL(/fodder/)
   })
 
@@ -164,6 +170,24 @@ test.describe("delete", () => {
 })
 
 test.describe("tools", () => {
+  test("opens on Line", async ({ page }) => {
+    await open(page, "cat")
+
+    await expect(page.locator(".tool-picker-tool.active")).toHaveText("Line")
+    await expect(tiles(page, "Line").first()).toBeVisible()
+  })
+
+  test("are ordered most rigid to least", async ({ page }) => {
+    await open(page, "cat")
+
+    await expect(page.locator(".tool-picker-tool")).toHaveText([
+      "Line",
+      "Wheel",
+      "Freeform",
+      "Floating",
+    ])
+  })
+
   test("each tool shows the letters and its own hint", async ({ page }) => {
     await open(page, "cat")
 
@@ -178,7 +202,9 @@ test.describe("tools", () => {
       await pickTool(page, tool as keyof typeof hints)
       await expect(page.locator(".tooltip")).toHaveText(hint)
       await expect(tiles(page, tool as keyof typeof hints)).toHaveCount(3)
-      await expect(tiles(page, tool as keyof typeof hints).first()).toBeVisible()
+      await expect(
+        tiles(page, tool as keyof typeof hints).first(),
+      ).toBeVisible()
     }
   })
 
@@ -215,7 +241,8 @@ test.describe("layout", () => {
     await open(page, "cat")
     // Hidden keys stay in the page, in a wrapper that collapses to nothing
     const keys = page.locator(".keyboard-keys-wrapper")
-    const height = () => keys.evaluate((el) => el.getBoundingClientRect().height)
+    const height = () =>
+      keys.evaluate((el) => el.getBoundingClientRect().height)
 
     await page.getByRole("button", { name: "Hide keyboard" }).click()
     await expect.poll(height).toBe(0)
@@ -254,7 +281,7 @@ test.describe("layout", () => {
     await expect(page.getByRole("heading", { name: "About" })).toBeVisible()
 
     await page.getByRole("heading", { name: "anagramic" }).click()
-    await expect(tiles(page, "Freeform")).toHaveCount(3)
+    await expect(tiles(page, "Line")).toHaveCount(3)
   })
 })
 

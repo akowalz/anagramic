@@ -35,7 +35,7 @@ function App() {
   const { letters } = board
 
   const [keyboardOpen, setKeyboardOpen] = useState(true)
-  const [tool, setTool] = useState<Tool>("Tiles")
+  const [tool, setTool] = useState<Tool>("Line")
 
   // Each tool uses the selection in its own way (in the wheel, tapping
   // another tile swaps with it), so a new tool starts with nothing selected
@@ -144,7 +144,8 @@ function App() {
               />
             </div>
 
-            {letters.length === 0 && (
+            {/* Line shows its own prompt, on its empty shelf */}
+            {letters.length === 0 && tool !== "Line" && (
               <div className="empty-prompt">Type to add letters</div>
             )}
           </div>

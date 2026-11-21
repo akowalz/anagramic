@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test"
+import { expect, test, type Page } from "@playwright/test"
 import {
   anyOverlap,
   boxesIn,
@@ -10,6 +10,7 @@ import {
   lockedTiles,
   lockSelected,
   open,
+  pickTool,
   prepare,
   selectedTile,
   sorted,
@@ -27,8 +28,15 @@ test.beforeEach(async ({ page }) => {
 
 const WORD = "ANAGRAMS"
 
+/* Open the app and switch to Freeform, which isn't the tool it opens on */
+async function openFreeform(page: Page, fodder = WORD) {
+  await open(page, fodder)
+  await pickTool(page, "Freeform")
+  await expect(tiles(page, "Freeform")).toHaveCount(fodder.length)
+}
+
 test("lays the tiles out like text, in the order typed", async ({ page }) => {
-  await open(page, WORD)
+  await openFreeform(page)
 
   expect(await freeformReadingOrder(page)).toBe(WORD)
   const boxes = await boxesIn(page, "Freeform")
@@ -38,7 +46,7 @@ test("lays the tiles out like text, in the order typed", async ({ page }) => {
 test("tapping a tile selects it, and tapping again deselects", async ({
   page,
 }) => {
-  await open(page, WORD)
+  await openFreeform(page)
   const tile = tiles(page, "Freeform").nth(3)
 
   await tile.click()
@@ -50,7 +58,7 @@ test("tapping a tile selects it, and tapping again deselects", async ({
 })
 
 test("tapping empty space deselects", async ({ page }) => {
-  await open(page, WORD)
+  await openFreeform(page)
   await tiles(page, "Freeform").nth(0).click()
 
   const canvas = await boxOf(page.locator(".tile-canvas"))
@@ -60,7 +68,7 @@ test("tapping empty space deselects", async ({ page }) => {
 })
 
 test("dragging a tile leaves it where it was dropped", async ({ page }) => {
-  await open(page, WORD)
+  await openFreeform(page)
   const before = await boxesIn(page, "Freeform")
   const from = centerOf(before[7].box)
   const to = { x: from.x + 40, y: from.y - 150 }
@@ -77,7 +85,7 @@ test("dragging a tile leaves it where it was dropped", async ({ page }) => {
 })
 
 test("a tile dropped on another pushes it aside", async ({ page }) => {
-  await open(page, WORD)
+  await openFreeform(page)
   const before = await boxesIn(page, "Freeform")
 
   await drag(page, centerOf(before[7].box), centerOf(before[0].box))
@@ -87,7 +95,7 @@ test("a tile dropped on another pushes it aside", async ({ page }) => {
 })
 
 test("a locked tile can't be dragged", async ({ page }) => {
-  await open(page, WORD)
+  await openFreeform(page)
   const tile = tiles(page, "Freeform").nth(2)
   await tile.click()
   await lockSelected(page, "Freeform")
@@ -100,7 +108,7 @@ test("a locked tile can't be dragged", async ({ page }) => {
 })
 
 test("shuffle rearranges the tiles but not a locked one", async ({ page }) => {
-  await open(page, WORD)
+  await openFreeform(page)
   const locked = tiles(page, "Freeform").nth(3)
   await locked.click()
   await lockSelected(page, "Freeform")
@@ -121,7 +129,7 @@ test("shuffle rearranges the tiles but not a locked one", async ({ page }) => {
 test("after dragging, shuffle swaps the tiles' spots around", async ({
   page,
 }) => {
-  await open(page, WORD)
+  await openFreeform(page)
   const before = await boxesIn(page, "Freeform")
   await drag(page, centerOf(before[0].box), {
     x: centerOf(before[0].box).x,
@@ -143,7 +151,7 @@ test("after dragging, shuffle swaps the tiles' spots around", async ({
 test("a letter typed after dragging lands clear of the other tiles", async ({
   page,
 }) => {
-  await open(page, WORD)
+  await openFreeform(page)
   const before = await boxesIn(page, "Freeform")
   // Drop a tile where the next letter would go in the layout
   await drag(page, centerOf(before[0].box), {
@@ -161,7 +169,7 @@ test("a letter typed after dragging lands clear of the other tiles", async ({
 test("reset puts the tiles back in order and unlocks them", async ({
   page,
 }) => {
-  await open(page, WORD)
+  await openFreeform(page)
   const before = await boxesIn(page, "Freeform")
   await tiles(page, "Freeform").nth(1).click()
   await lockSelected(page, "Freeform")
@@ -182,7 +190,7 @@ test("reset puts the tiles back in order and unlocks them", async ({
 test("tiles follow the layout when the keyboard is hidden", async ({
   page,
 }) => {
-  await open(page, WORD)
+  await openFreeform(page)
 
   await page.getByRole("button", { name: "Hide keyboard" }).click()
 
@@ -197,7 +205,7 @@ test("tiles follow the layout when the keyboard is hidden", async ({
 test("dragged tiles are pulled back in when the keyboard opens", async ({
   page,
 }) => {
-  await open(page, WORD)
+  await openFreeform(page)
   await page.getByRole("button", { name: "Hide keyboard" }).click()
   const tile = tiles(page, "Freeform").nth(0)
   const canvas = await boxOf(page.locator(".tile-canvas"))
@@ -209,7 +217,13 @@ test("dragged tiles are pulled back in when the keyboard opens", async ({
 
   await footerButton(page, "Keyboard").click()
 
-  const smaller = await boxOf(page.locator(".tile-canvas"))
-  const box = await boxOf(tile)
-  expect(box.y + box.height).toBeLessThanOrEqual(smaller.y + smaller.height + 1)
+  // The tile is pulled back once the browser reports the canvas shrinking,
+  // a frame or so later
+  await expect
+    .poll(async () => {
+      const smaller = await boxOf(page.locator(".tile-canvas"))
+      const box = await boxOf(tile)
+      return box.y + box.height <= smaller.y + smaller.height + 1
+    })
+    .toBe(true)
 })

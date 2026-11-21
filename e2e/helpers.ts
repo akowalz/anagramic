@@ -42,10 +42,10 @@ export async function prepare(page: Page) {
   })
 }
 
-/* Open the app, optionally with letters from a shared link */
+/* Open the app, on Line, optionally with letters from a shared link */
 export async function open(page: Page, fodder = "") {
   await page.goto(fodder ? `/?fodder=${fodder}` : "/")
-  await expect(tiles(page, "Freeform")).toHaveCount(fodder.length)
+  await expect(tiles(page, "Line")).toHaveCount(fodder.length)
 }
 
 export async function pickTool(page: Page, tool: ToolName) {
@@ -88,7 +88,10 @@ export async function pressDelete(page: Page) {
   await page.getByRole("button", { name: "Delete" }).click()
 }
 
-export function footerButton(page: Page, name: "Shuffle" | "Reset" | "Keyboard") {
+export function footerButton(
+  page: Page,
+  name: "Shuffle" | "Reset" | "Keyboard",
+) {
   return page.locator(".tool-footer").getByRole("button", { name })
 }
 
@@ -131,13 +134,15 @@ export async function freeformReadingOrder(page: Page): Promise<string> {
 /* Whether any two boxes overlap (touching edges doesn't count) */
 export function anyOverlap(boxes: Box[]): boolean {
   return boxes.some((a, i) =>
-    boxes.slice(i + 1).some(
-      (b) =>
-        a.x < b.x + b.width - 1 &&
-        b.x < a.x + a.width - 1 &&
-        a.y < b.y + b.height - 1 &&
-        b.y < a.y + a.height - 1,
-    ),
+    boxes
+      .slice(i + 1)
+      .some(
+        (b) =>
+          a.x < b.x + b.width - 1 &&
+          b.x < a.x + a.width - 1 &&
+          a.y < b.y + b.height - 1 &&
+          b.y < a.y + a.height - 1,
+      ),
   )
 }
 

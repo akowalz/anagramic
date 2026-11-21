@@ -95,23 +95,26 @@ export default function LineTool({ board, actions, ref }: Props) {
         } as React.CSSProperties
       }
     >
-      {tiles.length > 0 && (
-        <div className="line-rack">
-          <Reorder.Group
-            axis="x"
-            as="div"
-            values={board.order}
-            onReorder={actions.reorder}
-            className="line-rack-tiles"
-          >
-            {tiles.map((tile) => {
-              const selected = tile.id === board.selectedId
+      {/* The shelf is there from the start, and grows as letters are typed */}
+      <div className="line-rack">
+        {tiles.length === 0 && (
+          <div className="line-rack-empty">Type to add letters</div>
+        )}
+        <Reorder.Group
+          axis="x"
+          as="div"
+          values={board.order}
+          onReorder={actions.reorder}
+          className="line-rack-tiles"
+        >
+          {tiles.map((tile) => {
+            const selected = tile.id === board.selectedId
 
-              return (
-                <Reorder.Item
-                  as="div"
-                  value={tile.id}
-                  className={`
+            return (
+              <Reorder.Item
+                as="div"
+                value={tile.id}
+                className={`
                 tile
                 line-tool-tile
                 ${tile.id === dragId ? "dragging" : ""}
@@ -119,48 +122,47 @@ export default function LineTool({ board, actions, ref }: Props) {
                 ${tile.locked ? "locked" : ""}
                 ${resisting?.id === tile.id ? "resisting" : ""}
               `}
-                  key={tile.id}
-                  drag={tile.locked ? false : "x"}
-                  // Lift the tile while dragging. Through motion, so its layout
-                  // measurements allow for it (a CSS scale threw them off), and
-                  // with a target either way (whileDrag could get stuck part way)
-                  animate={{ scale: tile.id === dragId ? 1.12 : 1 }}
-                  style={{
-                    translate: `${resisting?.id === tile.id ? resisting.x : 0}px 0`,
-                  }}
-                  onPointerDown={(e) => startResisting(tile, e)}
-                  onPointerMove={(e) => resist(tile, e)}
-                  onPointerUp={stopResisting}
-                  onPointerCancel={stopResisting}
-                  onLostPointerCapture={stopResisting}
-                  onTapStart={() => {
-                    draggedRef.current = false
-                  }}
-                  onTap={() => {
-                    if (draggedRef.current) return
-                    actions.select(selected ? null : tile.id)
-                  }}
-                  onDragStart={() => {
-                    draggedRef.current = true
-                    actions.select(null)
-                    setDragId(tile.id)
-                  }}
-                  onDragEnd={() => setDragId(null)}
-                  transition={tileSpring}
-                  layout
-                >
-                  {tile.char}
-                  <TileLock
-                    selected={selected}
-                    locked={tile.locked}
-                    onToggle={() => actions.toggleLock(tile.id)}
-                  />
-                </Reorder.Item>
-              )
-            })}
-          </Reorder.Group>
-        </div>
-      )}
+                key={tile.id}
+                drag={tile.locked ? false : "x"}
+                // Lift the tile while dragging. Through motion, so its layout
+                // measurements allow for it (a CSS scale threw them off), and
+                // with a target either way (whileDrag could get stuck part way)
+                animate={{ scale: tile.id === dragId ? 1.12 : 1 }}
+                style={{
+                  translate: `${resisting?.id === tile.id ? resisting.x : 0}px 0`,
+                }}
+                onPointerDown={(e) => startResisting(tile, e)}
+                onPointerMove={(e) => resist(tile, e)}
+                onPointerUp={stopResisting}
+                onPointerCancel={stopResisting}
+                onLostPointerCapture={stopResisting}
+                onTapStart={() => {
+                  draggedRef.current = false
+                }}
+                onTap={() => {
+                  if (draggedRef.current) return
+                  actions.select(selected ? null : tile.id)
+                }}
+                onDragStart={() => {
+                  draggedRef.current = true
+                  actions.select(null)
+                  setDragId(tile.id)
+                }}
+                onDragEnd={() => setDragId(null)}
+                transition={tileSpring}
+                layout
+              >
+                {tile.char}
+                <TileLock
+                  selected={selected}
+                  locked={tile.locked}
+                  onToggle={() => actions.toggleLock(tile.id)}
+                />
+              </Reorder.Item>
+            )
+          })}
+        </Reorder.Group>
+      </div>
     </div>
   )
 }

@@ -34,14 +34,14 @@ test("puts the letters around a circle, clockwise from the top", async ({
 }) => {
   expect(await lettersIn(page, "Wheel")).toBe(WORD)
 
-  const centers = (await boxesIn(page, "Wheel")).map(({ box }) =>
-    centerOf(box),
-  )
+  const centers = (await boxesIn(page, "Wheel")).map(({ box }) => centerOf(box))
   const middle = {
     x: centers.reduce((sum, c) => sum + c.x, 0) / centers.length,
     y: centers.reduce((sum, c) => sum + c.y, 0) / centers.length,
   }
-  const distances = centers.map((c) => Math.hypot(c.x - middle.x, c.y - middle.y))
+  const distances = centers.map((c) =>
+    Math.hypot(c.x - middle.x, c.y - middle.y),
+  )
   distances.forEach((d) => expect(d).toBeCloseTo(distances[0], -1))
 
   // The first letter is at the top, the second is to its right

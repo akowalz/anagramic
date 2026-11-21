@@ -38,7 +38,9 @@ test("a shuffle in one tool shows in the others", async ({ page }) => {
 
   await pickTool(page, "Line")
   expect(await lettersIn(page, "Line")).toBe(order)
+  // Freeform lays its tiles out the first time it's shown
   await pickTool(page, "Freeform")
+  await expect(tiles(page, "Freeform")).toHaveCount(WORD.length)
   expect(await freeformReadingOrder(page)).toBe(order)
 })
 
@@ -138,6 +140,8 @@ test("a letter deleted in one tool is gone from the others", async ({
 test.describe("Freeform once tiles are dragged by hand", () => {
   test.beforeEach(async ({ page }) => {
     await open(page, WORD)
+    await pickTool(page, "Freeform")
+    await expect(tiles(page, "Freeform")).toHaveCount(WORD.length)
     const before = await boxesIn(page, "Freeform")
     await drag(page, centerOf(before[7].box), {
       x: centerOf(before[7].box).x + 40,
@@ -185,7 +189,9 @@ test("locks don't apply in Floating", async ({ page }) => {
 
   // Nothing shows as locked, and the letter still moves when shuffled
   await expect(lockedTiles(page, "Floating")).toHaveCount(0)
-  await expect(page.locator(".floating-tool-tile .tile-lock-badge")).toHaveCount(0)
+  await expect(
+    page.locator(".floating-tool-tile .tile-lock-badge"),
+  ).toHaveCount(0)
   const tile = tiles(page, "Floating").filter({ hasText: "F" })
   const before = await boxOf(tile)
   await footerButton(page, "Shuffle").click()
