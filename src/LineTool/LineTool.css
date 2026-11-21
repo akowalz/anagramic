@@ -8,16 +8,32 @@
   line-height: 1;
 }
 
-/*
- * The tiles stand in a rack, a low ledge in front of them hiding their bottom
- * edge, to show they're held on a line rather than free to move anywhere.
- */
 .line-rack {
   position: relative;
   display: flex;
-  padding-bottom: 6px;
-  /* Room either side for the ends of the ledge */
+  /* Room either side for the ends of the rack */
   max-width: calc(100% - 24px);
+}
+
+/*
+ * The tiles stand on a flat shelf, like a word game's tile rack, to show
+ * they're held on a line rather than free to move anywhere. The shelf is
+ * behind the tiles, showing below them and either side.
+ */
+.line-rack {
+  padding-bottom: 14px;
+}
+
+.line-rack::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  right: -12px;
+  bottom: 0;
+  height: 34px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ink) 14%, var(--app-bg));
+  pointer-events: none;
 }
 
 .line-rack-tiles {
@@ -26,22 +42,6 @@
   display: flex;
   align-items: center;
   min-width: 0;
-}
-
-.line-rack::after {
-  content: "";
-  position: absolute;
-  z-index: 2;
-  left: -10px;
-  right: -10px;
-  bottom: 0;
-  height: 12px;
-  box-sizing: border-box;
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: 2px 2px 6px 6px;
-  box-shadow: 2px 2px 0 var(--border);
-  pointer-events: none;
 }
 
 .line-tool-tile {
