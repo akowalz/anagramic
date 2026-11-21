@@ -132,11 +132,11 @@ export default function LineTool({ board, actions, hints, ref }: Props) {
       {/* No shelf until there are letters: empty, it looked like a text box */}
       {tiles.length > 0 && (
         <div className="line-rack">
-          {/* Out of the way while a tile's lock button shows */}
           <Hint
             className="line-hint"
             text={hint && HINT_TEXT[hint]}
-            hidden={board.selectedId !== null}
+            // Above the lock button while a tile is selected
+            lifted={board.selectedId !== null}
           />
           <div
             className="line-shelf"

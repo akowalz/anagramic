@@ -7,9 +7,8 @@ export const HINT_FADE_MS = 400
 type Props = {
   // What to show, or nothing
   text: string | null
-  // Fade out for now without changing the text, e.g. while a tile's lock
-  // button is showing where the hint is
-  hidden?: boolean
+  // Move up out of the way, e.g. of the lock button over a selected tile
+  lifted?: boolean
   className?: string
   style?: React.CSSProperties
 }
@@ -18,7 +17,12 @@ type Props = {
  * A hint above the letters. When the text changes, the old hint fades out
  * before the new one fades in, so one never just replaces the other.
  */
-export default function Hint({ text, hidden = false, className, style }: Props) {
+export default function Hint({
+  text,
+  lifted = false,
+  className,
+  style,
+}: Props) {
   const [shown, setShown] = useState(text)
 
   useEffect(() => {
@@ -28,11 +32,13 @@ export default function Hint({ text, hidden = false, className, style }: Props) 
     return () => clearTimeout(timer)
   }, [text, shown])
 
-  const out = hidden || text !== shown || shown === null
+  const out = text !== shown || shown === null
 
   return (
     <div
-      className={`hint ${out ? "out" : ""} ${className ?? ""}`}
+      className={`hint ${out ? "out" : ""} ${lifted ? "lifted" : ""} ${
+        className ?? ""
+      }`}
       aria-hidden={out}
       style={
         {

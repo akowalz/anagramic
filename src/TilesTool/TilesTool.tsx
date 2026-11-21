@@ -152,7 +152,8 @@ export default function TilesTool({ board, actions, hints, ref }: Props) {
     // An observer reports once when it starts watching, and this one starts
     // again whenever the tiles go from tidy to placed by hand, e.g. at the start
     // of a drag. Only act on real changes of size.
-    const sizeOf = () => `${shadowCanvas.offsetWidth}x${shadowCanvas.offsetHeight}`
+    const sizeOf = () =>
+      `${shadowCanvas.offsetWidth}x${shadowCanvas.offsetHeight}`
     let lastSize = sizeOf()
 
     let frame = 0
@@ -168,9 +169,7 @@ export default function TilesTool({ board, actions, hints, ref }: Props) {
         canvas.classList.add("snapping")
         flushSync(measureSlots)
         cancelAnimationFrame(frame)
-        frame = requestAnimationFrame(() =>
-          canvas.classList.remove("snapping"),
-        )
+        frame = requestAnimationFrame(() => canvas.classList.remove("snapping"))
         return
       }
 
@@ -181,9 +180,11 @@ export default function TilesTool({ board, actions, hints, ref }: Props) {
       setPlacement((placement) => {
         if (!placement) return placement
 
-        const placed = Object.entries(placement.positions).map(
-          ([id, pos]) => ({ id: Number(id), pos, locked: locked.has(Number(id)) }),
-        )
+        const placed = Object.entries(placement.positions).map(([id, pos]) => ({
+          id: Number(id),
+          pos,
+          locked: locked.has(Number(id)),
+        }))
         const fitted = fitToBounds(placed, bounds)
         return fitted === placed
           ? placement
@@ -312,8 +313,8 @@ export default function TilesTool({ board, actions, hints, ref }: Props) {
           <Hint
             className="freeform-hint"
             text={hint && HINT_TEXT[hint]}
-            // Out of the way while a tile's lock button shows
-            hidden={board.selectedId !== null}
+            // Above the lock button while a tile is selected
+            lifted={board.selectedId !== null}
             // Just above the highest tile, wherever the tiles are
             style={{ top: Math.min(...tiles.map((tile) => tile.pos.y)) }}
           />

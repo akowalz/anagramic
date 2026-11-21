@@ -10,7 +10,17 @@
   color: var(--text-muted);
   pointer-events: none;
   opacity: 1;
-  transition: opacity var(--hint-fade) ease-out;
+  transition:
+    opacity var(--hint-fade) ease-out,
+    transform 150ms ease-out;
+}
+
+/*
+ * Above the lock button that pops up over a selected tile, so the hint (e.g.
+ * how to lock) stays readable while the button is showing
+ */
+.hint.lifted {
+  transform: translateY(-34px);
 }
 
 .hint.out {

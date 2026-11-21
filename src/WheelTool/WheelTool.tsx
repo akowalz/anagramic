@@ -233,18 +233,10 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
   }
 
   return (
-    <div
-      className="wheel-tool-container"
-      onClick={() => actions.select(null)}
-    >
+    <div className="wheel-tool-container" onClick={() => actions.select(null)}>
       <div className="wheel-boundary">
         {tiles.length > 0 && (
-          <Hint
-            className="wheel-hint"
-            text={hint && HINT_TEXT[hint]}
-            // Out of the way while a tile's lock button shows
-            hidden={selectedIndex !== -1}
-          />
+          <Hint className="wheel-hint" text={hint && HINT_TEXT[hint]} />
         )}
         {tiles.map((tile, index) => {
           const selected = index === selectedIndex

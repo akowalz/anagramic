@@ -136,13 +136,27 @@ test("what's been learned is remembered after a reload", async ({ page }) => {
   await expectHint(page, "Line", LOCK)
 })
 
-test("a hint steps aside while a tile is selected", async ({ page }) => {
-  // The selected tile's lock button pops up where the hint is
+test("the lock hint stays until a letter is actually locked", async ({
+  page,
+}) => {
   await open(page, WORD)
+  await dragToEnd(page, "Line", 0)
+  await dragToEnd(page, "Line", 1)
+  await expectHint(page, "Line", LOCK)
+  const resting = await boxOf(hintIn(page, "Line"))
 
+  // Selecting a letter shows its lock button; the hint moves up above it
   await tiles(page, "Line").nth(2).click()
+  await expect(hintIn(page, "Line")).toHaveClass(/\blifted\b/)
+  await expectHint(page, "Line", LOCK)
+  const lifted = await boxOf(hintIn(page, "Line"))
+  const button = await boxOf(page.locator(".line-tool-tile .tile-lock-button"))
+  expect(lifted.y).toBeLessThan(resting.y)
+  expect(lifted.y + lifted.height).toBeLessThanOrEqual(button.y + 1)
+
+  // Deselecting puts it back; locking finishes it
+  await tiles(page, "Line").nth(2).click()
+  await expect(hintIn(page, "Line")).not.toHaveClass(/\blifted\b/)
+  await lockFirstTile(page, "Line")
   await expect(hintIn(page, "Line")).toHaveClass(/\bout\b/)
-
-  await tiles(page, "Line").nth(2).click()
-  await expectHint(page, "Line", "Tap and drag to move letters")
 })
