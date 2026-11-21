@@ -37,8 +37,9 @@
 }
 
 /*
- * The tutorial's hint (see Hint), across the middle of the canvas, its bottom
- * just above the highest tile (the top is set from the tiles)
+ * The tutorial's hint (see Hint), across the middle of the canvas, just above
+ * where the tiles start out (the top is set from the layout). It stays put,
+ * behind the tiles, which can be dragged over it.
  */
 .freeform-hint {
   left: 50%;

@@ -37,8 +37,9 @@ describe("currentHint", () => {
     expect(currentHint("Wheel", new Set(["wheel-swap", "lock"]))).toBeNull()
   })
 
-  it("has nothing to teach in Floating", () => {
-    expect(currentHint("Floating", new Set())).toBeNull()
+  it("has just the one hint in Floating", () => {
+    expect(currentHint("Floating", new Set())).toBe("floating-watch")
+    expect(currentHint("Floating", new Set(["floating-watch"]))).toBeNull()
   })
 })
 

@@ -9,6 +9,8 @@ type Props = {
   text: string | null
   // Move up out of the way, e.g. of the lock button over a selected tile
   lifted?: boolean
+  // How long fading out (or in) takes, if not the usual
+  fadeMs?: number
   className?: string
   style?: React.CSSProperties
 }
@@ -20,6 +22,7 @@ type Props = {
 export default function Hint({
   text,
   lifted = false,
+  fadeMs = HINT_FADE_MS,
   className,
   style,
 }: Props) {
@@ -28,9 +31,9 @@ export default function Hint({
   useEffect(() => {
     if (text === shown) return
 
-    const timer = setTimeout(() => setShown(text), HINT_FADE_MS)
+    const timer = setTimeout(() => setShown(text), fadeMs)
     return () => clearTimeout(timer)
-  }, [text, shown])
+  }, [text, shown, fadeMs])
 
   const out = text !== shown || shown === null
 
@@ -43,7 +46,7 @@ export default function Hint({
       style={
         {
           ...style,
-          "--hint-fade": `${HINT_FADE_MS}ms`,
+          "--hint-fade": `${fadeMs}ms`,
         } as React.CSSProperties
       }
     >

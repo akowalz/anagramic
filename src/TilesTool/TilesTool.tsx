@@ -309,14 +309,13 @@ export default function TilesTool({ board, actions, hints, ref }: Props) {
           if (e.target === e.currentTarget) actions.select(null)
         }}
       >
-        {tiles.length > 0 && (
+        {tiles.length > 0 && slots.length > 0 && (
           <Hint
             className="freeform-hint"
             text={hint && HINT_TEXT[hint]}
-            // Above the lock button while a tile is selected
-            lifted={board.selectedId !== null}
-            // Just above the highest tile, wherever the tiles are
-            style={{ top: Math.min(...tiles.map((tile) => tile.pos.y)) }}
+            // Just above where the tiles start out, and it stays there: tiles
+            // can be dragged right over it
+            style={{ top: slots[0].y }}
           />
         )}
         {tiles.map((tile) => (

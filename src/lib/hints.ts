@@ -7,13 +7,19 @@ import type { Tool } from "../Types/Tool"
  * remembered on the device, so the hints don't come back every visit.
  */
 
-export type HintId = "line-move" | "wheel-swap" | "freeform-move" | "lock"
+export type HintId =
+  | "line-move"
+  | "wheel-swap"
+  | "freeform-move"
+  | "lock"
+  | "floating-watch"
 
 export const HINT_TEXT: Record<HintId, string> = {
   "line-move": "Tap and drag to move letters",
   "wheel-swap": "Tap two letters to swap them",
   "freeform-move": "Drag letters anywhere",
   lock: "Tap a letter to lock it in place",
+  "floating-watch": "Just let the letters float by",
 }
 
 /* Each tool's hints, in the order they're taught. Locking is the same everywhere. */
@@ -21,8 +27,9 @@ export const TOOL_HINTS: Record<Tool, HintId[]> = {
   Line: ["line-move", "lock"],
   Wheel: ["wheel-swap", "lock"],
   Tiles: ["freeform-move", "lock"],
-  // Floating's letters just drift: there's nothing to teach
-  Floating: [],
+  // Floating's letters just drift: nothing to do, so its hint just says so,
+  // then fades on its own
+  Floating: ["floating-watch"],
 }
 
 /* The tool's first hint that hasn't been learned yet, if any */

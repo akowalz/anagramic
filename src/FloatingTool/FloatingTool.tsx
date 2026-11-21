@@ -1,5 +1,11 @@
 import "./FloatingTool.css"
-import { useEffect, useImperativeHandle, useRef, useState, type Ref } from "react"
+import {
+  useEffect,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type Ref,
+} from "react"
 import { type Coord } from "../lib/coordinate-plane"
 import type { ToolActions } from "../Types/ToolActions"
 import { tileSpringCss, tileSpringCssMs } from "../lib/animation"
@@ -7,10 +13,14 @@ import { syncTilesInLetterOrder } from "../lib/sync-tiles"
 import type { Letter } from "../lib/letters"
 import type { Board } from "../lib/board"
 import type { BoardActions } from "../hooks/useBoard"
+import type { Hints } from "../hooks/useHints"
+import { currentHint, HINT_TEXT } from "../lib/hints"
+import Hint from "../Hint/Hint"
 
 type Props = {
   board: Board
   actions: BoardActions
+  hints: Hints
   active: boolean
   ref: Ref<ToolActions>
 }
@@ -88,8 +98,27 @@ const SHUFFLE_DURATION_MS = tileSpringCssMs
  * drifts and shuffles, and none shows as locked. Tiles can't be tapped, but
  * the delete key still selects them.
  */
-export default function FloatingTool({ board, actions, active, ref }: Props) {
+export default function FloatingTool({
+  board,
+  actions,
+  hints,
+  active,
+  ref,
+}: Props) {
   const { letters, selectedId } = board
+
+  // The hint just says to watch, so it's learned once it's been seen for a
+  // little while, and then fades away slowly
+  const HINT_SEEN_MS = 3000
+  const hint = currentHint("Floating", hints.learned)
+  const { learn } = hints
+  const showingHint = active && letters.length > 0 && hint !== null
+  useEffect(() => {
+    if (!showingHint) return
+
+    const timer = setTimeout(() => learn("floating-watch"), HINT_SEEN_MS)
+    return () => clearTimeout(timer)
+  }, [showingHint, learn])
   const [drifts, setDrifts] = useState(() => letters.map(newDrift))
 
   // Letters get typed and deleted, so keep the drifts in step with them.
@@ -166,6 +195,14 @@ export default function FloatingTool({ board, actions, active, ref }: Props) {
   return (
     <div className="floating-tool-container">
       <div className="floating-tool-box">
+        {letters.length > 0 && (
+          // Behind the letters, which drift over it
+          <Hint
+            className="floating-hint"
+            text={hint && HINT_TEXT[hint]}
+            fadeMs={2500}
+          />
+        )}
         {letters.map((letter) => {
           const drift = driftById.get(letter.id)
           if (!drift) return null

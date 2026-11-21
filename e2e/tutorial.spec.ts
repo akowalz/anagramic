@@ -95,7 +95,15 @@ test("Freeform teaches dragging, then locking", async ({ page }) => {
   await expect(tiles(page, "Freeform")).toHaveCount(WORD.length)
   await expectHint(page, "Freeform", "Drag letters anywhere")
 
-  await dragToEnd(page, "Freeform", 0)
+  // It stays put while tiles are dragged, even right over it
+  const before = await boxOf(hintIn(page, "Freeform"))
+
+  await drag(page, centerOf(await boxOf(tiles(page, "Freeform").nth(0))), {
+    x: centerOf(before).x,
+    y: centerOf(before).y,
+  })
+  await expectHint(page, "Freeform", "Drag letters anywhere")
+  expect(await boxOf(hintIn(page, "Freeform"))).toEqual(before)
   await dragToEnd(page, "Freeform", 1)
   await expectHint(page, "Freeform", LOCK)
 
@@ -103,11 +111,24 @@ test("Freeform teaches dragging, then locking", async ({ page }) => {
   await expect(hintIn(page, "Freeform")).toHaveClass(/\bout\b/)
 })
 
-test("Floating has nothing to teach", async ({ page }) => {
+test("Floating says to watch, then fades away on its own", async ({ page }) => {
   await open(page, WORD)
   await pickTool(page, "Floating")
 
-  await expect(page.locator(".floating-tool-box .hint")).toHaveCount(0)
+  await expectHint(page, "Floating", "Just let the letters float by")
+  // In the middle of the box, behind the letters
+  const box = await boxOf(page.locator(".floating-tool-box"))
+  const hint = await boxOf(hintIn(page, "Floating"))
+  expect(centerOf(hint).x).toBeCloseTo(centerOf(box).x, -1)
+  expect(centerOf(hint).y).toBeCloseTo(centerOf(box).y, -1)
+
+  // After a few seconds it's learned, and fades
+  await expect(hintIn(page, "Floating")).toHaveClass(/\bout\b/, {
+    timeout: 6000,
+  })
+  await page.reload()
+  await pickTool(page, "Floating")
+  await expect(hintIn(page, "Floating")).toHaveClass(/\bout\b/)
 })
 
 test("locking is learned once, for every tool", async ({ page }) => {

@@ -29,3 +29,14 @@
   position: absolute;
   will-change: translate;
 }
+
+/* The tutorial's hint (see Hint), in the middle of the box, behind the letters */
+.floating-hint {
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  width: 80%;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.25;
+}

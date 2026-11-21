@@ -156,6 +156,7 @@ function App() {
               <FloatingTool
                 board={board}
                 actions={toolActions}
+                hints={hints}
                 active={tool === "Floating"}
                 ref={floatingRef}
               />
