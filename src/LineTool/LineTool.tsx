@@ -121,6 +121,10 @@ export default function LineTool({ board, actions, ref }: Props) {
               `}
                   key={tile.id}
                   drag={tile.locked ? false : "x"}
+                  // Lift the tile while dragging. Through motion, so its layout
+                  // measurements allow for it (a CSS scale threw them off), and
+                  // with a target either way (whileDrag could get stuck part way)
+                  animate={{ scale: tile.id === dragId ? 1.12 : 1 }}
                   style={{
                     translate: `${resisting?.id === tile.id ? resisting.x : 0}px 0`,
                   }}

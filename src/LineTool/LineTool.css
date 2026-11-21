@@ -62,18 +62,20 @@
 
 /* Locked tiles bounce back after resisting a drag (motion owns transform) */
 .line-tool-tile {
-  transition:
-    translate var(--resist-spring),
-    scale 120ms ease-out;
+  transition: translate var(--resist-spring);
 }
 
 .line-tool-tile.resisting {
   transition: none;
 }
 
-/* Motion doesn't set this when drag is off, so stop the browser panning */
-.line-tool-tile.locked {
-  touch-action: none;
+/*
+ * Never let the browser pan while a tile is held: on iOS that nudged the
+ * dragged tile off the row a little more with each pass. Important, since
+ * motion sets touch-action on draggable tiles itself (pan-y).
+ */
+.line-tool-tile {
+  touch-action: none !important;
 }
 
 .line-tool-tile:not(:last-child) {
@@ -85,11 +87,10 @@
 }
 
 /*
- * Lift the dragged tile by scaling it, not resizing it: resizing changes the
- * row's layout, which made the shelf grow and left the other tiles a fraction
- * of a pixel out of line after the drop.
+ * The dragged tile is lifted by scaling it (whileDrag), not resizing it:
+ * resizing changes the row's layout, which made the shelf grow and left the
+ * other tiles a fraction of a pixel out of line after the drop.
  */
 .line-tool-tile.dragging {
   box-shadow: 2px 2px 0 var(--border-color);
-  scale: 1.12;
 }

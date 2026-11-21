@@ -41,9 +41,7 @@ test("shows the letters in a row, in the order typed", async ({ page }) => {
   })
 })
 
-test("dragging a tile along the row reorders the letters", async ({
-  page,
-}) => {
+test("dragging a tile along the row reorders the letters", async ({ page }) => {
   const first = await boxOf(tiles(page, "Line").nth(0))
   const fourth = await boxOf(tiles(page, "Line").nth(3))
 
@@ -52,9 +50,7 @@ test("dragging a tile along the row reorders the letters", async ({
     y: centerOf(fourth).y,
   })
 
-  await expect
-    .poll(() => lettersIn(page, "Line"))
-    .not.toBe(WORD)
+  await expect.poll(() => lettersIn(page, "Line")).not.toBe(WORD)
   const order = await lettersIn(page, "Line")
   expect(sorted(order)).toBe(sorted(WORD))
   expect(order.indexOf("N")).toBe(0)
@@ -135,4 +131,16 @@ test("dragging doesn't resize the rack or leave tiles uneven", async ({
   expect(await lettersIn(page, "Line")).toBe("ATC")
   expect(await boxOf(rack)).toEqual(rackBefore)
   await expect.poll(sizes).toEqual(sizesBefore)
+})
+
+test("the browser never pans while a tile is held", async ({ page }) => {
+  // On iOS, panning mid-drag nudged the dragged tile off the row a little
+  // more with each pass. Headless Chrome can't reproduce that, so check that
+  // panning is off for every tile.
+  await open(page, "cat")
+  await pickTool(page, "Line")
+
+  for (const tile of await tiles(page, "Line").all()) {
+    await expect(tile).toHaveCSS("touch-action", "none")
+  }
 })
