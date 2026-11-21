@@ -1,4 +1,4 @@
-import { TILE_SIZE } from "../DraggableTile/DraggableTile"
+import { TILE_FOOTPRINT } from "../DraggableTile/DraggableTile"
 
 export type Pos = { x: number; y: number }
 
@@ -30,10 +30,10 @@ export function resolveOverlaps<
   bounds: Bounds,
 ): T[] {
   const positions = tiles.map((tile) => ({ ...tile.pos }))
-  const settledDist = TILE_SIZE + TILE_GAP
+  const settledDist = TILE_FOOTPRINT + TILE_GAP
 
-  const maxX = Math.max(bounds.left, bounds.right - TILE_SIZE)
-  const maxY = Math.max(bounds.top, bounds.bottom - TILE_SIZE)
+  const maxX = Math.max(bounds.left, bounds.right - TILE_FOOTPRINT)
+  const maxY = Math.max(bounds.top, bounds.bottom - TILE_FOOTPRINT)
   const clamp = (pos: Pos): Pos => ({
     x: Math.min(Math.max(pos.x, bounds.left), maxX),
     y: Math.min(Math.max(pos.y, bounds.top), maxY),
@@ -56,7 +56,7 @@ export function resolveOverlaps<
         const dy = posB.y - posA.y
 
         // Tiles are axis-aligned squares: no overlap unless both axes overlap
-        if (Math.abs(dx) >= TILE_SIZE || Math.abs(dy) >= TILE_SIZE) continue
+        if (Math.abs(dx) >= TILE_FOOTPRINT || Math.abs(dy) >= TILE_FOOTPRINT) continue
 
         // Separate along the axis that needs the smallest shift
         const pushX = (dx >= 0 ? 1 : -1) * (settledDist - Math.abs(dx))

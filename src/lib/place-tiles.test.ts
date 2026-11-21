@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest"
-import { TILE_SIZE } from "../DraggableTile/DraggableTile"
+import { TILE_FOOTPRINT } from "../DraggableTile/DraggableTile"
 import { TILE_GAP, type Bounds, type Pos } from "./resolve-overlaps"
 import { clampToBounds, fitToBounds, placeClearOfTiles } from "./place-tiles"
 
@@ -7,12 +7,15 @@ type TestTile = { id: number; pos: Pos; locked?: boolean }
 
 const bounds: Bounds = { left: 0, top: 0, right: 400, bottom: 300 }
 
+// The search for a free spot moves in small steps, so allow for one
+const SEARCH_SLACK = 4
+
 function tileAt(id: number, x: number, y: number, locked = false): TestTile {
   return { id, pos: { x, y }, locked }
 }
 
 function overlaps(a: Pos, b: Pos) {
-  return Math.abs(a.x - b.x) < TILE_SIZE && Math.abs(a.y - b.y) < TILE_SIZE
+  return Math.abs(a.x - b.x) < TILE_FOOTPRINT && Math.abs(a.y - b.y) < TILE_FOOTPRINT
 }
 
 describe("clampToBounds", () => {
@@ -25,8 +28,8 @@ describe("clampToBounds", () => {
 
   it("keeps the whole tile inside the bounds", () => {
     expect(clampToBounds({ x: 1000, y: 1000 }, bounds)).toEqual({
-      x: 400 - TILE_SIZE,
-      y: 300 - TILE_SIZE,
+      x: 400 - TILE_FOOTPRINT,
+      y: 300 - TILE_FOOTPRINT,
     })
     expect(clampToBounds({ x: -50, y: -50 }, bounds)).toEqual({ x: 0, y: 0 })
   })
@@ -51,7 +54,7 @@ describe("fitToBounds", () => {
 
     const [tile] = fitToBounds(tiles, smaller)
 
-    expect(tile.pos).toEqual({ x: 200 - TILE_SIZE, y: 150 - TILE_SIZE })
+    expect(tile.pos).toEqual({ x: 200 - TILE_FOOTPRINT, y: 150 - TILE_FOOTPRINT })
   })
 
   it("separates tiles that end up on top of each other", () => {
@@ -63,7 +66,7 @@ describe("fitToBounds", () => {
 
     expect(overlaps(fitted[0].pos, fitted[1].pos)).toBe(false)
     fitted.forEach((tile) => {
-      expect(tile.pos.y).toBeLessThanOrEqual(150 - TILE_SIZE)
+      expect(tile.pos.y).toBeLessThanOrEqual(150 - TILE_FOOTPRINT)
     })
   })
 
@@ -104,7 +107,34 @@ describe("placeClearOfTiles", () => {
         Math.abs(placed[1].pos.x - placed[0].pos.x),
         Math.abs(placed[1].pos.y - placed[0].pos.y),
       ),
-    ).toBeGreaterThanOrEqual(TILE_SIZE + TILE_GAP)
+    ).toBeGreaterThanOrEqual(TILE_FOOTPRINT + TILE_GAP)
+  })
+
+  it("finds a free spot when nudging off one tile would land on another", () => {
+    // A row of tiles a gap apart, with the new tile aimed at the middle one
+    const settled = TILE_FOOTPRINT + TILE_GAP
+    const row = [0, 1, 2, 3, 4].map((i) => tileAt(i, 50 + i * settled, 100))
+    const tiles = [...row, tileAt(9, 0, 0)]
+
+    const placed = placeClearOfTiles(tiles, 9, { x: 50 + 2 * settled + 5, y: 100 }, bounds)
+
+    const newTile = placed[5]
+    row.forEach((tile, i) => {
+      expect(placed[i].pos).toEqual(tile.pos)
+      expect(overlaps(newTile.pos, tile.pos)).toBe(false)
+    })
+    // Just above or below the row, not far away
+    expect(Math.abs(newTile.pos.y - 100)).toBeLessThanOrEqual(settled + SEARCH_SLACK)
+  })
+
+  it("stays inside the bounds", () => {
+    const tiles = [tileAt(0, 400 - TILE_FOOTPRINT, 300 - TILE_FOOTPRINT), tileAt(1, 0, 0)]
+
+    const placed = placeClearOfTiles(tiles, 1, { x: 390, y: 290 }, bounds)
+
+    expect(overlaps(placed[0].pos, placed[1].pos)).toBe(false)
+    expect(placed[1].pos.x).toBeLessThanOrEqual(400 - TILE_FOOTPRINT)
+    expect(placed[1].pos.y).toBeLessThanOrEqual(300 - TILE_FOOTPRINT)
   })
 
   it("keeps locked flags as they were", () => {

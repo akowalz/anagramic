@@ -140,8 +140,17 @@ export default function TilesTool({ board, actions, ref }: Props) {
     const shadowCanvas = shadowCanvasRef.current
     if (!canvas || !shadowCanvas) return
 
+    // An observer reports once when it starts watching, and this one starts
+    // again whenever the tiles go from tidy to placed by hand, e.g. at the start
+    // of a drag. Only act on real changes of size.
+    const sizeOf = () => `${shadowCanvas.offsetWidth}x${shadowCanvas.offsetHeight}`
+    let lastSize = sizeOf()
+
     let frame = 0
     const observer = new ResizeObserver(() => {
+      const size = sizeOf()
+      if (size === lastSize) return
+      lastSize = size
       if (shadowCanvas.offsetWidth === 0) return
 
       if (tidy) {

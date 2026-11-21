@@ -20,8 +20,18 @@ type Props = {
   containerRef: React.RefObject<HTMLDivElement | null>
 }
 
-/* Tile height and width */
+/* Tile height and width, inside its border */
 export const TILE_SIZE = 40
+
+/* The tile's border width, as in `.tile` (index.css) */
+const TILE_BORDER = 3
+
+/*
+ * The space a tile takes up on screen, border included. Keeping tiles apart
+ * and inside the canvas has to use this, not TILE_SIZE, or tiles can overlap
+ * by the width of two borders.
+ */
+export const TILE_FOOTPRINT = TILE_SIZE + 2 * TILE_BORDER
 
 /* How far (px) the pointer can move and still count as a tap, not a drag */
 export const TAP_THRESHOLD = 5
@@ -69,38 +79,6 @@ export default function DraggableTile({
     setDragging(true)
   }
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (activePointerRef.current !== e.pointerId) return
-    if (!containerRef.current) return
-
-    // The mouse button is up but we never got a pointerup (it can get lost,
-    // e.g. on a quick grab): end the drag here instead of leaving the tile
-    // stuck to the cursor
-    if (e.pointerType === "mouse" && e.buttons === 0) {
-      endDrag(e, { canTap: false })
-      return
-    }
-
-    const start = pointerStartRef.current
-    const delta = { x: e.clientX - start.x, y: e.clientY - start.y }
-    if (Math.hypot(delta.x, delta.y) >= TAP_THRESHOLD) movedRef.current = true
-
-    // Locked tiles resist being dragged rather than following the pointer
-    if (locked) {
-      setResistOffset(rubberBand(delta))
-      return
-    }
-
-    if (!movedRef.current) return
-
-    const rect = containerRef.current.getBoundingClientRect()
-
-    onMove(id, {
-      x: e.clientX - rect.left - dragOffset.x,
-      y: e.clientY - rect.top - dragOffset.y,
-    })
-  }
-
   /*
    * Finish the drag on pointerup, or whenever the pointer is lost (cancel,
    * lost capture, released unnoticed). Only a real pointerup can be a tap.
@@ -129,6 +107,38 @@ export default function DraggableTile({
     const rect = containerRef.current.getBoundingClientRect()
 
     onDrop(id, {
+      x: e.clientX - rect.left - dragOffset.x,
+      y: e.clientY - rect.top - dragOffset.y,
+    })
+  }
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointerRef.current !== e.pointerId) return
+    if (!containerRef.current) return
+
+    // The mouse button is up but we never got a pointerup (it can get lost,
+    // e.g. on a quick grab): end the drag here instead of leaving the tile
+    // stuck to the cursor
+    if (e.pointerType === "mouse" && e.buttons === 0) {
+      endDrag(e, { canTap: false })
+      return
+    }
+
+    const start = pointerStartRef.current
+    const delta = { x: e.clientX - start.x, y: e.clientY - start.y }
+    if (Math.hypot(delta.x, delta.y) >= TAP_THRESHOLD) movedRef.current = true
+
+    // Locked tiles resist being dragged rather than following the pointer
+    if (locked) {
+      setResistOffset(rubberBand(delta))
+      return
+    }
+
+    if (!movedRef.current) return
+
+    const rect = containerRef.current.getBoundingClientRect()
+
+    onMove(id, {
       x: e.clientX - rect.left - dragOffset.x,
       y: e.clientY - rect.top - dragOffset.y,
     })

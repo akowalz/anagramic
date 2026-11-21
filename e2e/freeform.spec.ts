@@ -140,11 +140,7 @@ test("after dragging, shuffle swaps the tiles' spots around", async ({
   expect([...after].sort()).toEqual([...spots].sort())
 })
 
-/*
- * Known bug: the new tile is only pushed off the tile it lands on, and here
- * that pushes it onto another, so it can end up overlapping.
- */
-test.fail("a letter typed after dragging lands clear of the other tiles", async ({
+test("a letter typed after dragging lands clear of the other tiles", async ({
   page,
 }) => {
   await open(page, WORD)
@@ -198,11 +194,7 @@ test("tiles follow the layout when the keyboard is hidden", async ({
   }
 })
 
-/*
- * Known bug: tiles are kept in bounds as if they were 40px (TILE_SIZE), but
- * with their 3px border they're 46px, so they can stick out by up to 6px.
- */
-test.fail("dragged tiles are pulled back in when the keyboard opens", async ({
+test("dragged tiles are pulled back in when the keyboard opens", async ({
   page,
 }) => {
   await open(page, WORD)

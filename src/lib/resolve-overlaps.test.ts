@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest"
 import { resolveOverlaps, TILE_GAP } from "./resolve-overlaps"
-import { TILE_SIZE } from "../DraggableTile/DraggableTile"
+import { TILE_FOOTPRINT } from "../DraggableTile/DraggableTile"
 
 const BIG_BOUNDS = box(1000, 1000)
-const SETTLED = TILE_SIZE + TILE_GAP
+const SETTLED = TILE_FOOTPRINT + TILE_GAP
 
 function box(width: number, height: number) {
   return { left: 0, top: 0, right: width, bottom: height }
@@ -14,7 +14,7 @@ function tile(id: number, x: number, y: number) {
 }
 
 function overlaps(a: { x: number; y: number }, b: { x: number; y: number }) {
-  return Math.abs(a.x - b.x) < TILE_SIZE && Math.abs(a.y - b.y) < TILE_SIZE
+  return Math.abs(a.x - b.x) < TILE_FOOTPRINT && Math.abs(a.y - b.y) < TILE_FOOTPRINT
 }
 
 describe("resolveOverlaps", () => {
@@ -27,11 +27,11 @@ describe("resolveOverlaps", () => {
   })
 
   it("treats tiles that exactly touch as not overlapping", () => {
-    const tiles = [tile(0, 0, 0), tile(1, TILE_SIZE, 0)]
+    const tiles = [tile(0, 0, 0), tile(1, TILE_FOOTPRINT, 0)]
 
     const result = resolveOverlaps(tiles, 0, BIG_BOUNDS)
 
-    expect(result[1].pos).toEqual({ x: TILE_SIZE, y: 0 })
+    expect(result[1].pos).toEqual({ x: TILE_FOOTPRINT, y: 0 })
   })
 
   it("pulls a tile dropped past the canvas edge back inside", () => {
@@ -41,8 +41,8 @@ describe("resolveOverlaps", () => {
     const [first] = resolveOverlaps(tiles, 0, bounds)
     const [, second] = resolveOverlaps(tiles, 1, bounds)
 
-    expect(first.pos).toEqual({ x: 0, y: 300 - TILE_SIZE })
-    expect(second.pos).toEqual({ x: 200 - TILE_SIZE, y: 0 })
+    expect(first.pos).toEqual({ x: 0, y: 300 - TILE_FOOTPRINT })
+    expect(second.pos).toEqual({ x: 200 - TILE_FOOTPRINT, y: 0 })
   })
 
   it("pushes tiles away from where the dropped tile lands after clamping", () => {
@@ -67,7 +67,7 @@ describe("resolveOverlaps", () => {
 
     expect(first.pos).toEqual({ x: -200, y: 50 })
     expect(second.pos).toEqual({ x: -300, y: 50 })
-    expect(third.pos).toEqual({ x: 700 - TILE_SIZE, y: 50 })
+    expect(third.pos).toEqual({ x: 700 - TILE_FOOTPRINT, y: 50 })
   })
 
   it("never moves the dropped tile", () => {
@@ -124,8 +124,8 @@ describe("resolveOverlaps", () => {
     for (const { pos } of result) {
       expect(pos.x).toBeGreaterThanOrEqual(0)
       expect(pos.y).toBeGreaterThanOrEqual(0)
-      expect(pos.x).toBeLessThanOrEqual(bounds.right - TILE_SIZE)
-      expect(pos.y).toBeLessThanOrEqual(bounds.bottom - TILE_SIZE)
+      expect(pos.x).toBeLessThanOrEqual(bounds.right - TILE_FOOTPRINT)
+      expect(pos.y).toBeLessThanOrEqual(bounds.bottom - TILE_FOOTPRINT)
     }
   })
 
