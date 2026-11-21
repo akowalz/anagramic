@@ -46,15 +46,14 @@ function App() {
 
   const tooltips = {
     Tiles: "Drag to rearrange letters, tap to lock",
-    Line: "Tap and drag to move letters",
+    Line: "",
     Wheel: "Tap to swap or lock letters",
     Floating: "Just let the letters float by",
   }
 
-  // A simple tutorial in Line: its empty shelf says to type, so the hint up
-  // here waits until there are letters to move. A space keeps its height.
-  const hint =
-    tool === "Line" && letters.length === 0 ? "\u00a0" : tooltips[tool]
+  // Line shows its hint just above its letters instead (see LineTool). A
+  // space keeps the line's height, so switching tools doesn't move anything.
+  const hint = tool === "Line" ? "\u00a0" : tooltips[tool]
 
   useTypedKeys(!showAboutPage, actions.typeLetter, actions.pressDelete)
 

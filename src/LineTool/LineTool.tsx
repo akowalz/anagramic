@@ -6,7 +6,13 @@ import { rubberBand } from "../lib/rubber-band"
 import { tilesInOrder, type Board, type BoardTile } from "../lib/board"
 import type { BoardActions } from "../hooks/useBoard"
 
-import { useImperativeHandle, useRef, useState, type Ref } from "react"
+import {
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type Ref,
+} from "react"
 import { Reorder } from "motion/react"
 import { resistSpringCss, tileSpring } from "../lib/animation"
 
@@ -27,6 +33,29 @@ export default function LineTool({ board, actions, ref }: Props) {
   )
 
   const [dragId, setDragId] = useState<number | null>(null)
+
+  // A hint above the letters until they've been dragged a couple of times
+  const HINT_DRAGS = 2
+  const [drags, setDrags] = useState(0)
+
+  // The shelf is sized to the row of tiles, measured so its width can animate
+  const tilesRef = useRef<HTMLDivElement>(null)
+  const [shelfWidth, setShelfWidth] = useState<number | null>(null)
+  const hasTiles = tiles.length > 0
+  useLayoutEffect(() => {
+    const row = tilesRef.current
+    if (!row) return
+
+    const measure = () => {
+      // Hidden while another tool is showing: keep the last width
+      if (row.offsetWidth === 0) return
+      setShelfWidth(row.offsetWidth)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(row)
+    return () => observer.disconnect()
+  }, [hasTiles])
   // Whether the current press turned into a drag, so it isn't also a tap
   const draggedRef = useRef(false)
 
@@ -98,12 +127,23 @@ export default function LineTool({ board, actions, ref }: Props) {
       {/* No shelf until there are letters: empty, it looked like a text box */}
       {tiles.length > 0 && (
         <div className="line-rack">
+          <div
+            className={`line-hint ${drags >= HINT_DRAGS ? "gone" : ""}`}
+            aria-hidden={drags >= HINT_DRAGS}
+          >
+            Tap and drag to move letters
+          </div>
+          <div
+            className="line-shelf"
+            style={shelfWidth === null ? undefined : { width: shelfWidth + 24 }}
+          />
           <Reorder.Group
             axis="x"
             as="div"
             values={board.order}
             onReorder={actions.reorder}
             className="line-rack-tiles"
+            ref={tilesRef}
           >
             {tiles.map((tile) => {
               const selected = tile.id === board.selectedId
@@ -146,7 +186,10 @@ export default function LineTool({ board, actions, ref }: Props) {
                     actions.select(null)
                     setDragId(tile.id)
                   }}
-                  onDragEnd={() => setDragId(null)}
+                  onDragEnd={() => {
+                    setDragId(null)
+                    setDrags((drags) => drags + 1)
+                  }}
                   transition={tileSpring}
                   layout
                 >

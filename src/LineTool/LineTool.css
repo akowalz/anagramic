@@ -8,32 +8,53 @@
   line-height: 1;
 }
 
-.line-rack {
-  position: relative;
-  display: flex;
-  /* Room either side for the ends of the rack */
-  max-width: calc(100% - 24px);
-}
-
 /*
  * The tiles stand on a flat shelf, like a word game's tile rack, to show
  * they're held on a line rather than free to move anywhere. The shelf is
  * behind the tiles, showing below them and either side.
  */
 .line-rack {
+  position: relative;
+  display: flex;
   padding-bottom: 14px;
+  /* Room either side for the ends of the shelf */
+  max-width: calc(100% - 24px);
 }
 
-.line-rack::before {
-  content: "";
+.line-shelf {
   position: absolute;
-  left: -12px;
-  right: -12px;
+  left: 50%;
+  translate: -50% 0;
   bottom: 0;
+  /* Until measured: the row's width plus the ends */
+  width: calc(100% + 24px);
   height: 34px;
   border-radius: 6px;
   background: color-mix(in srgb, var(--ink) 14%, var(--app-bg));
   pointer-events: none;
+  /* Grows and shrinks with the row of letters */
+  transition: width 180ms ease-out;
+}
+
+/*
+ * Above the letters until they've been dragged a couple of times, then it
+ * fades away. Clear of the lock button that pops up above a selected tile.
+ */
+.line-hint {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  bottom: calc(100% + 44px);
+  font-size: 1.2em;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--text-muted);
+  pointer-events: none;
+  transition: opacity 400ms ease-out;
+}
+
+.line-hint.gone {
+  opacity: 0;
 }
 
 .line-rack-tiles {

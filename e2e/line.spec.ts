@@ -159,3 +159,40 @@ test("the browser never pans while a tile is held", async ({ page }) => {
     await expect(tile).toHaveCSS("touch-action", "none")
   }
 })
+
+test("a hint above the letters fades once they've been dragged twice", async ({
+  page,
+}) => {
+  const hint = page.locator(".line-hint")
+  await expect(hint).toHaveText("Tap and drag to move letters")
+  await expect(hint).toBeVisible()
+  // Not up in the hint line under the tool picker
+  await expect(page.locator(".tooltip")).toHaveText(/^\s*$/)
+
+  const dragFirstToEnd = async () => {
+    const first = await boxOf(tiles(page, "Line").nth(0))
+    const last = await boxOf(tiles(page, "Line").nth(WORD.length - 1))
+    await drag(page, centerOf(first), {
+      x: centerOf(last).x + 10,
+      y: centerOf(last).y,
+    })
+  }
+
+  await dragFirstToEnd()
+  await expect(hint).not.toHaveClass(/\bgone\b/)
+  await dragFirstToEnd()
+  await expect(hint).toHaveClass(/\bgone\b/)
+  await expect(hint).toHaveCSS("opacity", "0")
+})
+
+test("the shelf fits the row of letters as it grows", async ({ page }) => {
+  const shelf = page.locator(".line-shelf")
+  const row = page.locator(".line-rack-tiles")
+  const fits = async () =>
+    Math.round((await boxOf(shelf)).width - (await boxOf(row)).width)
+
+  await expect.poll(fits).toBe(24)
+  await page.getByRole("button", { name: "Delete" }).click()
+  await page.getByRole("button", { name: "Delete" }).click()
+  await expect.poll(fits).toBe(24)
+})
