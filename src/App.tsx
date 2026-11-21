@@ -51,9 +51,8 @@ function App() {
     Floating: "Just let the letters float by",
   }
 
-  // Line shows its hint just above its letters instead (see LineTool). A
-  // space keeps the line's height, so switching tools doesn't move anything.
-  const hint = tool === "Line" ? "\u00a0" : tooltips[tool]
+  // Line has no hint up here: it shows one just above its letters instead
+  const hint = tool === "Line" ? null : tooltips[tool]
 
   useTypedKeys(!showAboutPage, actions.typeLetter, actions.pressDelete)
 
@@ -106,7 +105,7 @@ function App() {
         <>
           <div id="main-navigation">
             <ToolPicker activeTool={tool} setTool={switchTool} />
-            <div className="tooltip">{hint}</div>
+            {hint && <div className="tooltip">{hint}</div>}
           </div>
 
           <div id="tool-container">

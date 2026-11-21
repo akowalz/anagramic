@@ -166,8 +166,20 @@ test("a hint above the letters fades once they've been dragged twice", async ({
   const hint = page.locator(".line-hint")
   await expect(hint).toHaveText("Tap and drag to move letters")
   await expect(hint).toBeVisible()
-  // Not up in the hint line under the tool picker
-  await expect(page.locator(".tooltip")).toHaveText(/^\s*$/)
+  // There's no hint under the tool picker in Line
+  await expect(page.locator(".tooltip")).toHaveCount(0)
+  // It sits just above the letters
+  const gap =
+    (await boxOf(tiles(page, "Line").first())).y -
+    ((await boxOf(hint)).y + (await boxOf(hint)).height)
+  expect(gap).toBeGreaterThan(0)
+  expect(gap).toBeLessThan(20)
+
+  // Out of the way while a tile is selected (its lock button goes there)
+  await tiles(page, "Line").nth(2).click()
+  await expect(hint).toHaveCSS("opacity", "0")
+  await tiles(page, "Line").nth(2).click()
+  await expect(hint).toHaveCSS("opacity", "1")
 
   const dragFirstToEnd = async () => {
     const first = await boxOf(tiles(page, "Line").nth(0))

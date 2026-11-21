@@ -37,14 +37,15 @@
 }
 
 /*
- * Above the letters until they've been dragged a couple of times, then it
- * fades away. Clear of the lock button that pops up above a selected tile.
+ * Just above the letters until they've been dragged a couple of times, then
+ * it fades away. Hidden while a tile is selected, since that tile's lock
+ * button pops up where the hint is.
  */
 .line-hint {
   position: absolute;
   left: 50%;
   translate: -50% 0;
-  bottom: calc(100% + 44px);
+  bottom: calc(100% + 12px);
   font-size: 1.2em;
   font-weight: 600;
   white-space: nowrap;
@@ -53,7 +54,8 @@
   transition: opacity 400ms ease-out;
 }
 
-.line-hint.gone {
+.line-hint.gone,
+.line-hint.hidden {
   opacity: 0;
 }
 

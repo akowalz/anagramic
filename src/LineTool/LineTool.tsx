@@ -128,7 +128,10 @@ export default function LineTool({ board, actions, ref }: Props) {
       {tiles.length > 0 && (
         <div className="line-rack">
           <div
-            className={`line-hint ${drags >= HINT_DRAGS ? "gone" : ""}`}
+            className={`line-hint ${drags >= HINT_DRAGS ? "gone" : ""} ${
+              // Out of the way of the lock button above a selected tile
+              board.selectedId !== null ? "hidden" : ""
+            }`}
             aria-hidden={drags >= HINT_DRAGS}
           >
             Tap and drag to move letters

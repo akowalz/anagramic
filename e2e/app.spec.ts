@@ -194,14 +194,18 @@ test.describe("tools", () => {
     const hints = {
       Freeform: "Drag to rearrange letters, tap to lock",
       // Line shows its hint above its letters instead
-      Line: /^\s*$/,
+      Line: null,
       Wheel: "Tap to swap or lock letters",
       Floating: "Just let the letters float by",
     } as const
 
     for (const [tool, hint] of Object.entries(hints)) {
       await pickTool(page, tool as keyof typeof hints)
-      await expect(page.locator(".tooltip")).toHaveText(hint)
+      if (hint) {
+        await expect(page.locator(".tooltip")).toHaveText(hint)
+      } else {
+        await expect(page.locator(".tooltip")).toHaveCount(0)
+      }
       await expect(tiles(page, tool as keyof typeof hints)).toHaveCount(3)
       await expect(
         tiles(page, tool as keyof typeof hints).first(),
