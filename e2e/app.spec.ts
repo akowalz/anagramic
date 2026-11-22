@@ -144,6 +144,39 @@ test.describe("delete", () => {
     await expect(page).not.toHaveURL(/fodder/)
   })
 
+  test("in Line and Wheel, works back along the letters on screen", async ({
+    page,
+  }) => {
+    await open(page, "anagrams")
+
+    for (const tool of ["Line", "Wheel"] as const) {
+      await pickTool(page, tool)
+      await footerButton(page, "Shuffle").click()
+      const order = await lettersIn(page, tool)
+
+      // Selects the last letter on screen, then deletes it and selects the
+      // one before it
+      await pressDelete(page)
+      await expect(tiles(page, tool).last()).toHaveClass(/\bactive\b/)
+      await pressDelete(page)
+      expect(await lettersIn(page, tool)).toBe(order.slice(0, -1))
+      await expect(tiles(page, tool).last()).toHaveClass(/\bactive\b/)
+      await pressDelete(page)
+      expect(await lettersIn(page, tool)).toBe(order.slice(0, -2))
+    }
+  })
+
+  test("in Freeform, works back through the order typed", async ({ page }) => {
+    await open(page, "cats")
+    await footerButton(page, "Shuffle").click()
+    await pickTool(page, "Freeform")
+    await expect(tiles(page, "Freeform")).toHaveCount(4)
+
+    await pressDelete(page)
+
+    await expect(selectedTile(page, "Freeform")).toHaveText("S")
+  })
+
   test("Backspace works like the delete key", async ({ page }) => {
     await open(page, "cat")
     await pickTool(page, "Line")

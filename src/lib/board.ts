@@ -61,33 +61,42 @@ export function addLetter(board: Board, letter: Letter): Board {
 }
 
 /*
- * Pressing delete never removes a letter you can't see. With nothing selected
- * it selects the last letter typed, so a second press deletes it. With a
- * letter selected it deletes that letter and selects the one typed before it
- * (or after it, if it was the first), so pressing delete repeatedly works
- * backwards through the letters.
+ * Which way delete works through the letters: back through the order they
+ * were typed, or back through the arrangement on screen (e.g. right to left
+ * along the line)
  */
-export function pressDelete(board: Board): Board {
+export type DeleteOrder = "typed" | "arranged"
+
+/*
+ * Pressing delete never removes a letter you can't see. With nothing selected
+ * it selects the last letter, so a second press deletes it. With a letter
+ * selected it deletes that letter and selects the one before it (or after it,
+ * if it was the first), so pressing delete repeatedly works backwards through
+ * the letters. "Last" and "before" follow `by`.
+ */
+export function pressDelete(board: Board, by: DeleteOrder = "typed"): Board {
   const { letters, selectedId } = board
   if (letters.length === 0) return board
 
-  const index = letters.findIndex((letter) => letter.id === selectedId)
+  const sequence =
+    by === "typed" ? letters.map((letter) => letter.id) : board.order
+  const index = sequence.indexOf(selectedId ?? -1)
   if (index === -1) {
-    return { ...board, selectedId: letters[letters.length - 1].id }
+    return { ...board, selectedId: sequence[sequence.length - 1] }
   }
 
-  const deletedId = letters[index].id
-  const remaining = letters.filter((_, i) => i !== index)
+  const deletedId = sequence[index]
+  const remaining = sequence.filter((_, i) => i !== index)
   const next = remaining[index - 1] ?? remaining[index] ?? null
 
   const locked = new Set(board.locked)
   locked.delete(deletedId)
 
   return {
-    letters: remaining,
+    letters: letters.filter((letter) => letter.id !== deletedId),
     order: board.order.filter((id) => id !== deletedId),
     locked,
-    selectedId: next?.id ?? null,
+    selectedId: next,
   }
 }
 

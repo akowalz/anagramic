@@ -9,6 +9,7 @@ import {
   swapLetters,
   toggleLock,
   type Board,
+  type DeleteOrder,
 } from "../lib/board"
 import { createLetter } from "../lib/letters"
 
@@ -25,8 +26,8 @@ export function useBoard(initialBoard: () => Board) {
         const letter = createLetter(char)
         setBoard((board) => addLetter(board, letter))
       },
-      pressDelete() {
-        setBoard(pressDelete)
+      pressDelete(by: DeleteOrder = "typed") {
+        setBoard((board) => pressDelete(board, by))
       },
       select(id: number | null) {
         setBoard((board) => select(board, id))

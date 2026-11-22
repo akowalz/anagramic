@@ -1,6 +1,6 @@
 import "./App.css"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { TOOL_BUTTONS, type ToolActions } from "./Types/ToolActions"
 import { type Tool } from "./Types/Tool"
 
@@ -66,7 +66,16 @@ function App() {
     [actions, learn],
   )
 
-  useTypedKeys(!showAboutPage, actions.typeLetter, actions.pressDelete)
+  // In Line and Wheel, delete works back through the letters as they're laid
+  // out (e.g. right to left along the line). Elsewhere there's no one order to
+  // see, so it goes back through the order they were typed.
+  const pressDelete = useCallback(() => {
+    actions.pressDelete(
+      tool === "Line" || tool === "Wheel" ? "arranged" : "typed",
+    )
+  }, [actions, tool])
+
+  useTypedKeys(!showAboutPage, actions.typeLetter, pressDelete)
 
   // Keep the link in step with the letters so it can be shared
   useEffect(() => {
@@ -194,7 +203,7 @@ function App() {
             open={keyboardOpen}
             onHide={() => setKeyboardOpen(false)}
             onLetter={actions.typeLetter}
-            onDelete={actions.pressDelete}
+            onDelete={pressDelete}
           />
         </>
       )}

@@ -59,7 +59,11 @@ describe("addLetter", () => {
     const t = createLetter("T")
 
     const result = addLetter(
-      { ...board, order: [...board.order].reverse(), selectedId: idOf(board, 0) },
+      {
+        ...board,
+        order: [...board.order].reverse(),
+        selectedId: idOf(board, 0),
+      },
       t,
     )
 
@@ -164,6 +168,42 @@ describe("pressDelete", () => {
     }
 
     expect(seen).toEqual(["CAT", "CA", "C", "", "", "", ""])
+  })
+})
+
+describe("pressDelete in the arranged order", () => {
+  it("selects the last letter on screen, not the last typed", () => {
+    const board = boardFromString("CAT")
+    const [c, a, t] = board.order
+    const shuffled = reorder(board, [t, c, a])
+
+    expect(pressDelete(shuffled, "arranged").selectedId).toBe(a)
+  })
+
+  it("then selects the letter before it on screen", () => {
+    const board = boardFromString("CAT")
+    const [c, a, t] = board.order
+    const shuffled = reorder(board, [t, c, a])
+
+    const result = pressDelete(select(shuffled, a), "arranged")
+
+    expect(arranged(result)).toBe("TC")
+    expect(lettersToString(result.letters)).toBe("CT")
+    expect(result.selectedId).toBe(c)
+  })
+
+  it("works backwards along the arrangement when pressed repeatedly", () => {
+    const board = boardFromString("CAT")
+    const [c, a, t] = board.order
+    let result = reorder(board, [t, c, a])
+    const seen: string[] = []
+
+    for (let i = 0; i < 4; i++) {
+      result = pressDelete(result, "arranged")
+      seen.push(arranged(result))
+    }
+
+    expect(seen).toEqual(["TCA", "TC", "T", ""])
   })
 })
 
