@@ -9,6 +9,7 @@ import {
   selectedTile,
   tiles,
   typeOnKeyboard,
+  tileAt,
 } from "./helpers"
 
 test.beforeEach(async ({ page }) => {
@@ -157,10 +158,14 @@ test.describe("delete", () => {
       // Selects the last letter on screen, then deletes it and selects the
       // one before it
       await pressDelete(page)
-      await expect(tiles(page, tool).last()).toHaveClass(/\bactive\b/)
+      await expect(tileAt(page, tool, order.length - 1)).toHaveClass(
+        /\bactive\b/,
+      )
       await pressDelete(page)
       expect(await lettersIn(page, tool)).toBe(order.slice(0, -1))
-      await expect(tiles(page, tool).last()).toHaveClass(/\bactive\b/)
+      await expect(tileAt(page, tool, order.length - 2)).toHaveClass(
+        /\bactive\b/,
+      )
       await pressDelete(page)
       expect(await lettersIn(page, tool)).toBe(order.slice(0, -2))
     }

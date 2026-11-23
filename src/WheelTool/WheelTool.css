@@ -70,6 +70,16 @@
   box-shadow: 3px 3px 0 var(--border-color);
 }
 
+/*
+ * Let go of: it eases from the finger into its place, quickly at first and
+ * then settling gently, rather than bouncing like other moves
+ */
+.wheel-tool-tile.settling {
+  transition:
+    translate 550ms cubic-bezier(0.16, 1, 0.3, 1),
+    scale 300ms ease-out;
+}
+
 /* The tile it would swap with if dropped now */
 .wheel-tool-tile.drop-target {
   --border-color: var(--highlight);

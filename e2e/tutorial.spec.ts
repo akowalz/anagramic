@@ -9,6 +9,7 @@ import {
   prepare,
   tiles,
   type ToolName,
+  tileAt,
 } from "./helpers"
 
 /*
@@ -44,8 +45,8 @@ async function expectHint(page: Page, tool: ToolName, text: string) {
 
 /* Drag a tile to past the end. A different tile each time, so it really moves. */
 async function dragToEnd(page: Page, tool: ToolName, nth = 0) {
-  const first = await boxOf(tiles(page, tool).nth(nth))
-  const last = await boxOf(tiles(page, tool).nth(WORD.length - 1))
+  const first = await boxOf(tileAt(page, tool, nth))
+  const last = await boxOf(tileAt(page, tool, WORD.length - 1))
   await drag(page, centerOf(first), {
     x: centerOf(last).x + 10,
     y: centerOf(last).y - (tool === "Freeform" ? 120 : 0),
@@ -53,7 +54,7 @@ async function dragToEnd(page: Page, tool: ToolName, nth = 0) {
 }
 
 async function lockFirstTile(page: Page, tool: ToolName) {
-  await tiles(page, tool).nth(0).click()
+  await tileAt(page, tool, 0).click()
   await lockSelected(page, tool)
 }
 
@@ -91,8 +92,8 @@ test("Wheel teaches swapping, then locking", async ({ page }) => {
   await pickTool(page, "Wheel")
   await expectHint(page, "Wheel", "Drag a letter onto another to swap them")
 
-  await tiles(page, "Wheel").nth(0).click()
-  await tiles(page, "Wheel").nth(3).click()
+  await tileAt(page, "Wheel", 0).click()
+  await tileAt(page, "Wheel", 3).click()
   await expectHint(page, "Wheel", LOCK)
 
   await lockFirstTile(page, "Wheel")

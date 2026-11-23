@@ -11,7 +11,13 @@ import type { Pos } from "../lib/resolve-overlaps"
 import { TAP_THRESHOLD, TILE_FOOTPRINT } from "../DraggableTile/DraggableTile"
 import { tileSpringCss } from "../lib/animation"
 
-import { useImperativeHandle, useRef, useState, type Ref } from "react"
+import {
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type Ref,
+} from "react"
 
 type Props = {
   board: Board
@@ -77,6 +83,24 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
 
   const gestureRef = useRef<Gesture | null>(null)
   const [drag, setDrag] = useState<Drag | null>(null)
+  // The tile just let go of, easing into its place. A new object for every
+  // release, so letting go of the same tile again still counts.
+  const [released, setReleased] = useState<{ id: number } | null>(null)
+  const settlingId = released?.id ?? null
+  const wheelRef = useRef<HTMLDivElement>(null)
+
+  // Only now, with its new place rendered, drop the tile's drag offset. Taking
+  // it off any sooner let the browser see the tile back home for a moment
+  // (motion measures the page whenever the board changes), and it eased in
+  // from there instead of from the finger.
+  useLayoutEffect(() => {
+    if (!released) return
+    const tile = wheelRef.current?.querySelector<HTMLElement>(
+      `[data-id="${released.id}"]`,
+    )
+    tile?.style.removeProperty("--drag-x")
+    tile?.style.removeProperty("--drag-y")
+  }, [released])
   // The click that ends a drag isn't a tap
   const draggedRef = useRef(false)
 
@@ -201,10 +225,9 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
     }
     if (!gesture.moved) return
 
-    // Back to its place in the wheel (its new one, if swapped), springing there
-    // from wherever it was let go
-    e.currentTarget.style.removeProperty("--drag-x")
-    e.currentTarget.style.removeProperty("--drag-y")
+    // Back to its place in the wheel (its new one, if swapped), easing there
+    // from where it was let go (see the layout effect above)
+    setReleased({ id: gesture.id })
 
     draggedRef.current = true
     if (gesture.targetId !== null) {
@@ -216,13 +239,23 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
   return (
     <div className="wheel-tool-container" onClick={() => actions.select(null)}>
       <div
+        ref={wheelRef}
         className="wheel-boundary"
         style={{ "--tile-spring": tileSpringCss } as React.CSSProperties}
       >
         {tiles.length > 0 && (
           <Hint className="wheel-hint" text={hint && HINT_TEXT[hint]} />
         )}
-        {tiles.map((tile, index) => {
+        {/*
+         * Rendered in the order typed, not the arrangement, so tiles keep
+         * their place in the page. Moving an element in the page loses its
+         * animation, and a dropped tile would jump instead of easing from
+         * the finger. data-slot is its place on the wheel.
+         */}
+        {board.letters.map((letter) => {
+          const index = slotOf.get(letter.id)
+          if (index === undefined) return null
+          const tile = tiles[index]
           const selected = index === selectedIndex
           const dragging = drag?.id === tile.id
           // While hovering over a tile, it slides to the dragged tile's spot,
@@ -237,11 +270,23 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
             <li
               key={tile.id}
               data-id={tile.id}
+              data-slot={index}
               className={`tile wheel-tool-tile ${selected ? "active" : ""} ${
                 tile.locked ? "locked" : ""
               } ${tile.id === refusedId ? "refused" : ""} ${
                 dragging ? "dragging" : ""
-              } ${preview ? "drop-target" : ""}`}
+              } ${preview ? "drop-target" : ""} ${
+                tile.id === settlingId ? "settling" : ""
+              }`}
+              onTransitionEnd={(e) => {
+                if (
+                  e.target === e.currentTarget &&
+                  e.propertyName === "translate" &&
+                  tile.id === settlingId
+                ) {
+                  setReleased(null)
+                }
+              }}
               style={
                 {
                   "--x": Math.sin(angle),
