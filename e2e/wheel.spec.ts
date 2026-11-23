@@ -116,14 +116,14 @@ test.describe("dragging", () => {
   }
 
   test("dropping a tile on another swaps them", async ({ page }) => {
-    const first = centerOf(await boxOf(tileAt(page, "Wheel", 0)))
-    const fourth = centerOf(await boxOf(tileAt(page, "Wheel", 3)))
+    const first = centerOf(await boxOf(tiles(page, "Wheel").nth(0)))
+    const fourth = centerOf(await boxOf(tiles(page, "Wheel").nth(3)))
 
     await hold(page, first)
     await page.mouse.move(fourth.x, fourth.y, { steps: 20 })
 
     // Hovering only previews: the target is marked, nothing has swapped yet
-    await expect(tileAt(page, "Wheel", 3)).toHaveClass(/\bdrop-target\b/)
+    await expect(tiles(page, "Wheel").nth(3)).toHaveClass(/\bdrop-target\b/)
     expect(await lettersIn(page, "Wheel")).toBe(WORD)
 
     await page.mouse.up()
@@ -132,26 +132,8 @@ test.describe("dragging", () => {
     await expect(page.locator(".wheel-tool-tile.drop-target")).toHaveCount(0)
   })
 
-  test("the swap it shows still happens if the pointer slips a little as it lifts", async ({
-    page,
-  }) => {
-    // A finger often moves a few pixels as it comes off the screen
-    const first = centerOf(await boxOf(tileAt(page, "Wheel", 0)))
-    const fourth = centerOf(await boxOf(tileAt(page, "Wheel", 3)))
-
-    await hold(page, first)
-    await page.mouse.move(fourth.x, fourth.y, { steps: 20 })
-    await expect(tileAt(page, "Wheel", 3)).toHaveClass(/\bdrop-target\b/)
-    // Just outside the drop zone (80% of a 46px tile), but not far
-    await page.mouse.move(fourth.x + 44, fourth.y, { steps: 3 })
-    await expect(tileAt(page, "Wheel", 3)).toHaveClass(/\bdrop-target\b/)
-    await page.mouse.up()
-
-    expect(await lettersIn(page, "Wheel")).toBe("GNAARAMS")
-  })
-
   test("dropping a tile anywhere else puts it back", async ({ page }) => {
-    const tile = tileAt(page, "Wheel", 0)
+    const tile = tiles(page, "Wheel").nth(0)
     const before = await boxOf(tile)
     const wheel = await boxOf(page.locator(".wheel-boundary"))
 
@@ -172,10 +154,10 @@ test.describe("dragging", () => {
   })
 
   test("a locked tile can't be dragged, or swapped onto", async ({ page }) => {
-    await tileAt(page, "Wheel", 3).click()
+    await tiles(page, "Wheel").nth(3).click()
     await lockSelected(page, "Wheel")
-    const first = centerOf(await boxOf(tileAt(page, "Wheel", 0)))
-    const fourth = centerOf(await boxOf(tileAt(page, "Wheel", 3)))
+    const first = centerOf(await boxOf(tiles(page, "Wheel").nth(0)))
+    const fourth = centerOf(await boxOf(tiles(page, "Wheel").nth(3)))
 
     // Onto the locked tile: no target, no swap
     await hold(page, first)
@@ -192,7 +174,7 @@ test.describe("dragging", () => {
   })
 
   test("a drag isn't also a tap", async ({ page }) => {
-    const first = centerOf(await boxOf(tileAt(page, "Wheel", 0)))
+    const first = centerOf(await boxOf(tiles(page, "Wheel").nth(0)))
     const wheel = await boxOf(page.locator(".wheel-boundary"))
 
     await hold(page, first)

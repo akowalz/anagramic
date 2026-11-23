@@ -28,26 +28,4 @@ describe("findDropTarget", () => {
   it("finds nothing with no tiles", () => {
     expect(findDropTarget({ x: 0, y: 0 }, [], 30)).toBeNull()
   })
-
-  describe("once a tile is the target", () => {
-    const current = { id: 1, keepRadius: 45 }
-
-    it("keeps it a little way past its drop zone", () => {
-      // 40 away: outside the zone (30), inside the keep radius (45)
-      expect(findDropTarget({ x: 40, y: 0 }, tiles, 30, current)).toBe(1)
-    })
-
-    it("lets it go once well away", () => {
-      expect(findDropTarget({ x: 50, y: 0 }, tiles, 30, current)).toBeNull()
-    })
-
-    it("switches to another tile once in its zone and nearer to it", () => {
-      const onTwo = { id: 2, keepRadius: 45 }
-
-      // 112 is in 2's zone and 3's; still nearer 2, so it stays
-      expect(findDropTarget({ x: 112, y: 0 }, tiles, 30, onTwo)).toBe(2)
-      // 120 is nearer 3, inside its zone
-      expect(findDropTarget({ x: 120, y: 0 }, tiles, 30, onTwo)).toBe(3)
-    })
-  })
 })

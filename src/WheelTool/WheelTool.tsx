@@ -6,14 +6,12 @@ import type { BoardActions } from "../hooks/useBoard"
 import type { Hints } from "../hooks/useHints"
 import { currentHint, HINT_TEXT } from "../lib/hints"
 import Hint from "../Hint/Hint"
+import { findDropTarget } from "../lib/drop-target"
+import type { Pos } from "../lib/resolve-overlaps"
+import { TAP_THRESHOLD, TILE_FOOTPRINT } from "../DraggableTile/DraggableTile"
+import { tileSpringCss } from "../lib/animation"
 
-import {
-  useImperativeHandle,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type Ref,
-} from "react"
+import { useImperativeHandle, useRef, useState, type Ref } from "react"
 
 type Props = {
   board: Board
@@ -25,9 +23,6 @@ type Props = {
 /* How close (px) a dragged tile's center must come to another's to swap */
 const DROP_RADIUS = TILE_FOOTPRINT * 0.8
 
-/* How far it can then stray before that tile stops being the target */
-const KEEP_RADIUS = DROP_RADIUS * 1.5
-
 /* A tile being dragged, while the pointer is down */
 type Gesture = {
   id: number
@@ -37,17 +32,12 @@ type Gesture = {
   centers: Map<number, Pos>
   // Whether it's moved far enough to be a drag rather than a tap
   moved: boolean
-  // The tile it would swap with if dropped now
-  targetId: number | null
 }
 
-/*
- * What the drag looks like, for rendering. Only changes when the drop target
- * does: the dragged tile itself follows the pointer outside React (see
- * moveDrag), so a drag doesn't re-render the wheel on every move.
- */
+/* What the drag looks like right now */
 type Drag = {
   id: number
+  offset: Pos
   // The tile it would swap with if dropped now
   targetId: number | null
   // How far that tile moves to preview the swap: to the dragged tile's spot
@@ -79,24 +69,6 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
 
   const gestureRef = useRef<Gesture | null>(null)
   const [drag, setDrag] = useState<Drag | null>(null)
-  // The tile just let go of, easing into its place. A new object for every
-  // release, so letting go of the same tile again still counts.
-  const [released, setReleased] = useState<{ id: number } | null>(null)
-  const settlingId = released?.id ?? null
-  const wheelRef = useRef<HTMLDivElement>(null)
-
-  // Only now, with its new place rendered, drop the tile's drag offset. Taking
-  // it off any sooner let the browser see the tile back home for a moment
-  // (motion measures the page whenever the board changes), and it eased in
-  // from there instead of from the finger.
-  useLayoutEffect(() => {
-    if (!released) return
-    const tile = wheelRef.current?.querySelector<HTMLElement>(
-      `[data-id="${released.id}"]`,
-    )
-    tile?.style.removeProperty("--drag-x")
-    tile?.style.removeProperty("--drag-y")
-  }, [released])
   // The click that ends a drag isn't a tap
   const draggedRef = useRef(false)
 
@@ -152,7 +124,6 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
       start: { x: e.clientX, y: e.clientY },
       centers,
       moved: false,
-      targetId: null,
     }
   }
 
@@ -181,24 +152,12 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
       { x: home.x + offset.x, y: home.y + offset.y },
       candidates,
       DROP_RADIUS,
-      gesture.targetId === null
-        ? undefined
-        : { id: gesture.targetId, keepRadius: KEEP_RADIUS },
     )
-
-    // Follow the pointer by setting the tile's offset directly: no re-render,
-    // and translate changes are cheap for the GPU
-    const tile = e.currentTarget
-    tile.style.setProperty("--drag-x", `${offset.x}px`)
-    tile.style.setProperty("--drag-y", `${offset.y}px`)
-
-    // Re-render only to lift the tile at the start, and when the target changes
-    if (drag && targetId === gesture.targetId) return
-    gesture.targetId = targetId
-
     const target = targetId === null ? null : gesture.centers.get(targetId)
+
     setDrag({
       id: gesture.id,
+      offset,
       targetId,
       targetOffset: target
         ? { x: home.x - target.x, y: home.y - target.y }
@@ -207,11 +166,13 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
   }
 
   /*
-   * Swap with the tile it's showing the swap with. That's so even when the
-   * pointer is cancelled rather than released (iOS can do that as a finger
-   * lifts): what was on screen as it ended is what happens.
+   * Swap with the tile it's over, but only on a real release: a cancelled or
+   * lost pointer just springs back
    */
-  function endDrag(e: React.PointerEvent<HTMLElement>) {
+  function endDrag(
+    e: React.PointerEvent<HTMLElement>,
+    { drop }: { drop: boolean },
+  ) {
     const gesture = gestureRef.current
     if (gesture?.pointerId !== e.pointerId) return
     gestureRef.current = null
@@ -221,20 +182,17 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
     }
     if (!gesture.moved) return
 
-    // Back to its place in the wheel (its new one, if swapped), easing there
-    // from where it was let go (see the layout effect above)
-    setReleased({ id: gesture.id })
-
     draggedRef.current = true
-    if (gesture.targetId !== null) {
-      actions.swap(gesture.id, gesture.targetId)
-    }
+    if (drop && drag?.targetId != null) actions.swap(gesture.id, drag.targetId)
     setDrag(null)
   }
 
   return (
     <div className="wheel-tool-container" onClick={() => actions.select(null)}>
-      <div className="wheel-boundary">
+      <div
+        className="wheel-boundary"
+        style={{ "--tile-spring": tileSpringCss } as React.CSSProperties}
+      >
         {tiles.length > 0 && (
           <Hint className="wheel-hint" text={hint && HINT_TEXT[hint]} />
         )}
@@ -244,7 +202,11 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
           // While hovering over a tile, it slides to the dragged tile's spot,
           // to show what the swap would do. It only happens on release.
           const preview = drag?.targetId === tile.id
-          const offset = preview ? drag.targetOffset : { x: 0, y: 0 }
+          const offset = dragging
+            ? drag.offset
+            : preview
+              ? drag.targetOffset
+              : { x: 0, y: 0 }
 
           // Clockwise from the top
           const angle = (Math.PI * 2 * index) / tiles.length
@@ -253,23 +215,11 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
             <li
               key={tile.id}
               data-id={tile.id}
-              data-slot={index}
               className={`tile wheel-tool-tile ${selected ? "active" : ""} ${
                 tile.locked ? "locked" : ""
               } ${tile.id === refusedId ? "refused" : ""} ${
                 dragging ? "dragging" : ""
-              } ${preview ? "drop-target" : ""} ${
-                tile.id === settlingId ? "settling" : ""
-              }`}
-              onTransitionEnd={(e) => {
-                if (
-                  e.target === e.currentTarget &&
-                  e.propertyName === "translate" &&
-                  tile.id === settlingId
-                ) {
-                  setReleased(null)
-                }
-              }}
+              } ${preview ? "drop-target" : ""}`}
               style={
                 {
                   "--x": Math.sin(angle),
@@ -284,9 +234,9 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
               }}
               onPointerDown={(e) => startDrag(tile.id, tile.locked, e)}
               onPointerMove={moveDrag}
-              onPointerUp={endDrag}
-              onPointerCancel={endDrag}
-              onLostPointerCapture={endDrag}
+              onPointerUp={(e) => endDrag(e, { drop: true })}
+              onPointerCancel={(e) => endDrag(e, { drop: false })}
+              onLostPointerCapture={(e) => endDrag(e, { drop: false })}
               onClick={(e) => {
                 e.stopPropagation()
                 if (draggedRef.current) {
