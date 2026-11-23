@@ -78,6 +78,11 @@ test("Line teaches moving, then locking, then trying other tools", async ({
 
   await lockFirstTile(page, "Line")
   await expectHint(page, "Line", TRY_TOOLS)
+  // The longest hint wraps rather than running off the sides of the screen
+  const viewport = page.viewportSize()!
+  const box = await boxOf(hintIn(page, "Line"))
+  expect(box.x).toBeGreaterThanOrEqual(15)
+  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width - 15)
 
   // Trying another tool is what it asks, so that's it learned
   await pickTool(page, "Wheel")

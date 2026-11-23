@@ -6,7 +6,11 @@
   position: absolute;
   font-size: 1.2em;
   font-weight: 600;
-  white-space: nowrap;
+  line-height: 1.25;
+  text-align: center;
+  /* One line if it fits, wrapping rather than running off the screen */
+  width: max-content;
+  max-width: calc(100vw - 32px);
   color: var(--text-muted);
   pointer-events: none;
   opacity: 1;

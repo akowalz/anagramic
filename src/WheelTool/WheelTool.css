@@ -113,12 +113,9 @@
  * The tutorial's hint (see Hint), in the empty middle of the wheel, where it
  * can't run into the tool picker however little room there is above
  */
-.wheel-hint {
+.hint.wheel-hint {
   top: 50%;
   left: 50%;
   translate: -50% -50%;
   width: calc(100% - 2 * var(--wheel-outline-width) - 24px);
-  white-space: normal;
-  text-align: center;
-  line-height: 1.25;
 }
