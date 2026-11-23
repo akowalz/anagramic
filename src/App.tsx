@@ -5,6 +5,8 @@ import { TOOL_BUTTONS, type ToolActions } from "./Types/ToolActions"
 import { type Tool } from "./Types/Tool"
 
 import ToolPicker from "./ToolPicker/ToolPicker"
+import ToolDropdown from "./ToolPicker/ToolDropdown"
+import ClueCard from "./Clue/ClueCard"
 import Keyboard from "./Keyboard/Keyboard"
 import { useTypedKeys } from "./hooks/useTypedKeys"
 import { useBoard, type BoardActions } from "./hooks/useBoard"
@@ -19,7 +21,7 @@ import ShuffleIcon from "./Icons/ShuffleIcon"
 import ResetIcon from "./Icons/ResetIcon"
 import KeyboardIcon from "./Icons/KeyboardIcon"
 import AboutPage from "./AboutPage/AboutPage"
-import { lettersToString } from "./lib/letters"
+import { createLetter, lettersToString } from "./lib/letters"
 import { boardFromString, type Board } from "./lib/board"
 
 /* Letters from a shared link (?fodder=...) */
@@ -77,7 +79,56 @@ function App() {
     )
   }, [actions, tool])
 
-  useTypedKeys(!showAboutPage, actions.typeLetter, pressDelete)
+  // A clue entered for reference (null for none). Its words can be tapped to
+  // add their letters: `clueWordLetters` keeps the ids of the letters each
+  // tapped word added, by the word's position in the clue.
+  const [clue, setClue] = useState<string | null>(null)
+  const [editingClue, setEditingClue] = useState(false)
+  const [clueWordLetters, setClueWordLetters] = useState<
+    Record<number, number[]>
+  >({})
+  const clueMode = clue !== null || editingClue
+
+  const letterIds = new Set(letters.map((letter) => letter.id))
+  // A word counts as used while any of its letters are still there
+  const isWordUsed = (index: number) =>
+    (clueWordLetters[index] ?? []).some((id) => letterIds.has(id))
+
+  function toggleClueWord(index: number, wordLetters: string) {
+    if (isWordUsed(index)) {
+      actions.removeLetters(clueWordLetters[index])
+      setClueWordLetters((words) => {
+        const rest = { ...words }
+        delete rest[index]
+        return rest
+      })
+      return
+    }
+
+    const added = [...wordLetters].map(createLetter)
+    actions.addLetters(added)
+    setClueWordLetters((words) => ({
+      ...words,
+      [index]: added.map((letter) => letter.id),
+    }))
+  }
+
+  function saveClue(text: string) {
+    const trimmed = text.trim()
+    setEditingClue(false)
+    // An emptied clue is no clue. The letters it added stay either way.
+    if (trimmed !== clue) setClueWordLetters({})
+    setClue(trimmed || null)
+  }
+
+  function removeClue() {
+    setEditingClue(false)
+    setClue(null)
+    setClueWordLetters({})
+  }
+
+  // The letter keys type into the clue while it's being edited
+  useTypedKeys(!showAboutPage && !editingClue, actions.typeLetter, pressDelete)
 
   // Keep the link in step with the letters so it can be shared
   useEffect(() => {
@@ -120,6 +171,19 @@ function App() {
     <>
       <div id="header">
         <h1 onClick={() => setShowAboutPage(!showAboutPage)}>anagramic</h1>
+        {!showAboutPage &&
+          (clueMode ? (
+            // The clue takes the tool picker's place, so it moves up here
+            <ToolDropdown activeTool={tool} setTool={switchTool} />
+          ) : (
+            <button
+              className="clue-button"
+              onClick={() => setEditingClue(true)}
+            >
+              <span aria-hidden>✎</span>
+              Clue
+            </button>
+          ))}
       </div>
 
       {showAboutPage ? (
@@ -127,9 +191,23 @@ function App() {
       ) : (
         <>
           <div id="main-navigation">
-            <ToolPicker activeTool={tool} setTool={switchTool} />
-            {/* Hints about the tool picker, just under it */}
-            {letters.length > 0 && (
+            {clueMode ? (
+              <ClueCard
+                clue={clue ?? ""}
+                editing={editingClue}
+                letterCount={letters.length}
+                isWordUsed={isWordUsed}
+                onToggleWord={toggleClueWord}
+                onSave={saveClue}
+                onEdit={() => setEditingClue(true)}
+                onRemove={removeClue}
+              />
+            ) : (
+              <ToolPicker activeTool={tool} setTool={switchTool} />
+            )}
+            {/* Hints about the tool picker, just under it (with a clue, the
+                picker is the dropdown in the header) */}
+            {!clueMode && letters.length > 0 && (
               <Hint className="toolbar-hint" text={hints.underToolbar(tool)} />
             )}
           </div>
@@ -178,7 +256,19 @@ function App() {
             </div>
 
             {letters.length === 0 && (
-              <div className="empty-prompt">Type to add letters</div>
+              <div className="empty-prompt">
+                {clueMode
+                  ? "Tap words in the clue, or type"
+                  : "Type to add letters"}
+                {!clueMode && (
+                  <button
+                    className="empty-prompt-clue"
+                    onClick={() => setEditingClue(true)}
+                  >
+                    <span aria-hidden>✎</span> or add a clue
+                  </button>
+                )}
+              </div>
             )}
           </div>
 

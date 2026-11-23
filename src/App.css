@@ -7,9 +7,22 @@
 
 #header {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding-left: 12px;
   padding-right: 12px;
   text-align: left;
+}
+
+/* Opens the clue editor; once there's a clue, the tool picker goes here */
+.clue-button {
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 15px;
+}
+
+.clue-button > span {
+  font-style: normal;
 }
 
 h1 {
@@ -45,6 +58,22 @@ h1:hover {
   font-weight: 600;
   color: var(--text-muted);
   pointer-events: none;
+}
+
+.empty-prompt-clue {
+  display: flex;
+  gap: 6px;
+  margin: 14px auto 0;
+  padding: 4px 6px;
+  border: none;
+  box-shadow: none;
+  background: none;
+  font-size: 16px;
+  font-style: normal;
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  pointer-events: auto;
 }
 
 .tool-container {

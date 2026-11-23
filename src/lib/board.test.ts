@@ -3,6 +3,7 @@ import {
   addLetter,
   boardFromString,
   pressDelete,
+  removeLetters,
   reorder,
   resetBoard,
   select,
@@ -204,6 +205,28 @@ describe("pressDelete in the arranged order", () => {
     }
 
     expect(seen).toEqual(["TCA", "TC", "T", ""])
+  })
+})
+
+describe("removeLetters", () => {
+  it("takes the letters out of the letters, order, locks and selection", () => {
+    let board = boardFromString("CATNAP")
+    const [c, a, t, n] = board.order
+    board = select(toggleLock(board, a), a)
+
+    const result = removeLetters(board, [a, t, n])
+
+    expect(lettersToString(result.letters)).toBe("CAP")
+    expect(result.order).not.toContain(a)
+    expect(result.locked.has(a)).toBe(false)
+    expect(result.selectedId).toBeNull()
+    expect(result.order[0]).toBe(c)
+  })
+
+  it("returns the same board when none of the letters are there", () => {
+    const board = boardFromString("CAT")
+
+    expect(removeLetters(board, [-1])).toBe(board)
   })
 })
 

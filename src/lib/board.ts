@@ -100,6 +100,22 @@ export function pressDelete(board: Board, by: DeleteOrder = "typed"): Board {
   }
 }
 
+/* Take these letters out, e.g. those a tapped clue word added */
+export function removeLetters(board: Board, ids: number[]): Board {
+  const gone = new Set(ids)
+  if (!board.letters.some((letter) => gone.has(letter.id))) return board
+
+  return {
+    letters: board.letters.filter((letter) => !gone.has(letter.id)),
+    order: board.order.filter((id) => !gone.has(id)),
+    locked: new Set([...board.locked].filter((id) => !gone.has(id))),
+    selectedId:
+      board.selectedId !== null && gone.has(board.selectedId)
+        ? null
+        : board.selectedId,
+  }
+}
+
 export function select(board: Board, id: number | null): Board {
   return board.selectedId === id ? board : { ...board, selectedId: id }
 }

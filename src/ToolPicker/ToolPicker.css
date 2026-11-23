@@ -31,7 +31,7 @@
   cursor: pointer;
 }
 
-@media(hover: hover) {
+@media (hover: hover) {
   .tool-picker-tool:hover {
     color: var(--text);
     text-decoration: underline;
