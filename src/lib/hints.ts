@@ -12,6 +12,7 @@ export type HintId =
   | "wheel-swap"
   | "freeform-move"
   | "lock"
+  | "try-tools"
   | "floating-watch"
 
 export const HINT_TEXT: Record<HintId, string> = {
@@ -19,14 +20,18 @@ export const HINT_TEXT: Record<HintId, string> = {
   "wheel-swap": "Tap two letters to swap them",
   "freeform-move": "Drag letters anywhere",
   lock: "Tap a letter to lock it in place",
+  "try-tools": "Try another tool to see the letters a new way",
   "floating-watch": "Just let the letters float by",
 }
 
-/* Each tool's hints, in the order they're taught. Locking is the same everywhere. */
+/*
+ * Each tool's hints, in the order they're taught. Locking, and trying another
+ * tool, are the same everywhere, so they're learned once for all of them.
+ */
 export const TOOL_HINTS: Record<Tool, HintId[]> = {
-  Line: ["line-move", "lock"],
-  Wheel: ["wheel-swap", "lock"],
-  Tiles: ["freeform-move", "lock"],
+  Line: ["line-move", "lock", "try-tools"],
+  Wheel: ["wheel-swap", "lock", "try-tools"],
+  Tiles: ["freeform-move", "lock", "try-tools"],
   // Floating's letters just drift: nothing to do, so its hint just says so,
   // then fades on its own
   Floating: ["floating-watch"],

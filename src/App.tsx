@@ -38,16 +38,17 @@ function App() {
   const [keyboardOpen, setKeyboardOpen] = useState(true)
   const [tool, setTool] = useState<Tool>("Line")
 
-  // Each tool uses the selection in its own way (in the wheel, tapping
-  // another tile swaps with it), so a new tool starts with nothing selected
-  function switchTool(newTool: Tool) {
-    setTool(newTool)
-    actions.select(null)
-  }
-
   // The tutorial: hints above the letters, learned by doing what they say
   const hints = useHints()
   const { learn } = hints
+
+  // Each tool uses the selection in its own way (in the wheel, tapping
+  // another tile swaps with it), so a new tool starts with nothing selected
+  function switchTool(newTool: Tool) {
+    if (newTool !== tool) learn("try-tools")
+    setTool(newTool)
+    actions.select(null)
+  }
 
   // The board's actions, plus learning the hints they teach. Stable, since
   // both the actions and `learn` are.

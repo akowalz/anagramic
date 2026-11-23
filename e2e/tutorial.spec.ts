@@ -23,6 +23,7 @@ test.beforeEach(async ({ page }) => {
 
 const WORD = "ANAGRAMS"
 const LOCK = "Tap a letter to lock it in place"
+const TRY_TOOLS = "Try another tool to see the letters a new way"
 
 function hintIn(page: Page, tool: ToolName) {
   const hints = {
@@ -56,7 +57,9 @@ async function lockFirstTile(page: Page, tool: ToolName) {
   await lockSelected(page, tool)
 }
 
-test("Line teaches moving, then locking, then nothing", async ({ page }) => {
+test("Line teaches moving, then locking, then trying other tools", async ({
+  page,
+}) => {
   await open(page, WORD)
   await expectHint(page, "Line", "Tap and drag to move letters")
 
@@ -73,6 +76,13 @@ test("Line teaches moving, then locking, then nothing", async ({ page }) => {
   await expectHint(page, "Line", LOCK)
 
   await lockFirstTile(page, "Line")
+  await expectHint(page, "Line", TRY_TOOLS)
+
+  // Trying another tool is what it asks, so that's it learned
+  await pickTool(page, "Wheel")
+  await pickTool(page, "Line")
+  await expect(hintIn(page, "Line")).toHaveClass(/\bout\b/)
+  await page.waitForTimeout(600)
   await expect(hintIn(page, "Line")).toHaveClass(/\bout\b/)
 })
 

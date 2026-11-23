@@ -30,11 +30,22 @@ describe("currentHint", () => {
     expect(currentHint("Line", new Set(["line-move"]))).toBe("lock")
   })
 
+  it("suggests trying another tool last", () => {
+    expect(currentHint("Line", new Set(["line-move", "lock"]))).toBe(
+      "try-tools",
+    )
+    expect(
+      currentHint("Line", new Set(["line-move", "lock", "try-tools"])),
+    ).toBeNull()
+  })
+
   it("teaches locking once, for every tool", () => {
     const learned = new Set<HintId>(["lock"])
 
     expect(currentHint("Wheel", learned)).toBe("wheel-swap")
-    expect(currentHint("Wheel", new Set(["wheel-swap", "lock"]))).toBeNull()
+    expect(
+      currentHint("Wheel", new Set(["wheel-swap", "lock", "try-tools"])),
+    ).toBeNull()
   })
 
   it("has just the one hint in Floating", () => {
