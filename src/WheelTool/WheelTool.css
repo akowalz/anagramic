@@ -4,6 +4,7 @@
 }
 
 .wheel-tool-container {
+  container-type: size;
   width: 100%;
   height: 100%;
   display: flex;
@@ -12,10 +13,16 @@
   align-items: center;
 }
 
+/*
+ * As wide as there's room for, across or down: on a short screen (e.g. Safari
+ * with its toolbars showing) a wheel sized by width alone ran into the tool
+ * picker. The tiles stick out a tile's width past the wheel, so leave that.
+ */
 .wheel-boundary {
   position: relative;
-  width: 70%;
-  max-width: 400px;
+  /* Tiles are placed in units of the wheel's size */
+  container-type: size;
+  width: min(70cqw, 400px, calc(100cqh - 2 * var(--wheel-tile-width)));
   aspect-ratio: 1/1;
 }
 
@@ -31,12 +38,51 @@
   transform: translate(-50%, -50%);
 }
 
+/*
+ * Each tile is placed from the middle of the wheel by translate alone, so
+ * moving it (a swap, a shuffle, springing back from a drag) is a transition
+ * the GPU can run. --x and --y (-1 to 1) are its spot on the circle, --dx and
+ * --dy how far it's moved to preview a swap, and --drag-x and --drag-y how far
+ * it's been dragged (set straight on the element as the pointer moves).
+ */
 .wheel-tool-tile {
   position: absolute;
-  translate: -50% -50%;
+  top: 50%;
+  left: 50%;
+  translate: calc(-50% + var(--x) * 50cqw + var(--dx) + var(--drag-x, 0px))
+    calc(-50% + var(--y) * 50cqh + var(--dy) + var(--drag-y, 0px));
+  transition: translate var(--tile-spring);
+  /* Each tile on its own layer, so moving one doesn't repaint the others */
+  will-change: translate;
+  touch-action: none;
+  cursor: grab;
 
   width: var(--wheel-tile-width);
   height: var(--wheel-tile-width);
+}
+
+/* Follows the pointer exactly, lifted above the others */
+.wheel-tool-tile.dragging {
+  z-index: 1000;
+  transition: none;
+  cursor: grabbing;
+  scale: 1.1;
+  box-shadow: 3px 3px 0 var(--border-color);
+}
+
+/*
+ * Let go of: it eases from the finger into its place, quickly at first and
+ * then settling gently, rather than bouncing like other moves
+ */
+.wheel-tool-tile.settling {
+  transition:
+    translate 550ms cubic-bezier(0.16, 1, 0.3, 1),
+    scale 300ms ease-out;
+}
+
+/* The tile it would swap with if dropped now */
+.wheel-tool-tile.drop-target {
+  --border-color: var(--highlight);
 }
 
 .wheel-tool-tile.active {

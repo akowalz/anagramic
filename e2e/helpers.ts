@@ -56,10 +56,30 @@ export function tiles(page: Page, tool: ToolName): Locator {
   return page.locator(TOOLS[tool])
 }
 
-/* The tool's tiles' letters, in the order they are in the page */
+/*
+ * The tile at this place in the tool's arrangement. Wheel tiles keep their
+ * place in the page (so they animate smoothly) and give their place on the
+ * wheel as data-slot; other tools' tiles are in the page in order.
+ */
+export function tileAt(page: Page, tool: ToolName, index: number): Locator {
+  if (tool === "Wheel") {
+    return page.locator(`${TOOLS.Wheel}[data-slot="${index}"]`)
+  }
+  return tiles(page, tool).nth(index)
+}
+
+/* The tool's tiles' letters, in the order they're arranged */
 export async function lettersIn(page: Page, tool: ToolName): Promise<string> {
-  const texts = await tiles(page, tool).allTextContents()
-  return texts.map((text) => text.trim()).join("")
+  const letters = await tiles(page, tool).evaluateAll((els) =>
+    els.map((el, index) => ({
+      slot: Number((el as HTMLElement).dataset.slot ?? index),
+      letter: (el.textContent ?? "").trim(),
+    })),
+  )
+  return letters
+    .sort((a, b) => a.slot - b.slot)
+    .map(({ letter }) => letter)
+    .join("")
 }
 
 export function selectedTile(page: Page, tool: ToolName): Locator {
@@ -110,12 +130,15 @@ export function centerOf(box: Box) {
 /* Every tile's letter and box, keyed by its index in the page */
 export async function boxesIn(page: Page, tool: ToolName) {
   const all = await tiles(page, tool).all()
-  return Promise.all(
-    all.map(async (tile) => ({
+  const boxes = await Promise.all(
+    all.map(async (tile, index) => ({
       letter: ((await tile.textContent()) ?? "").trim(),
       box: await boxOf(tile),
+      slot: Number((await tile.getAttribute("data-slot")) ?? index),
     })),
   )
+  // In the order they're arranged (see tileAt)
+  return boxes.sort((a, b) => a.slot - b.slot)
 }
 
 /* Freeform tiles' letters read like text: row by row, left to right */

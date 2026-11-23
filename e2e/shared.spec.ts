@@ -14,6 +14,7 @@ import {
   prepare,
   pressDelete,
   tiles,
+  tileAt,
 } from "./helpers"
 
 /*
@@ -47,8 +48,8 @@ test("a shuffle in one tool shows in the others", async ({ page }) => {
 test("a swap in the wheel shows in the line", async ({ page }) => {
   await open(page, WORD)
   await pickTool(page, "Wheel")
-  await tiles(page, "Wheel").nth(0).click()
-  await tiles(page, "Wheel").nth(3).click()
+  await tileAt(page, "Wheel", 0).click()
+  await tileAt(page, "Wheel", 3).click()
 
   await pickTool(page, "Line")
 
@@ -108,7 +109,7 @@ test("reset in one tool resets the order and locks for all", async ({
 }) => {
   await open(page, WORD)
   await pickTool(page, "Wheel")
-  await tiles(page, "Wheel").nth(3).click()
+  await tileAt(page, "Wheel", 3).click()
   await lockSelected(page, "Wheel")
   await footerButton(page, "Shuffle").click()
 
@@ -127,7 +128,7 @@ test("a letter deleted in one tool is gone from the others", async ({
   await pickTool(page, "Wheel")
   await footerButton(page, "Shuffle").click()
   const shuffled = await lettersIn(page, "Wheel")
-  await tiles(page, "Wheel").nth(2).click()
+  await tileAt(page, "Wheel", 2).click()
 
   await pressDelete(page)
 
@@ -183,7 +184,7 @@ test.describe("Freeform once tiles are dragged by hand", () => {
 test("locks don't apply in Floating", async ({ page }) => {
   await open(page, "FLOAT")
   await pickTool(page, "Wheel")
-  await tiles(page, "Wheel").nth(0).click()
+  await tileAt(page, "Wheel", 0).click()
   await lockSelected(page, "Wheel")
   await pickTool(page, "Floating")
 
