@@ -49,8 +49,7 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  translate:
-    calc(-50% + var(--x) * 50cqw + var(--dx) + var(--drag-x, 0px))
+  translate: calc(-50% + var(--x) * 50cqw + var(--dx) + var(--drag-x, 0px))
     calc(-50% + var(--y) * 50cqh + var(--dy) + var(--drag-y, 0px));
   transition: translate var(--tile-spring);
   /* Each tile on its own layer, so moving one doesn't repaint the others */

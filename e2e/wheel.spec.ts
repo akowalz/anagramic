@@ -132,6 +132,24 @@ test.describe("dragging", () => {
     await expect(page.locator(".wheel-tool-tile.drop-target")).toHaveCount(0)
   })
 
+  test("the swap it shows still happens if the pointer slips a little as it lifts", async ({
+    page,
+  }) => {
+    // A finger often moves a few pixels as it comes off the screen
+    const first = centerOf(await boxOf(tiles(page, "Wheel").nth(0)))
+    const fourth = centerOf(await boxOf(tiles(page, "Wheel").nth(3)))
+
+    await hold(page, first)
+    await page.mouse.move(fourth.x, fourth.y, { steps: 20 })
+    await expect(tiles(page, "Wheel").nth(3)).toHaveClass(/\bdrop-target\b/)
+    // Just outside the drop zone (80% of a 46px tile), but not far
+    await page.mouse.move(fourth.x + 44, fourth.y, { steps: 3 })
+    await expect(tiles(page, "Wheel").nth(3)).toHaveClass(/\bdrop-target\b/)
+    await page.mouse.up()
+
+    expect(await lettersIn(page, "Wheel")).toBe("GNAARAMS")
+  })
+
   test("dropping a tile anywhere else puts it back", async ({ page }) => {
     const tile = tiles(page, "Wheel").nth(0)
     const before = await boxOf(tile)

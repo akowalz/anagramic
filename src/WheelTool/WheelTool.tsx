@@ -23,6 +23,9 @@ type Props = {
 /* How close (px) a dragged tile's center must come to another's to swap */
 const DROP_RADIUS = TILE_FOOTPRINT * 0.8
 
+/* How far it can then stray before that tile stops being the target */
+const KEEP_RADIUS = DROP_RADIUS * 1.5
+
 /* A tile being dragged, while the pointer is down */
 type Gesture = {
   id: number
@@ -158,6 +161,9 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
       { x: home.x + offset.x, y: home.y + offset.y },
       candidates,
       DROP_RADIUS,
+      gesture.targetId === null
+        ? undefined
+        : { id: gesture.targetId, keepRadius: KEEP_RADIUS },
     )
 
     // Follow the pointer by setting the tile's offset directly: no re-render,
@@ -181,13 +187,11 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
   }
 
   /*
-   * Swap with the tile it's over, but only on a real release: a cancelled or
-   * lost pointer just springs back
+   * Swap with the tile it's showing the swap with. That's so even when the
+   * pointer is cancelled rather than released (iOS can do that as a finger
+   * lifts): what was on screen as it ended is what happens.
    */
-  function endDrag(
-    e: React.PointerEvent<HTMLElement>,
-    { drop }: { drop: boolean },
-  ) {
+  function endDrag(e: React.PointerEvent<HTMLElement>) {
     const gesture = gestureRef.current
     if (gesture?.pointerId !== e.pointerId) return
     gestureRef.current = null
@@ -203,7 +207,7 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
     e.currentTarget.style.removeProperty("--drag-y")
 
     draggedRef.current = true
-    if (drop && gesture.targetId !== null) {
+    if (gesture.targetId !== null) {
       actions.swap(gesture.id, gesture.targetId)
     }
     setDrag(null)
@@ -252,9 +256,9 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
               }}
               onPointerDown={(e) => startDrag(tile.id, tile.locked, e)}
               onPointerMove={moveDrag}
-              onPointerUp={(e) => endDrag(e, { drop: true })}
-              onPointerCancel={(e) => endDrag(e, { drop: false })}
-              onLostPointerCapture={(e) => endDrag(e, { drop: false })}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
+              onLostPointerCapture={endDrag}
               onClick={(e) => {
                 e.stopPropagation()
                 if (draggedRef.current) {
