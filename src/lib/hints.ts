@@ -17,7 +17,7 @@ export type HintId =
 
 export const HINT_TEXT: Record<HintId, string> = {
   "line-move": "Tap and drag to move letters",
-  "wheel-swap": "Tap two letters to swap them",
+  "wheel-swap": "Drag a letter onto another to swap them",
   "freeform-move": "Drag letters anywhere",
   lock: "Tap a letter to lock it in place",
   "try-tools": "Try another tool to see the letters a new way",
@@ -46,6 +46,15 @@ export function currentHint(
 }
 
 export const LEARNED_HINTS_KEY = "anagramic.learnedHints"
+
+/*
+ * TEMPORARY, while trying the tutorial out: forget what's been learned every
+ * time the page loads, so the hints always show from the start.
+ *
+ * DON'T DEPLOY WITH THIS ON. Set it to false (and re-enable the "remembered
+ * after a reload" test in e2e/tutorial.spec.ts) before shipping.
+ */
+export const RESET_HINTS_ON_LOAD = true
 
 const ALL_HINTS = new Set(Object.keys(HINT_TEXT))
 

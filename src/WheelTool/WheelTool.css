@@ -41,16 +41,20 @@
 /*
  * Each tile is placed from the middle of the wheel by translate alone, so
  * moving it (a swap, a shuffle, springing back from a drag) is a transition
- * the GPU can run. --x and --y (-1 to 1) are its spot on the circle, and
- * --dx and --dy are how far it's been dragged (or is previewing a swap).
+ * the GPU can run. --x and --y (-1 to 1) are its spot on the circle, --dx and
+ * --dy how far it's moved to preview a swap, and --drag-x and --drag-y how far
+ * it's been dragged (set straight on the element as the pointer moves).
  */
 .wheel-tool-tile {
   position: absolute;
   top: 50%;
   left: 50%;
-  translate: calc(-50% + var(--x) * 50cqw + var(--dx))
-    calc(-50% + var(--y) * 50cqh + var(--dy));
+  translate:
+    calc(-50% + var(--x) * 50cqw + var(--dx) + var(--drag-x, 0px))
+    calc(-50% + var(--y) * 50cqh + var(--dy) + var(--drag-y, 0px));
   transition: translate var(--tile-spring);
+  /* Each tile on its own layer, so moving one doesn't repaint the others */
+  will-change: translate;
   touch-action: none;
   cursor: grab;
 

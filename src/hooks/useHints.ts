@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useState } from "react"
-import { loadLearned, saveLearned, type HintId } from "../lib/hints"
+import {
+  loadLearned,
+  RESET_HINTS_ON_LOAD,
+  saveLearned,
+  type HintId,
+} from "../lib/hints"
 
 function storage(): Storage | null {
   try {
@@ -16,7 +21,9 @@ function storage(): Storage | null {
 export function useHints() {
   const [learned, setLearned] = useState<ReadonlySet<HintId>>(() => {
     const store = storage()
-    return store ? loadLearned(store) : new Set()
+    // Temporary: see RESET_HINTS_ON_LOAD
+    if (RESET_HINTS_ON_LOAD || !store) return new Set()
+    return loadLearned(store)
   })
 
   const learn = useCallback((id: HintId) => {

@@ -32,12 +32,17 @@ type Gesture = {
   centers: Map<number, Pos>
   // Whether it's moved far enough to be a drag rather than a tap
   moved: boolean
+  // The tile it would swap with if dropped now
+  targetId: number | null
 }
 
-/* What the drag looks like right now */
+/*
+ * What the drag looks like, for rendering. Only changes when the drop target
+ * does: the dragged tile itself follows the pointer outside React (see
+ * moveDrag), so a drag doesn't re-render the wheel on every move.
+ */
 type Drag = {
   id: number
-  offset: Pos
   // The tile it would swap with if dropped now
   targetId: number | null
   // How far that tile moves to preview the swap: to the dragged tile's spot
@@ -124,6 +129,7 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
       start: { x: e.clientX, y: e.clientY },
       centers,
       moved: false,
+      targetId: null,
     }
   }
 
@@ -153,11 +159,20 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
       candidates,
       DROP_RADIUS,
     )
-    const target = targetId === null ? null : gesture.centers.get(targetId)
 
+    // Follow the pointer by setting the tile's offset directly: no re-render,
+    // and translate changes are cheap for the GPU
+    const tile = e.currentTarget
+    tile.style.setProperty("--drag-x", `${offset.x}px`)
+    tile.style.setProperty("--drag-y", `${offset.y}px`)
+
+    // Re-render only to lift the tile at the start, and when the target changes
+    if (drag && targetId === gesture.targetId) return
+    gesture.targetId = targetId
+
+    const target = targetId === null ? null : gesture.centers.get(targetId)
     setDrag({
       id: gesture.id,
-      offset,
       targetId,
       targetOffset: target
         ? { x: home.x - target.x, y: home.y - target.y }
@@ -182,8 +197,15 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
     }
     if (!gesture.moved) return
 
+    // Back to its place in the wheel (its new one, if swapped), springing there
+    // from wherever it was let go
+    e.currentTarget.style.removeProperty("--drag-x")
+    e.currentTarget.style.removeProperty("--drag-y")
+
     draggedRef.current = true
-    if (drop && drag?.targetId != null) actions.swap(gesture.id, drag.targetId)
+    if (drop && gesture.targetId !== null) {
+      actions.swap(gesture.id, gesture.targetId)
+    }
     setDrag(null)
   }
 
@@ -202,11 +224,7 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
           // While hovering over a tile, it slides to the dragged tile's spot,
           // to show what the swap would do. It only happens on release.
           const preview = drag?.targetId === tile.id
-          const offset = dragging
-            ? drag.offset
-            : preview
-              ? drag.targetOffset
-              : { x: 0, y: 0 }
+          const offset = preview ? drag.targetOffset : { x: 0, y: 0 }
 
           // Clockwise from the top
           const angle = (Math.PI * 2 * index) / tiles.length
