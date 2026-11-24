@@ -14,7 +14,6 @@ import type { Letter } from "../lib/letters"
 import type { Board } from "../lib/board"
 import type { BoardActions } from "../hooks/useBoard"
 import type { Hints } from "../hooks/useHints"
-import { currentHint, HINT_TEXT } from "../lib/hints"
 import Hint from "../Hint/Hint"
 
 type Props = {
@@ -110,7 +109,7 @@ export default function FloatingTool({
   // The hint just says to watch, so it's learned once it's been seen for a
   // little while, and then fades away slowly
   const HINT_SEEN_MS = 3000
-  const hint = currentHint("Floating", hints.learned)
+  const hint = hints.nearLetters("Floating")
   const { learn } = hints
   const showingHint = active && letters.length > 0 && hint !== null
   useEffect(() => {
@@ -197,11 +196,7 @@ export default function FloatingTool({
       <div className="floating-tool-box">
         {letters.length > 0 && (
           // Behind the letters, which drift over it
-          <Hint
-            className="floating-hint"
-            text={hint && HINT_TEXT[hint]}
-            fadeMs={2500}
-          />
+          <Hint className="floating-hint" text={hint} fadeMs={2500} />
         )}
         {letters.map((letter) => {
           const drift = driftById.get(letter.id)

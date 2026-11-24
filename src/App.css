@@ -63,3 +63,15 @@ h1:hover {
   gap: 12px;
   padding: 12px;
 }
+
+/* Room for a hint under the tool picker, over the tool's empty space */
+#main-navigation {
+  position: relative;
+  z-index: 2;
+}
+
+.hint.toolbar-hint {
+  top: 100%;
+  left: 50%;
+  translate: -50% 0;
+}

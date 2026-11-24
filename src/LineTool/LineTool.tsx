@@ -6,7 +6,6 @@ import { rubberBand } from "../lib/rubber-band"
 import { tilesInOrder, type Board, type BoardTile } from "../lib/board"
 import type { BoardActions } from "../hooks/useBoard"
 import type { Hints } from "../hooks/useHints"
-import { currentHint, HINT_TEXT } from "../lib/hints"
 import Hint from "../Hint/Hint"
 
 import {
@@ -41,7 +40,7 @@ export default function LineTool({ board, actions, hints, ref }: Props) {
   // Moving is learned once letters have been dragged a couple of times
   const MOVE_LEARNED_AFTER = 2
   const [drags, setDrags] = useState(0)
-  const hint = currentHint("Line", hints.learned)
+  const hint = hints.nearLetters("Line")
 
   // The shelf is sized to the row of tiles, measured so its width can animate
   const tilesRef = useRef<HTMLDivElement>(null)
@@ -132,12 +131,7 @@ export default function LineTool({ board, actions, hints, ref }: Props) {
       {/* No shelf until there are letters: empty, it looked like a text box */}
       {tiles.length > 0 && (
         <div className="line-rack">
-          <Hint
-            className="line-hint"
-            text={hint && HINT_TEXT[hint]}
-            // Above the lock button while a tile is selected
-            lifted={board.selectedId !== null}
-          />
+          <Hint className="line-hint" text={hint} />
           <div
             className="line-shelf"
             style={shelfWidth === null ? undefined : { width: shelfWidth + 24 }}

@@ -9,6 +9,7 @@ import Keyboard from "./Keyboard/Keyboard"
 import { useTypedKeys } from "./hooks/useTypedKeys"
 import { useBoard, type BoardActions } from "./hooks/useBoard"
 import { useHints } from "./hooks/useHints"
+import Hint from "./Hint/Hint"
 
 import TilesTool from "./TilesTool/TilesTool"
 import LineTool from "./LineTool/LineTool"
@@ -50,13 +51,13 @@ function App() {
     actions.select(null)
   }
 
-  // The board's actions, plus learning the hints they teach. Stable, since
-  // both the actions and `learn` are.
+  // The board's actions, plus learning the hints they teach
+  const { locked } = board
   const toolActions: BoardActions = useMemo(
     () => ({
       ...actions,
       toggleLock(id: number) {
-        learn("lock")
+        learn(locked.has(id) ? "unlock" : "lock")
         actions.toggleLock(id)
       },
       swap(idA: number, idB: number) {
@@ -64,7 +65,7 @@ function App() {
         actions.swap(idA, idB)
       },
     }),
-    [actions, learn],
+    [actions, learn, locked],
   )
 
   // In Line and Wheel, delete works back through the letters as they're laid
@@ -127,6 +128,10 @@ function App() {
         <>
           <div id="main-navigation">
             <ToolPicker activeTool={tool} setTool={switchTool} />
+            {/* Hints about the tool picker, just under it */}
+            {letters.length > 0 && (
+              <Hint className="toolbar-hint" text={hints.underToolbar(tool)} />
+            )}
           </div>
 
           <div id="tool-container">

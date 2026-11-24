@@ -23,8 +23,14 @@ test.beforeEach(async ({ page }) => {
 })
 
 const WORD = "ANAGRAMS"
-const LOCK = "Tap a letter to lock it in place"
-const TRY_TOOLS = "Try another tool to see the letters a new way"
+const LOCK = "Tap a letter, then the lock icon, to lock it in place"
+const UNLOCK = "Tap a letter, then the unlock icon, to unlock it"
+const TRY_TOOLS = "Try another tool to see the letters in a new way"
+
+/* The hint under the tool picker */
+function toolbarHint(page: Page) {
+  return page.locator(".toolbar-hint")
+}
 
 function hintIn(page: Page, tool: ToolName) {
   const hints = {
@@ -58,18 +64,18 @@ async function lockFirstTile(page: Page, tool: ToolName) {
   await lockSelected(page, tool)
 }
 
-test("Line teaches moving, then locking, then trying other tools", async ({
+test("Line teaches moving, locking, unlocking, then trying other tools", async ({
   page,
 }) => {
   await open(page, WORD)
   await expectHint(page, "Line", "Tap and drag to move letters")
 
-  // It sits just above the letters
+  // Above the letters, clear of where a selected tile's lock icon pops up
   const hint = await boxOf(hintIn(page, "Line"))
   const gap =
     (await boxOf(tiles(page, "Line").first())).y - (hint.y + hint.height)
-  expect(gap).toBeGreaterThan(0)
-  expect(gap).toBeLessThan(20)
+  expect(gap).toBeGreaterThan(35)
+  expect(gap).toBeLessThan(55)
 
   await dragToEnd(page, "Line")
   await expectHint(page, "Line", "Tap and drag to move letters")
@@ -77,18 +83,29 @@ test("Line teaches moving, then locking, then trying other tools", async ({
   await expectHint(page, "Line", LOCK)
 
   await lockFirstTile(page, "Line")
-  await expectHint(page, "Line", TRY_TOOLS)
-  // The longest hint wraps rather than running off the sides of the screen
+  await expectHint(page, "Line", UNLOCK)
+
+  // Unlocking is tapping the locked letter, then its unlock icon
+  await lockFirstTile(page, "Line")
+  await expect(hintIn(page, "Line")).toHaveClass(/\bout\b/)
+
+  // Trying another tool is shown just under the tool picker
+  await expect(toolbarHint(page)).toHaveText(TRY_TOOLS)
+  await expect(toolbarHint(page)).not.toHaveClass(/\bout\b/)
+  const picker = await boxOf(page.locator(".tool-picker"))
+  const below = await boxOf(toolbarHint(page))
+  expect(below.y).toBeGreaterThanOrEqual(picker.y + picker.height - 1)
+  expect(below.y).toBeLessThan(picker.y + picker.height + 20)
+  // It wraps rather than running off the sides of the screen
   const viewport = page.viewportSize()!
-  const box = await boxOf(hintIn(page, "Line"))
-  expect(box.x).toBeGreaterThanOrEqual(15)
-  expect(box.x + box.width).toBeLessThanOrEqual(viewport.width - 15)
+  expect(below.x).toBeGreaterThanOrEqual(15)
+  expect(below.x + below.width).toBeLessThanOrEqual(viewport.width - 15)
 
   // Trying another tool is what it asks, so that's it learned
   await pickTool(page, "Wheel")
   await pickTool(page, "Line")
-  await expect(hintIn(page, "Line")).toHaveClass(/\bout\b/)
   await page.waitForTimeout(600)
+  await expect(toolbarHint(page)).toHaveClass(/\bout\b/)
   await expect(hintIn(page, "Line")).toHaveClass(/\bout\b/)
 })
 
@@ -102,7 +119,7 @@ test("Wheel teaches swapping, then locking", async ({ page }) => {
   await expectHint(page, "Wheel", LOCK)
 
   await lockFirstTile(page, "Wheel")
-  await expect(hintIn(page, "Wheel")).toHaveClass(/\bout\b/)
+  await expectHint(page, "Wheel", UNLOCK)
 })
 
 test("Freeform teaches dragging, then locking", async ({ page }) => {
@@ -124,7 +141,7 @@ test("Freeform teaches dragging, then locking", async ({ page }) => {
   await expectHint(page, "Freeform", LOCK)
 
   await lockFirstTile(page, "Freeform")
-  await expect(hintIn(page, "Freeform")).toHaveClass(/\bout\b/)
+  await expectHint(page, "Freeform", UNLOCK)
 })
 
 test("Floating says to watch, then fades away on its own", async ({ page }) => {
@@ -160,7 +177,7 @@ test("locking is learned once, for every tool", async ({ page }) => {
   // The first letter is locked now (locks are shared), so drag others
   await dragToEnd(page, "Line", 1)
   await dragToEnd(page, "Line", 1)
-  await expect(hintIn(page, "Line")).toHaveClass(/\bout\b/)
+  await expectHint(page, "Line", UNLOCK)
 })
 
 // TEMPORARY: skipped while RESET_HINTS_ON_LOAD is on (see src/lib/hints.ts).
@@ -179,27 +196,35 @@ test.fixme("what's been learned is remembered after a reload", async ({
   await expectHint(page, "Line", LOCK)
 })
 
-test("the lock hint stays until a letter is actually locked", async ({
+test("the lock hint stays put, clear of the lock icon, until a letter is locked", async ({
   page,
 }) => {
   await open(page, WORD)
   await dragToEnd(page, "Line", 0)
   await dragToEnd(page, "Line", 1)
   await expectHint(page, "Line", LOCK)
-  const resting = await boxOf(hintIn(page, "Line"))
+  const before = await boxOf(hintIn(page, "Line"))
 
-  // Selecting a letter shows its lock button; the hint moves up above it
+  // Selecting a letter shows its lock icon, under the hint: nothing moves
   await tiles(page, "Line").nth(2).click()
-  await expect(hintIn(page, "Line")).toHaveClass(/\blifted\b/)
   await expectHint(page, "Line", LOCK)
-  const lifted = await boxOf(hintIn(page, "Line"))
+  expect(await boxOf(hintIn(page, "Line"))).toEqual(before)
   const button = await boxOf(page.locator(".line-tool-tile .tile-lock-button"))
-  expect(lifted.y).toBeLessThan(resting.y)
-  expect(lifted.y + lifted.height).toBeLessThanOrEqual(button.y + 1)
+  expect(before.y + before.height).toBeLessThanOrEqual(button.y)
 
-  // Deselecting puts it back; locking finishes it
+  // Deselecting leaves it there; only locking moves things on
   await tiles(page, "Line").nth(2).click()
-  await expect(hintIn(page, "Line")).not.toHaveClass(/\blifted\b/)
+  await expectHint(page, "Line", LOCK)
   await lockFirstTile(page, "Line")
-  await expect(hintIn(page, "Line")).toHaveClass(/\bout\b/)
+  await expectHint(page, "Line", UNLOCK)
+})
+
+test.describe("with a mouse", () => {
+  test.use({ isMobile: false, hasTouch: false })
+
+  test("hints say click instead of tap", async ({ page }) => {
+    await open(page, WORD)
+
+    await expectHint(page, "Line", "Click and drag to move letters")
+  })
 })

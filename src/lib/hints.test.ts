@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest"
 import {
   currentHint,
+  hintText,
   LEARNED_HINTS_KEY,
   loadLearned,
   saveLearned,
@@ -30,12 +31,16 @@ describe("currentHint", () => {
     expect(currentHint("Line", new Set(["line-move"]))).toBe("lock")
   })
 
-  it("suggests trying another tool last", () => {
-    expect(currentHint("Line", new Set(["line-move", "lock"]))).toBe(
+  it("teaches unlocking after locking, then suggests trying another tool", () => {
+    expect(currentHint("Line", new Set(["line-move", "lock"]))).toBe("unlock")
+    expect(currentHint("Line", new Set(["line-move", "lock", "unlock"]))).toBe(
       "try-tools",
     )
     expect(
-      currentHint("Line", new Set(["line-move", "lock", "try-tools"])),
+      currentHint(
+        "Line",
+        new Set(["line-move", "lock", "unlock", "try-tools"]),
+      ),
     ).toBeNull()
   })
 
@@ -44,13 +49,39 @@ describe("currentHint", () => {
 
     expect(currentHint("Wheel", learned)).toBe("wheel-swap")
     expect(
-      currentHint("Wheel", new Set(["wheel-swap", "lock", "try-tools"])),
+      currentHint(
+        "Wheel",
+        new Set(["wheel-swap", "lock", "unlock", "try-tools"]),
+      ),
     ).toBeNull()
   })
 
   it("has just the one hint in Floating", () => {
     expect(currentHint("Floating", new Set())).toBe("floating-watch")
     expect(currentHint("Floating", new Set(["floating-watch"]))).toBeNull()
+  })
+})
+
+describe("hintText", () => {
+  it("says tap on touch screens", () => {
+    expect(hintText("lock", { mouse: false })).toBe(
+      "Tap a letter, then the lock icon, to lock it in place",
+    )
+  })
+
+  it("says click with a mouse", () => {
+    expect(hintText("lock", { mouse: true })).toBe(
+      "Click a letter, then the lock icon, to lock it in place",
+    )
+    expect(hintText("line-move", { mouse: true })).toBe(
+      "Click and drag to move letters",
+    )
+  })
+
+  it("leaves hints without tapping alone", () => {
+    expect(hintText("try-tools", { mouse: true })).toBe(
+      "Try another tool to see the letters in a new way",
+    )
   })
 })
 

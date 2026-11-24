@@ -37,11 +37,12 @@
 }
 
 /*
- * The tutorial's hint (see Hint), across the middle of the canvas, just above
+ * The tutorial's hint (see Hint), across the middle of the canvas, above
  * where the tiles start out (the top is set from the layout). It stays put,
  * behind the tiles, which can be dragged over it.
  */
 .freeform-hint {
   left: 50%;
-  translate: -50% calc(-100% - 12px);
+  /* Clear of the lock icon over a selected tile in the top row */
+  translate: -50% calc(-100% - 44px);
 }

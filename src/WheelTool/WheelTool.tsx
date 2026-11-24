@@ -4,7 +4,6 @@ import TileLock from "../TileLock/TileLock"
 import { tilesInOrder, type Board } from "../lib/board"
 import type { BoardActions } from "../hooks/useBoard"
 import type { Hints } from "../hooks/useHints"
-import { currentHint, HINT_TEXT } from "../lib/hints"
 import Hint from "../Hint/Hint"
 import { findDropTarget } from "../lib/drop-target"
 import type { Pos } from "../lib/resolve-overlaps"
@@ -70,7 +69,7 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
   const tiles = tilesInOrder(board)
   const slotOf = new Map(tiles.map((tile, index) => [tile.id, index]))
   const selectedIndex = tiles.findIndex((tile) => tile.id === board.selectedId)
-  const hint = currentHint("Wheel", hints.learned)
+  const hint = hints.nearLetters("Wheel")
 
   useImperativeHandle(
     ref,
@@ -243,9 +242,7 @@ export default function WheelTool({ board, actions, hints, ref }: Props) {
         className="wheel-boundary"
         style={{ "--tile-spring": tileSpringCss } as React.CSSProperties}
       >
-        {tiles.length > 0 && (
-          <Hint className="wheel-hint" text={hint && HINT_TEXT[hint]} />
-        )}
+        {tiles.length > 0 && <Hint className="wheel-hint" text={hint} />}
         {/*
          * Rendered in the order typed, not the arrangement, so tiles keep
          * their place in the page. Moving an element in the page loses its

@@ -36,11 +36,14 @@
   transition: width 180ms ease-out;
 }
 
-/* The tutorial's hint (see Hint), centered just above the letters */
+/*
+ * The tutorial's hint (see Hint), centered above the letters: high enough to
+ * be clear of the lock icon that pops up over a selected tile (see TileLock)
+ */
 .line-hint {
   left: 50%;
   translate: -50% 0;
-  bottom: calc(100% + 12px);
+  bottom: calc(100% + 44px);
 }
 
 .line-rack-tiles {

@@ -12,26 +12,44 @@ export type HintId =
   | "wheel-swap"
   | "freeform-move"
   | "lock"
+  | "unlock"
   | "try-tools"
   | "floating-watch"
 
+/* Written for touch screens: see hintText for mice */
 export const HINT_TEXT: Record<HintId, string> = {
   "line-move": "Tap and drag to move letters",
   "wheel-swap": "Drag a letter onto another to swap them",
   "freeform-move": "Drag letters anywhere",
-  lock: "Tap a letter to lock it in place",
-  "try-tools": "Try another tool to see the letters a new way",
+  lock: "Tap a letter, then the lock icon, to lock it in place",
+  unlock: "Tap a letter, then the unlock icon, to unlock it",
+  "try-tools": "Try another tool to see the letters in a new way",
   "floating-watch": "Just let the letters float by",
 }
 
+/* A hint's text, saying "click" rather than "tap" when there's a mouse */
+export function hintText(id: HintId, { mouse }: { mouse: boolean }): string {
+  const text = HINT_TEXT[id]
+  return mouse
+    ? text.replace(/\bTap\b/g, "Click").replace(/\btap\b/g, "click")
+    : text
+}
+
 /*
- * Each tool's hints, in the order they're taught. Locking, and trying another
- * tool, are the same everywhere, so they're learned once for all of them.
+ * Hints shown just under the tool picker, since that's what they're about.
+ * The rest are shown by the tools, near the letters.
+ */
+export const TOOLBAR_HINTS: ReadonlySet<HintId> = new Set(["try-tools"])
+
+/*
+ * Each tool's hints, in the order they're taught. Locking, unlocking and
+ * trying another tool are the same everywhere, so they're learned once for
+ * all of them.
  */
 export const TOOL_HINTS: Record<Tool, HintId[]> = {
-  Line: ["line-move", "lock", "try-tools"],
-  Wheel: ["wheel-swap", "lock", "try-tools"],
-  Tiles: ["freeform-move", "lock", "try-tools"],
+  Line: ["line-move", "lock", "unlock", "try-tools"],
+  Wheel: ["wheel-swap", "lock", "unlock", "try-tools"],
+  Tiles: ["freeform-move", "lock", "unlock", "try-tools"],
   // Floating's letters just drift: nothing to do, so its hint just says so,
   // then fades on its own
   Floating: ["floating-watch"],

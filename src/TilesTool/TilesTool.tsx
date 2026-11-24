@@ -16,7 +16,6 @@ import { fitToBounds, placeClearOfTiles } from "../lib/place-tiles"
 import type { Board } from "../lib/board"
 import type { BoardActions } from "../hooks/useBoard"
 import type { Hints } from "../hooks/useHints"
-import { currentHint, HINT_TEXT } from "../lib/hints"
 import Hint from "../Hint/Hint"
 
 type Props = {
@@ -64,7 +63,7 @@ export default function TilesTool({ board, actions, hints, ref }: Props) {
   // Moving is learned once tiles have been dragged a couple of times
   const MOVE_LEARNED_AFTER = 2
   const [drags, setDrags] = useState(0)
-  const hint = currentHint("Tiles", hints.learned)
+  const hint = hints.nearLetters("Tiles")
 
   const canvasRef = useRef<HTMLDivElement>(null)
   const shadowCanvasRef = useRef<HTMLDivElement>(null)
@@ -312,7 +311,7 @@ export default function TilesTool({ board, actions, hints, ref }: Props) {
         {tiles.length > 0 && slots.length > 0 && (
           <Hint
             className="freeform-hint"
-            text={hint && HINT_TEXT[hint]}
+            text={hint}
             // Just above where the tiles start out, and it stays there: tiles
             // can be dragged right over it
             style={{ top: slots[0].y }}

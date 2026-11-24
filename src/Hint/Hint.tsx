@@ -7,8 +7,6 @@ export const HINT_FADE_MS = 400
 type Props = {
   // What to show, or nothing
   text: string | null
-  // Move up out of the way, e.g. of the lock button over a selected tile
-  lifted?: boolean
   // How long fading out (or in) takes, if not the usual
   fadeMs?: number
   className?: string
@@ -21,7 +19,6 @@ type Props = {
  */
 export default function Hint({
   text,
-  lifted = false,
   fadeMs = HINT_FADE_MS,
   className,
   style,
@@ -39,9 +36,7 @@ export default function Hint({
 
   return (
     <div
-      className={`hint ${out ? "out" : ""} ${lifted ? "lifted" : ""} ${
-        className ?? ""
-      }`}
+      className={`hint ${out ? "out" : ""} ${className ?? ""}`}
       aria-hidden={out}
       style={
         {
