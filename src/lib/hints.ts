@@ -66,13 +66,11 @@ export function currentHint(
 export const LEARNED_HINTS_KEY = "anagramic.learnedHints"
 
 /*
- * TEMPORARY, while trying the tutorial out: forget what's been learned every
- * time the page loads, so the hints always show from the start.
- *
- * DON'T DEPLOY WITH THIS ON. Set it to false (and re-enable the "remembered
- * after a reload" test in e2e/tutorial.spec.ts) before shipping.
+ * For working on the tutorial locally: set this to true to forget what's been
+ * learned every time the page loads, so the hints always show from the start.
+ * Keep it false in commits: e2e/tutorial.spec.ts checks hints stay learned.
  */
-export const RESET_HINTS_ON_LOAD = true
+export const RESET_HINTS_ON_LOAD = false
 
 const ALL_HINTS = new Set(Object.keys(HINT_TEXT))
 

@@ -14,10 +14,10 @@ Don't store anything else on the device without asking.
 The app is deployed using Vercel, pushing to main deploys. Agents are allowed to
 deploy the app and push to main, if approval is given by the user.
 
-**Temporary, on the tutorial branches:** `RESET_HINTS_ON_LOAD` in
-`src/lib/hints.ts` forgets learned hints on every reload, for testing. Don't
-deploy with it on: turn it off and restore the reload checks in
-`e2e/tutorial.spec.ts` first.
+To see the tutorial hints again while working locally, set
+`RESET_HINTS_ON_LOAD` in `src/lib/hints.ts` to true (it forgets learned hints on
+every reload). Keep it false in commits: the tutorial tests check that learned
+hints stay learned, so they'll fail if it's left on.
 
 **Always run the tests before deploying.** Before pushing to main, run the type
 check, lint, the unit tests and the UI tests (`npx tsc -b`, `npm run lint`,

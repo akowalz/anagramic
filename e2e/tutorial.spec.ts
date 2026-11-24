@@ -159,11 +159,10 @@ test("Floating says to watch, then fades away on its own", async ({ page }) => {
   await expect(hintIn(page, "Floating")).toHaveClass(/\bout\b/, {
     timeout: 6000,
   })
-  // TEMPORARY: while RESET_HINTS_ON_LOAD is on (see src/lib/hints.ts), it
-  // can't stay gone after a reload. Put this back before deploying:
-  //   await page.reload()
-  //   await pickTool(page, "Floating")
-  //   await expect(hintIn(page, "Floating")).toHaveClass(/\bout\b/)
+  // And it stays gone
+  await page.reload()
+  await pickTool(page, "Floating")
+  await expect(hintIn(page, "Floating")).toHaveClass(/\bout\b/)
 })
 
 test("locking is learned once, for every tool", async ({ page }) => {
@@ -180,11 +179,7 @@ test("locking is learned once, for every tool", async ({ page }) => {
   await expectHint(page, "Line", UNLOCK)
 })
 
-// TEMPORARY: skipped while RESET_HINTS_ON_LOAD is on (see src/lib/hints.ts).
-// Re-enable it, with that flag off, before deploying.
-test.fixme("what's been learned is remembered after a reload", async ({
-  page,
-}) => {
+test("what's been learned is remembered after a reload", async ({ page }) => {
   await open(page, WORD)
   await dragToEnd(page, "Line")
   await dragToEnd(page, "Line")
