@@ -23,8 +23,9 @@ test.beforeEach(async ({ page }) => {
 })
 
 const WORD = "ANAGRAMS"
-const LOCK = "Tap a letter, then the lock icon, to lock it in place"
-const UNLOCK = "Tap a letter, then the unlock icon, to unlock it"
+// The icons in these hints read as their names
+const LOCK = "Tap a letter, then lock to keep it in place"
+const UNLOCK = "Tap a locked letter, then unlock to unlock it"
 const TRY_TOOLS = "Try another tool to see the letters in a new way"
 
 /* The hint under the tool picker */

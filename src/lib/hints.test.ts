@@ -65,13 +65,13 @@ describe("currentHint", () => {
 describe("hintText", () => {
   it("says tap on touch screens", () => {
     expect(hintText("lock", { mouse: false })).toBe(
-      "Tap a letter, then the lock icon, to lock it in place",
+      "Tap a letter, then {lock} to keep it in place",
     )
   })
 
   it("says click with a mouse", () => {
     expect(hintText("lock", { mouse: true })).toBe(
-      "Click a letter, then the lock icon, to lock it in place",
+      "Click a letter, then {lock} to keep it in place",
     )
     expect(hintText("line-move", { mouse: true })).toBe(
       "Click and drag to move letters",

@@ -20,3 +20,20 @@
 .hint.out {
   opacity: 0;
 }
+
+/* The lock button's icon, inline in a hint's text */
+.hint-icon svg {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: -0.2em;
+}
+
+/* There for screen readers, not seen */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -21,8 +21,9 @@ export const HINT_TEXT: Record<HintId, string> = {
   "line-move": "Tap and drag to move letters",
   "wheel-swap": "Drag a letter onto another to swap them",
   "freeform-move": "Drag letters anywhere",
-  lock: "Tap a letter, then the lock icon, to lock it in place",
-  unlock: "Tap a letter, then the unlock icon, to unlock it",
+  // {lock} and {unlock} are drawn as the lock button's icons (see Hint)
+  lock: "Tap a letter, then {lock} to keep it in place",
+  unlock: "Tap a locked letter, then {unlock} to unlock it",
   "try-tools": "Try another tool to see the letters in a new way",
   "floating-watch": "Just let the letters float by",
 }

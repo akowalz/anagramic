@@ -1,5 +1,7 @@
 import "./Hint.css"
 import { useEffect, useState } from "react"
+import LockIcon from "../Icons/LockIcon"
+import UnlockIcon from "../Icons/UnlockIcon"
 
 /* How long a hint takes to fade out, or in */
 export const HINT_FADE_MS = 400
@@ -45,7 +47,26 @@ export default function Hint({
         } as React.CSSProperties
       }
     >
-      {shown}
+      {shown && withIcons(shown)}
     </div>
   )
+}
+
+/*
+ * Draw {lock} and {unlock} in a hint as the lock button's icons, so the hint
+ * shows exactly what to look for. Each also has its name, for screen readers.
+ */
+function withIcons(text: string) {
+  return text.split(/(\{lock\}|\{unlock\})/).map((part, index) => {
+    if (part === "{lock}" || part === "{unlock}") {
+      const unlock = part === "{unlock}"
+      return (
+        <span key={index} className="hint-icon">
+          {unlock ? <UnlockIcon /> : <LockIcon />}
+          <span className="visually-hidden">{unlock ? "unlock" : "lock"}</span>
+        </span>
+      )
+    }
+    return part
+  })
 }
