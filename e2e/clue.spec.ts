@@ -1,5 +1,6 @@
 import { expect, test, type Page } from "@playwright/test"
 import {
+  boxOf,
   lettersIn,
   open,
   pickTool,
@@ -44,7 +45,7 @@ test("a clue can be added after typing letters, once the tutorial's done", async
   page,
 }) => {
   await open(page, "cat")
-  const link = page.getByRole("button", { name: "Add a clue" })
+  const link = page.getByRole("button", { name: "Add a clue", exact: true })
 
   // Not until the last hint, to try another tool, is learned
   await expect(link).toHaveCount(0)
@@ -178,4 +179,70 @@ test("letters can still be typed with a clue", async ({ page }) => {
 
   expect(await lettersIn(page, "Line")).toBe("XY")
   await expect(page.locator(".clue-meta")).toContainText("2 of 8 letters")
+})
+
+test.describe("Add a clue and the tutorial", () => {
+  const link = (page: Page) =>
+    page.getByRole("button", { name: "Add a clue", exact: true })
+
+  test("switching tools early still brings it in", async ({ page }) => {
+    // Before the "try another tool" hint has come up: still on the first hint
+    await open(page, "cat")
+    await expect(page.locator(".line-hint")).toHaveText(
+      "Tap and drag to move letters",
+    )
+    await expect(link(page)).toHaveCount(0)
+
+    await pickTool(page, "Wheel")
+
+    await expect(link(page)).toBeVisible()
+  })
+
+  test("with a clue added mid-tutorial, the dropdown counts as trying another tool", async ({
+    page,
+  }) => {
+    await open(page)
+    await addClue(page)
+    await enterClue(page)
+    await typeOnKeyboard(page, "cat")
+    // No tool picker with a clue, so no "try another tool" hint either
+    await expect(page.locator(".toolbar-hint")).toHaveCount(0)
+
+    await page.getByLabel("Tool").selectOption("Wheel")
+    await page.getByRole("button", { name: "Remove clue" }).click()
+
+    await expect(page.locator(".tool-picker")).toBeVisible()
+    await expect(link(page)).toBeVisible()
+    await expect(page.locator(".toolbar-hint")).not.toHaveText(/./)
+  })
+
+  test("with no letters, only the empty prompt's link shows", async ({
+    page,
+  }) => {
+    await open(page, "c")
+    await pickTool(page, "Wheel")
+    await expect(link(page)).toBeVisible()
+
+    // Delete selects the letter, then deletes it
+    await page.getByRole("button", { name: "Delete" }).click()
+    await page.getByRole("button", { name: "Delete" }).click()
+
+    await expect(link(page)).toHaveCount(0)
+    await expect(
+      page.getByRole("button", { name: "or add a clue" }),
+    ).toBeVisible()
+  })
+
+  test("it's under the tool picker in every tool", async ({ page }) => {
+    await open(page, "cat")
+    await pickTool(page, "Wheel")
+
+    for (const tool of ["Line", "Wheel", "Freeform", "Floating"] as const) {
+      await pickTool(page, tool)
+      const picker = await boxOf(page.locator(".tool-picker"))
+      const below = await boxOf(link(page))
+      expect(below.y).toBeGreaterThanOrEqual(picker.y + picker.height - 1)
+      expect(below.y).toBeLessThan(picker.y + picker.height + 20)
+    }
+  })
 })
