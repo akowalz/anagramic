@@ -31,9 +31,20 @@ test("works without a clue, as before", async ({ page }) => {
 
   await expect(page.locator(".tool-picker")).toBeVisible()
   await expect(page.locator(".clue-card")).toHaveCount(0)
-  // A clue is added from the empty prompt, so there's no way in once there
-  // are letters
-  await expect(page.getByRole("button", { name: /clue/i })).toHaveCount(0)
+})
+
+test("a clue can be added after typing letters, keeping them", async ({
+  page,
+}) => {
+  await open(page, "cat")
+
+  await page.getByRole("button", { name: "Add a clue" }).click()
+  await enterClue(page)
+
+  await expect(page.locator(".clue-card")).toBeVisible()
+  expect(await lettersIn(page, "Line")).toBe("CAT")
+  // With a clue showing, it's not needed
+  await expect(page.getByRole("button", { name: "Add a clue" })).toHaveCount(0)
 })
 
 test("a clue can be added from the empty prompt", async ({ page }) => {

@@ -196,6 +196,15 @@ function App() {
             ) : (
               <ToolPicker activeTool={tool} setTool={switchTool} />
             )}
+            {/* Once there are letters, a quieter way in than the empty prompt */}
+            {!clueMode && letters.length > 0 && (
+              <button
+                className="add-clue-link"
+                onClick={() => setEditingClue(true)}
+              >
+                <span aria-hidden>✎</span> Add a clue
+              </button>
+            )}
             {/* Hints about the tool picker, just under it (with a clue, the
                 picker is the dropdown in the header) */}
             {!clueMode && letters.length > 0 && (
