@@ -47,7 +47,7 @@ export default function ClueCard({
                 aria-pressed={isWordUsed(index)}
                 onClick={() => onToggleWord(index, token.letters)}
               >
-                {token.text}
+                {withPunctuation(token.text)}
               </button>
             ) : (
               <span
@@ -138,5 +138,21 @@ function ClueEditor({
         </button>
       </div>
     </form>
+  )
+}
+
+/*
+ * A word with any punctuation in it marked, so the punctuation stays plain
+ * when the word is used (only its letters are)
+ */
+function withPunctuation(text: string) {
+  return text.split(/([^\p{L}\p{N}]+)/u).map((part, index) =>
+    index % 2 === 1 ? (
+      <span key={index} className="clue-punctuation">
+        {part}
+      </span>
+    ) : (
+      part
+    ),
   )
 }
