@@ -39,13 +39,19 @@
   line-height: 1.2;
 }
 
-/* Each word is a button, in the app's button style, to tap for its letters */
+/*
+ * Each word is a soft chip to tap for its letters: a plus while it would add
+ * them, a tick once it has
+ */
 .clue-word {
-  padding: 5px 9px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  box-shadow: 2px 2px 0 var(--shadow);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 11px 5px 8px;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 9%, var(--surface-sunken));
+  box-shadow: none;
   font: inherit;
   font-style: normal;
   font-weight: 500;
@@ -54,13 +60,22 @@
   touch-action: manipulation;
 }
 
-/* Used: pressed in, and in the highlight colour */
+.clue-word::before {
+  content: "+";
+  width: 1em;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
 .clue-word.used {
   font-weight: 700;
-  border-color: var(--highlight);
-  background: color-mix(in srgb, var(--highlight) 30%, var(--surface));
-  box-shadow: none;
-  translate: 2px 2px;
+  background: color-mix(in srgb, var(--highlight) 45%, var(--surface));
+}
+
+.clue-word.used::before {
+  content: "✓";
+  color: var(--text);
 }
 
 .clue-enumeration {

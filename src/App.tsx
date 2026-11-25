@@ -256,7 +256,7 @@ function App() {
                     className="empty-prompt-clue"
                     onClick={() => setEditingClue(true)}
                   >
-                    or add a clue <span aria-hidden>✎</span>
+                    <span aria-hidden>✎</span> or add a clue
                   </button>
                 )}
               </div>
