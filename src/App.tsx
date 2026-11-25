@@ -196,15 +196,20 @@ function App() {
             ) : (
               <ToolPicker activeTool={tool} setTool={switchTool} />
             )}
-            {/* Once there are letters, a quieter way in than the empty prompt */}
-            {!clueMode && letters.length > 0 && (
-              <button
-                className="add-clue-link"
-                onClick={() => setEditingClue(true)}
-              >
-                <span aria-hidden>✎</span> Add a clue
-              </button>
-            )}
+            {/* A quieter way in than the empty prompt, once there are letters.
+                Only after the tutorial's last hint (trying another tool) is
+                done, so new users learn the basics first; it then takes that
+                hint's place under the tool picker for good. */}
+            {!clueMode &&
+              letters.length > 0 &&
+              hints.learned.has("try-tools") && (
+                <button
+                  className="add-clue-link"
+                  onClick={() => setEditingClue(true)}
+                >
+                  <span aria-hidden>✎</span> Add a clue
+                </button>
+              )}
             {/* Hints about the tool picker, just under it (with a clue, the
                 picker is the dropdown in the header) */}
             {!clueMode && letters.length > 0 && (

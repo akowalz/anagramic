@@ -1,5 +1,12 @@
 import { expect, test, type Page } from "@playwright/test"
-import { lettersIn, open, prepare, tiles, typeOnKeyboard } from "./helpers"
+import {
+  lettersIn,
+  open,
+  pickTool,
+  prepare,
+  tiles,
+  typeOnKeyboard,
+} from "./helpers"
 
 /*
  * A clue can be entered for reference. Its words can be tapped to add their
@@ -33,18 +40,30 @@ test("works without a clue, as before", async ({ page }) => {
   await expect(page.locator(".clue-card")).toHaveCount(0)
 })
 
-test("a clue can be added after typing letters, keeping them", async ({
+test("a clue can be added after typing letters, once the tutorial's done", async ({
   page,
 }) => {
   await open(page, "cat")
+  const link = page.getByRole("button", { name: "Add a clue" })
 
-  await page.getByRole("button", { name: "Add a clue" }).click()
+  // Not until the last hint, to try another tool, is learned
+  await expect(link).toHaveCount(0)
+  await pickTool(page, "Wheel")
+  await pickTool(page, "Line")
+  await expect(link).toBeVisible()
+
+  await link.click()
   await enterClue(page)
 
   await expect(page.locator(".clue-card")).toBeVisible()
   expect(await lettersIn(page, "Line")).toBe("CAT")
   // With a clue showing, it's not needed
-  await expect(page.getByRole("button", { name: "Add a clue" })).toHaveCount(0)
+  await expect(link).toHaveCount(0)
+
+  // And it stays from then on
+  await page.getByRole("button", { name: "Remove clue" }).click()
+  await page.reload()
+  await expect(link).toBeVisible()
 })
 
 test("a clue can be added from the empty prompt", async ({ page }) => {

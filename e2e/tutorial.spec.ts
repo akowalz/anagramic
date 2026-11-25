@@ -93,11 +93,12 @@ test("Line teaches moving, locking, unlocking, then trying other tools", async (
   // Trying another tool is shown just under the tool picker
   await expect(toolbarHint(page)).toHaveText(TRY_TOOLS)
   await expect(toolbarHint(page)).not.toHaveClass(/\bout\b/)
-  // (below the "Add a clue" link, which sits right under the picker)
-  const above = await boxOf(page.locator(".add-clue-link"))
+  const picker = await boxOf(page.locator(".tool-picker"))
   const below = await boxOf(toolbarHint(page))
-  expect(below.y).toBeGreaterThanOrEqual(above.y + above.height - 1)
-  expect(below.y).toBeLessThan(above.y + above.height + 20)
+  expect(below.y).toBeGreaterThanOrEqual(picker.y + picker.height - 1)
+  expect(below.y).toBeLessThan(picker.y + picker.height + 20)
+  // "Add a clue" isn't there yet: it comes once this hint is done
+  await expect(page.locator(".add-clue-link")).toHaveCount(0)
   // It wraps rather than running off the sides of the screen
   const viewport = page.viewportSize()!
   expect(below.x).toBeGreaterThanOrEqual(15)
@@ -109,6 +110,8 @@ test("Line teaches moving, locking, unlocking, then trying other tools", async (
   await page.waitForTimeout(600)
   await expect(toolbarHint(page)).toHaveClass(/\bout\b/)
   await expect(hintIn(page, "Line")).toHaveClass(/\bout\b/)
+  // ...and "Add a clue" takes the hint's place
+  await expect(page.locator(".add-clue-link")).toBeVisible()
 })
 
 test("Wheel teaches swapping, then locking", async ({ page }) => {
