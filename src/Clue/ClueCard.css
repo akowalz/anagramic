@@ -41,7 +41,7 @@
 }
 
 /*
- * Each word is a soft chip to tap for its letters, with a tick once it has
+ * Each word is a soft chip to tap for its letters, highlighted once it has
  * added them
  */
 .clue-word {
@@ -64,11 +64,6 @@
 .clue-word.used {
   font-weight: 700;
   background: color-mix(in srgb, var(--highlight) 45%, var(--surface));
-}
-
-.clue-word.used::before {
-  content: "✓";
-  color: var(--text);
 }
 
 .clue-enumeration {
