@@ -9,7 +9,7 @@ export const HINT_FADE_MS = 400
 type Props = {
   // What to show, or nothing
   text: string | null
-  // How long fading out (or in) takes, if not the usual
+  // How long fading out takes, if not the usual (fading in is always quick)
   fadeMs?: number
   className?: string
   style?: React.CSSProperties
@@ -30,7 +30,8 @@ export default function Hint({
   useEffect(() => {
     if (text === shown) return
 
-    const timer = setTimeout(() => setShown(text), fadeMs)
+    // Wait for the old hint to fade out; with nothing showing, no need
+    const timer = setTimeout(() => setShown(text), shown === null ? 0 : fadeMs)
     return () => clearTimeout(timer)
   }, [text, shown, fadeMs])
 

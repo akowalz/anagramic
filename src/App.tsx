@@ -32,6 +32,9 @@ function boardFromUrl(): Board {
   return boardFromString(fodder.replace(/[^a-z]/gi, "").toUpperCase())
 }
 
+/* The "try another tool" hint fades out slowly, then "Add a clue" fades in */
+const TOOLBAR_HINT_FADE_MS = 1200
+
 function App() {
   const [showAboutPage, setShowAboutPage] = useState(false)
   // The letters, their arrangement, locks and selection, shared by the tools
@@ -44,6 +47,11 @@ function App() {
   // The tutorial: hints above the letters, learned by doing what they say
   const hints = useHints()
   const { learn } = hints
+
+  // "Add a clue" takes the "try another tool" hint's place once that's
+  // learned. If that happens now, it waits for the hint to fade out first;
+  // if it was learned on an earlier visit, it's just there.
+  const [toolsKnownAtStart] = useState(() => hints.learned.has("try-tools"))
 
   // Each tool uses the selection in its own way (in the wheel, tapping
   // another tile swaps with it), so a new tool starts with nothing selected
@@ -204,7 +212,14 @@ function App() {
               letters.length > 0 &&
               hints.learned.has("try-tools") && (
                 <button
-                  className="add-clue-link"
+                  className={`add-clue-link ${
+                    toolsKnownAtStart ? "" : "after-hint"
+                  }`}
+                  style={
+                    {
+                      "--hint-gone": `${TOOLBAR_HINT_FADE_MS}ms`,
+                    } as React.CSSProperties
+                  }
                   onClick={() => setEditingClue(true)}
                 >
                   <span aria-hidden>✎</span> Add a clue
@@ -213,7 +228,11 @@ function App() {
             {/* Hints about the tool picker, just under it (with a clue, the
                 picker is the dropdown in the header) */}
             {!clueMode && letters.length > 0 && (
-              <Hint className="toolbar-hint" text={hints.underToolbar(tool)} />
+              <Hint
+                className="toolbar-hint"
+                text={hints.underToolbar(tool)}
+                fadeMs={TOOLBAR_HINT_FADE_MS}
+              />
             )}
           </div>
 

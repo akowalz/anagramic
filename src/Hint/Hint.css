@@ -14,11 +14,14 @@
   color: var(--text-muted);
   pointer-events: none;
   opacity: 1;
-  transition: opacity var(--hint-fade) ease-out;
+  /* Fading in */
+  transition: opacity 400ms ease-out;
 }
 
+/* Fading out, which some hints do slowly (see fadeMs) */
 .hint.out {
   opacity: 0;
+  transition: opacity var(--hint-fade) ease-in-out;
 }
 
 /* The lock button's icon, inline in a hint's text */

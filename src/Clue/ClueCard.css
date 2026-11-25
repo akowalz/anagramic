@@ -40,14 +40,14 @@
 }
 
 /*
- * Each word is a soft chip to tap for its letters: a plus while it would add
- * them, a tick once it has
+ * Each word is a soft chip to tap for its letters, with a tick once it has
+ * added them
  */
 .clue-word {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 5px 11px 5px 8px;
+  padding: 5px 11px;
   border: none;
   border-radius: 999px;
   background: color-mix(in srgb, var(--text) 9%, var(--surface-sunken));
@@ -58,14 +58,6 @@
   color: var(--text);
   white-space: nowrap;
   touch-action: manipulation;
-}
-
-.clue-word::before {
-  content: "+";
-  width: 1em;
-  text-align: center;
-  font-weight: 700;
-  color: var(--text-muted);
 }
 
 .clue-word.used {
