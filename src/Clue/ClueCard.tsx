@@ -36,15 +36,6 @@ export default function ClueCard({
 
   return (
     <div className="clue-card">
-      <div className="clue-card-actions">
-        <button aria-label="Edit clue" onClick={onEdit}>
-          ✎
-        </button>
-        <button aria-label="Remove clue" onClick={onRemove}>
-          ✕
-        </button>
-      </div>
-
       <p className="clue-text">
         {tokens.map((token, index) => (
           // Real spaces between words, so the clue reads (and copies) properly
@@ -71,12 +62,21 @@ export default function ClueCard({
         ))}
       </p>
 
+      {/* Down here, so the words can use the card's full width */}
       <div className="clue-meta">
         <span>Tap words to use their letters</span>
-        <span>
+        <span className="clue-meta-end">
           {length === null
             ? `${letterCount} ${letterCount === 1 ? "letter" : "letters"}`
             : `${letterCount} of ${length} letters`}
+          <span className="clue-card-actions">
+            <button aria-label="Edit clue" onClick={onEdit}>
+              ✎
+            </button>
+            <button aria-label="Remove clue" onClick={onRemove}>
+              ✕
+            </button>
+          </span>
         </span>
       </div>
     </div>
