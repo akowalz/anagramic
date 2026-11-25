@@ -233,6 +233,17 @@ test.describe("Add a clue and the tutorial", () => {
     ).toBeVisible()
   })
 
+  test("it doesn't cover the tool, so taps there still reach it", async ({
+    page,
+  }) => {
+    await open(page, "cat")
+    await pickTool(page, "Freeform")
+
+    const below = await boxOf(link(page))
+    const tool = await boxOf(page.locator("#tool-container"))
+    expect(below.y + below.height).toBeLessThanOrEqual(tool.y + 1)
+  })
+
   test("it's under the tool picker in every tool", async ({ page }) => {
     await open(page, "cat")
     await pickTool(page, "Wheel")
