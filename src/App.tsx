@@ -32,6 +32,12 @@ function boardFromUrl(): Board {
   return boardFromString(fodder.replace(/[^a-z]/gi, "").toUpperCase())
 }
 
+/* A clue from a shared link (?clue=...) */
+function clueFromUrl(): string | null {
+  const clue = new URLSearchParams(window.location.search).get("clue")
+  return clue?.trim() || null
+}
+
 /* The "try another tool" hint fades out slowly, then "Add a clue" fades in */
 const TOOLBAR_HINT_FADE_MS = 1200
 
@@ -90,7 +96,7 @@ function App() {
   // A clue entered for reference (null for none). Its words can be tapped to
   // add their letters: `clueWordLetters` keeps the ids of the letters each
   // tapped word added, by the word's position in the clue.
-  const [clue, setClue] = useState<string | null>(null)
+  const [clue, setClue] = useState(clueFromUrl)
   const [editingClue, setEditingClue] = useState(false)
   const [clueWordLetters, setClueWordLetters] = useState<
     Record<number, number[]>
@@ -138,7 +144,8 @@ function App() {
   // The letter keys type into the clue while it's being edited
   useTypedKeys(!showAboutPage && !editingClue, actions.typeLetter, pressDelete)
 
-  // Keep the link in step with the letters so it can be shared
+  // Keep the link in step with the letters and clue, so it can be shared
+  // and survives a reload
   useEffect(() => {
     const url = new URL(window.location.href)
     if (letters.length > 0) {
@@ -146,8 +153,13 @@ function App() {
     } else {
       url.searchParams.delete("fodder")
     }
+    if (clue !== null) {
+      url.searchParams.set("clue", clue)
+    } else {
+      url.searchParams.delete("clue")
+    }
     window.history.replaceState(null, "", url)
-  }, [letters])
+  }, [letters, clue])
 
   // Each tool hands the app its actions through one of these
   const tilesRef = useRef<ToolActions>(null)

@@ -191,6 +191,24 @@ test("the count turns yellow at the answer's length, and red past it", async ({
   await expect(count).toHaveClass(/\bover\b/)
 })
 
+test("the clue is kept in the link, so it survives a reload", async ({
+  page,
+}) => {
+  await open(page)
+  await addClue(page)
+  await enterClue(page)
+  await clueWord(page, "nag").click()
+  expect(new URL(page.url()).searchParams.get("clue")).toBe(CLUE)
+
+  await page.reload()
+
+  await expect(page.locator(".clue-text")).toContainText("a nag mars")
+  expect(await lettersIn(page, "Line")).toBe("NAG")
+
+  await page.getByRole("button", { name: "Remove clue" }).click()
+  expect(new URL(page.url()).searchParams.has("clue")).toBe(false)
+})
+
 test("letters can still be typed with a clue", async ({ page }) => {
   await open(page)
   await addClue(page)
