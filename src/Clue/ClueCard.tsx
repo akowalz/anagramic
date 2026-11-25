@@ -66,9 +66,24 @@ export default function ClueCard({
       <div className="clue-meta">
         <span>Tap words to use their letters</span>
         <span className="clue-meta-end">
-          {length === null
-            ? `${letterCount} ${letterCount === 1 ? "letter" : "letters"}`
-            : `${letterCount} of ${length} letters`}
+          {length === null ? (
+            `${letterCount} ${letterCount === 1 ? "letter" : "letters"}`
+          ) : (
+            // Against the answer's length: yellow when it matches, red when
+            // there are too many
+            <span
+              className={`clue-count ${
+                letterCount === length
+                  ? "exact"
+                  : letterCount > length
+                    ? "over"
+                    : ""
+              }`}
+              aria-label={`${letterCount} of ${length} letters`}
+            >
+              {letterCount}/{length}
+            </span>
+          )}
           <span className="clue-card-actions">
             <button aria-label="Edit clue" onClick={onEdit}>
               ✎

@@ -90,7 +90,7 @@ test("tapping clue words adds their letters, and again takes them out", async ({
   await open(page)
   await addClue(page)
   await enterClue(page)
-  await expect(page.locator(".clue-meta")).toContainText("0 of 8 letters")
+  await expect(page.locator(".clue-count")).toHaveText("0/8")
 
   await clueWord(page, "a").click()
   await clueWord(page, "nag").click()
@@ -98,13 +98,13 @@ test("tapping clue words adds their letters, and again takes them out", async ({
 
   expect(await lettersIn(page, "Line")).toBe("ANAGMARS")
   await expect(clueWord(page, "nag")).toHaveClass(/\bused\b/)
-  await expect(page.locator(".clue-meta")).toContainText("8 of 8 letters")
+  await expect(page.locator(".clue-count")).toHaveText("8/8")
 
   await clueWord(page, "nag").click()
 
   expect(await lettersIn(page, "Line")).toBe("AMARS")
   await expect(clueWord(page, "nag")).not.toHaveClass(/\bused\b/)
-  await expect(page.locator(".clue-meta")).toContainText("5 of 8 letters")
+  await expect(page.locator(".clue-count")).toHaveText("5/8")
 })
 
 test("a word stays used only while its letters are there", async ({ page }) => {
@@ -170,6 +170,27 @@ test("an emptied clue is no clue", async ({ page }) => {
   await expect(page.locator(".tool-picker")).toBeVisible()
 })
 
+test("the count turns yellow at the answer's length, and red past it", async ({
+  page,
+}) => {
+  await open(page)
+  await addClue(page)
+  await enterClue(page, "A short clue (3)")
+  const count = page.locator(".clue-count")
+
+  await typeOnKeyboard(page, "ab")
+  await expect(count).toHaveText("2/3")
+  await expect(count).not.toHaveClass(/\b(exact|over)\b/)
+
+  await typeOnKeyboard(page, "c")
+  await expect(count).toHaveText("3/3")
+  await expect(count).toHaveClass(/\bexact\b/)
+
+  await typeOnKeyboard(page, "d")
+  await expect(count).toHaveText("4/3")
+  await expect(count).toHaveClass(/\bover\b/)
+})
+
 test("letters can still be typed with a clue", async ({ page }) => {
   await open(page)
   await addClue(page)
@@ -178,7 +199,7 @@ test("letters can still be typed with a clue", async ({ page }) => {
   await typeOnKeyboard(page, "xy")
 
   expect(await lettersIn(page, "Line")).toBe("XY")
-  await expect(page.locator(".clue-meta")).toContainText("2 of 8 letters")
+  await expect(page.locator(".clue-count")).toHaveText("2/8")
 })
 
 test.describe("Add a clue and the tutorial", () => {

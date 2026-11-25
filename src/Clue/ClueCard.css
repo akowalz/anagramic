@@ -101,3 +101,18 @@
   padding: 4px 12px;
   font-size: 15px;
 }
+
+/* Letters against the answer's length */
+.clue-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.clue-count.exact {
+  color: var(--count-exact);
+  font-weight: 700;
+}
+
+.clue-count.over {
+  color: var(--count-over);
+  font-weight: 600;
+}

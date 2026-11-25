@@ -71,6 +71,10 @@ body {
 
   --wheel-track: lightgrey;
 
+  /* The clue's letter count: just right, and too many */
+  --count-exact: #a16207;
+  --count-over: #b4423a;
+
   --key-bg: #d9d7da;
   --key-bg-hover: #cecdd0;
   --key-bg-active: #bebcc0;
@@ -116,6 +120,9 @@ body {
     --locked-text: var(--darkest);
 
     --wheel-track: #3a323b;
+
+    --count-exact: var(--highlight);
+    --count-over: #ec8a80;
 
     --key-bg: #3b333c;
     --key-bg-hover: #463d47;
