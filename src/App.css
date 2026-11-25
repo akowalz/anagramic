@@ -14,17 +14,6 @@
   text-align: left;
 }
 
-/* Opens the clue editor; once there's a clue, the tool picker goes here */
-.clue-button {
-  gap: 6px;
-  padding: 6px 10px;
-  font-size: 15px;
-}
-
-.clue-button > span {
-  font-style: normal;
-}
-
 h1 {
   font-size: 1.8em;
   margin-block-start: 0.2em;
@@ -60,9 +49,9 @@ h1:hover {
   pointer-events: none;
 }
 
+/* One link, underlined all the way along, pencil and all */
 .empty-prompt-clue {
-  display: flex;
-  gap: 6px;
+  display: block;
   margin: 14px auto 0;
   padding: 4px 6px;
   border: none;

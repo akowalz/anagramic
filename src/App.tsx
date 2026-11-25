@@ -171,19 +171,10 @@ function App() {
     <>
       <div id="header">
         <h1 onClick={() => setShowAboutPage(!showAboutPage)}>anagramic</h1>
-        {!showAboutPage &&
-          (clueMode ? (
-            // The clue takes the tool picker's place, so it moves up here
-            <ToolDropdown activeTool={tool} setTool={switchTool} />
-          ) : (
-            <button
-              className="clue-button"
-              onClick={() => setEditingClue(true)}
-            >
-              <span aria-hidden>✎</span>
-              Clue
-            </button>
-          ))}
+        {/* The clue takes the tool picker's place, so it moves up here */}
+        {!showAboutPage && clueMode && (
+          <ToolDropdown activeTool={tool} setTool={switchTool} />
+        )}
       </div>
 
       {showAboutPage ? (
@@ -265,7 +256,7 @@ function App() {
                     className="empty-prompt-clue"
                     onClick={() => setEditingClue(true)}
                   >
-                    <span aria-hidden>✎</span> or add a clue
+                    or add a clue <span aria-hidden>✎</span>
                   </button>
                 )}
               </div>

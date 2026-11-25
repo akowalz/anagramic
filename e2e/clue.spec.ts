@@ -16,6 +16,11 @@ function clueWord(page: Page, word: string) {
   return page.locator(".clue-word", { hasText: new RegExp(`^${word}$`) })
 }
 
+/* Open the clue box from the empty prompt */
+async function addClue(page: Page) {
+  await page.getByRole("button", { name: "or add a clue" }).click()
+}
+
 async function enterClue(page: Page, clue = CLUE) {
   await page.getByLabel("Clue", { exact: true }).fill(clue)
   await page.getByRole("button", { name: "Done" }).click()
@@ -26,15 +31,15 @@ test("works without a clue, as before", async ({ page }) => {
 
   await expect(page.locator(".tool-picker")).toBeVisible()
   await expect(page.locator(".clue-card")).toHaveCount(0)
-  await expect(
-    page.getByRole("button", { name: "Clue", exact: true }),
-  ).toBeVisible()
+  // A clue is added from the empty prompt, so there's no way in once there
+  // are letters
+  await expect(page.getByRole("button", { name: /clue/i })).toHaveCount(0)
 })
 
-test("a clue can be added from the header", async ({ page }) => {
-  await open(page, "cat")
+test("a clue can be added from the empty prompt", async ({ page }) => {
+  await open(page)
 
-  await page.getByRole("button", { name: "Clue", exact: true }).click()
+  await addClue(page)
   await expect(page.getByLabel("Clue", { exact: true })).toBeFocused()
   await enterClue(page)
 
@@ -42,16 +47,6 @@ test("a clue can be added from the header", async ({ page }) => {
   // The tool picker moves into a dropdown in the header
   await expect(page.locator(".tool-picker")).toHaveCount(0)
   await expect(page.getByLabel("Tool")).toHaveValue("Line")
-  // Letters already there stay
-  expect(await lettersIn(page, "Line")).toBe("CAT")
-})
-
-test("a clue can be added from the empty prompt", async ({ page }) => {
-  await open(page)
-
-  await page.getByRole("button", { name: "or add a clue" }).click()
-  await enterClue(page)
-
   await expect(page.locator(".clue-card")).toBeVisible()
   await expect(
     page.getByText("Tap words in the clue, or type").filter({ visible: true }),
@@ -62,7 +57,7 @@ test("tapping clue words adds their letters, and again takes them out", async ({
   page,
 }) => {
   await open(page)
-  await page.getByRole("button", { name: "Clue", exact: true }).click()
+  await addClue(page)
   await enterClue(page)
   await expect(page.locator(".clue-meta")).toContainText("0 of 8 letters")
 
@@ -83,7 +78,7 @@ test("tapping clue words adds their letters, and again takes them out", async ({
 
 test("a word stays used only while its letters are there", async ({ page }) => {
   await open(page)
-  await page.getByRole("button", { name: "Clue", exact: true }).click()
+  await addClue(page)
   await enterClue(page)
   await clueWord(page, "a").click()
 
@@ -97,7 +92,7 @@ test("a word stays used only while its letters are there", async ({ page }) => {
 
 test("typing the clue doesn't type letters", async ({ page }) => {
   await open(page)
-  await page.getByRole("button", { name: "Clue", exact: true }).click()
+  await addClue(page)
 
   await page.keyboard.type("Some clue")
 
@@ -108,9 +103,10 @@ test("typing the clue doesn't type letters", async ({ page }) => {
 })
 
 test("the dropdown switches tools", async ({ page }) => {
-  await open(page, "cat")
-  await page.getByRole("button", { name: "Clue", exact: true }).click()
+  await open(page)
+  await addClue(page)
   await enterClue(page)
+  await typeOnKeyboard(page, "cat")
 
   await page.getByLabel("Tool").selectOption("Wheel")
 
@@ -119,7 +115,7 @@ test("the dropdown switches tools", async ({ page }) => {
 
 test("the clue can be edited, and removed", async ({ page }) => {
   await open(page)
-  await page.getByRole("button", { name: "Clue", exact: true }).click()
+  await addClue(page)
   await enterClue(page)
 
   await page.getByRole("button", { name: "Edit clue" }).click()
@@ -135,7 +131,7 @@ test("the clue can be edited, and removed", async ({ page }) => {
 
 test("an emptied clue is no clue", async ({ page }) => {
   await open(page)
-  await page.getByRole("button", { name: "Clue", exact: true }).click()
+  await addClue(page)
 
   await enterClue(page, "   ")
 
@@ -145,7 +141,7 @@ test("an emptied clue is no clue", async ({ page }) => {
 
 test("letters can still be typed with a clue", async ({ page }) => {
   await open(page)
-  await page.getByRole("button", { name: "Clue", exact: true }).click()
+  await addClue(page)
   await enterClue(page)
 
   await typeOnKeyboard(page, "xy")
