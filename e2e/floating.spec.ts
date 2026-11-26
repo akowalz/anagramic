@@ -79,3 +79,15 @@ test("delete highlights the letter it's about to delete", async ({ page }) => {
 
   await expect(selectedTile(page, "Floating")).toHaveText("T")
 })
+
+test("fits a short screen, keyboard and all", async ({ page }) => {
+  // e.g. an iPad's Slide Over window, or an iPhone SE
+  await page.setViewportSize({ width: 510, height: 600 })
+
+  const box = await boxOf(page.locator(".floating-tool-box"))
+  const keyboard = await boxOf(page.locator(".keyboard"))
+
+  expect(box.width).toBeCloseTo(box.height, 0)
+  expect(box.y + box.height).toBeLessThanOrEqual(keyboard.y)
+  expect(keyboard.y + keyboard.height).toBeLessThanOrEqual(600 + 1)
+})

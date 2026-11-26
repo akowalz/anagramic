@@ -1,4 +1,6 @@
+/* Sized by the room it's given, not its box, so the box can fit inside */
 .floating-tool-container {
+  container-type: size;
   width: 100%;
   height: 100%;
   display: flex;
@@ -12,14 +14,12 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 100%;
-  max-width: 500px;
-  height: auto;
+  /* Square, as big as fits both ways (short screens are wider than tall) */
+  width: min(100cqw, 100cqh, 500px);
   aspect-ratio: 1/1;
   background-color: var(--surface-sunken);
   border: 1px solid;
   border-color: var(--border);
-  border-radius: 4px;
   border-radius: 4px;
 }
 
