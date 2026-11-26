@@ -127,6 +127,13 @@ function App() {
     }))
   }
 
+  // The phone's own keyboard comes up for the clue, so the app's one goes
+  // away (and stays away after: they can open it again if they want it)
+  function openClueEditor() {
+    setKeyboardOpen(false)
+    setEditingClue(true)
+  }
+
   function saveClue(text: string) {
     const trimmed = text.trim()
     setEditingClue(false)
@@ -210,7 +217,7 @@ function App() {
                 isWordUsed={isWordUsed}
                 onToggleWord={toggleClueWord}
                 onSave={saveClue}
-                onEdit={() => setEditingClue(true)}
+                onEdit={openClueEditor}
                 onRemove={removeClue}
               />
             ) : (
@@ -232,7 +239,7 @@ function App() {
                       "--hint-gone": `${TOOLBAR_HINT_FADE_MS}ms`,
                     } as React.CSSProperties
                   }
-                  onClick={() => setEditingClue(true)}
+                  onClick={openClueEditor}
                 >
                   <span aria-hidden>✎</span> Add a clue
                 </button>
@@ -299,7 +306,7 @@ function App() {
                 {!clueMode && (
                   <button
                     className="empty-prompt-clue"
-                    onClick={() => setEditingClue(true)}
+                    onClick={openClueEditor}
                   >
                     <span aria-hidden>✎</span> or add a clue
                   </button>
