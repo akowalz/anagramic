@@ -14,7 +14,9 @@ function tile(id: number, x: number, y: number) {
 }
 
 function overlaps(a: { x: number; y: number }, b: { x: number; y: number }) {
-  return Math.abs(a.x - b.x) < TILE_FOOTPRINT && Math.abs(a.y - b.y) < TILE_FOOTPRINT
+  return (
+    Math.abs(a.x - b.x) < TILE_FOOTPRINT && Math.abs(a.y - b.y) < TILE_FOOTPRINT
+  )
 }
 
 describe("resolveOverlaps", () => {

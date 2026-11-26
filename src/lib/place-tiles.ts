@@ -68,8 +68,10 @@ export function nearestFreeSpot(
 
   // Every spot on a grid through the start, nearest first
   const spots: Pos[] = []
-  const fromX = start.x - Math.floor((start.x - bounds.left) / SEARCH_STEP) * SEARCH_STEP
-  const fromY = start.y - Math.floor((start.y - bounds.top) / SEARCH_STEP) * SEARCH_STEP
+  const fromX =
+    start.x - Math.floor((start.x - bounds.left) / SEARCH_STEP) * SEARCH_STEP
+  const fromY =
+    start.y - Math.floor((start.y - bounds.top) / SEARCH_STEP) * SEARCH_STEP
   for (let x = fromX; x <= maxX; x += SEARCH_STEP) {
     for (let y = fromY; y <= maxY; y += SEARCH_STEP) {
       spots.push({ x, y })

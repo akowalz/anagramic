@@ -20,8 +20,9 @@ every reload). Keep it false in commits: the tutorial tests check that learned
 hints stay learned, so they'll fail if it's left on.
 
 **Always run the tests before deploying.** Before pushing to main, run the type
-check, lint, the unit tests and the UI tests (`npx tsc -b`, `npm run lint`,
-`npx vitest run`, `npm run test:ui`), and only push if they all pass. Nothing
+check, lint, the format check, the unit tests and the UI tests (`npx tsc -b`,
+`npm run lint`, `npm run format:check`, `npx vitest run`, `npm run test:ui`),
+and only push if they all pass. Nothing
 else runs them: Vercel deploys whatever is pushed.
 
 The app is primarily designed to be used on mobile, but it also looks nice on
@@ -40,13 +41,15 @@ Dependencies are managed with npm (`package-lock.json`). Run `npm install` first
   `tsconfig.json`, which cover `tsconfig.app.json`, `tsconfig.node.json` and
   `tsconfig.e2e.json` for the UI tests)
 - `npm run lint` — run ESLint
+- `npm run format` — format everything with Prettier (`npm run format:check`
+  just checks). Format what you change before committing
 - `npm run build` — type check and produce a production build in `dist/`
 - `npm run preview` — serve the production build locally
 - `npm test` — unit tests (Vitest); `npx vitest run` for a single run
 - `npm run test:ui` — UI tests in a real browser (Playwright); see "Tests" below
 - `npm run share [name]` - share a public link with ngrok (handy if using remote-control to make changes); see "Sharing a dev server" below
 
-Run the type check and lint after making changes.
+Run the type check, lint and the format check after making changes.
 
 ## Sharing a dev server at a public URL (ngrok)
 

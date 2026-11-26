@@ -15,7 +15,9 @@ function tileAt(id: number, x: number, y: number, locked = false): TestTile {
 }
 
 function overlaps(a: Pos, b: Pos) {
-  return Math.abs(a.x - b.x) < TILE_FOOTPRINT && Math.abs(a.y - b.y) < TILE_FOOTPRINT
+  return (
+    Math.abs(a.x - b.x) < TILE_FOOTPRINT && Math.abs(a.y - b.y) < TILE_FOOTPRINT
+  )
 }
 
 describe("clampToBounds", () => {
@@ -54,7 +56,10 @@ describe("fitToBounds", () => {
 
     const [tile] = fitToBounds(tiles, smaller)
 
-    expect(tile.pos).toEqual({ x: 200 - TILE_FOOTPRINT, y: 150 - TILE_FOOTPRINT })
+    expect(tile.pos).toEqual({
+      x: 200 - TILE_FOOTPRINT,
+      y: 150 - TILE_FOOTPRINT,
+    })
   })
 
   it("separates tiles that end up on top of each other", () => {
@@ -116,7 +121,12 @@ describe("placeClearOfTiles", () => {
     const row = [0, 1, 2, 3, 4].map((i) => tileAt(i, 50 + i * settled, 100))
     const tiles = [...row, tileAt(9, 0, 0)]
 
-    const placed = placeClearOfTiles(tiles, 9, { x: 50 + 2 * settled + 5, y: 100 }, bounds)
+    const placed = placeClearOfTiles(
+      tiles,
+      9,
+      { x: 50 + 2 * settled + 5, y: 100 },
+      bounds,
+    )
 
     const newTile = placed[5]
     row.forEach((tile, i) => {
@@ -124,11 +134,16 @@ describe("placeClearOfTiles", () => {
       expect(overlaps(newTile.pos, tile.pos)).toBe(false)
     })
     // Just above or below the row, not far away
-    expect(Math.abs(newTile.pos.y - 100)).toBeLessThanOrEqual(settled + SEARCH_SLACK)
+    expect(Math.abs(newTile.pos.y - 100)).toBeLessThanOrEqual(
+      settled + SEARCH_SLACK,
+    )
   })
 
   it("stays inside the bounds", () => {
-    const tiles = [tileAt(0, 400 - TILE_FOOTPRINT, 300 - TILE_FOOTPRINT), tileAt(1, 0, 0)]
+    const tiles = [
+      tileAt(0, 400 - TILE_FOOTPRINT, 300 - TILE_FOOTPRINT),
+      tileAt(1, 0, 0),
+    ]
 
     const placed = placeClearOfTiles(tiles, 1, { x: 390, y: 290 }, bounds)
 

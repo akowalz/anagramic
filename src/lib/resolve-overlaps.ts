@@ -6,7 +6,12 @@ export type Pos = { x: number; y: number }
  * Area tiles must stay within, in canvas coordinates. It can extend past the
  * canvas (e.g. a negative left) since tiles may sit in the margins around it.
  */
-export type Bounds = { left: number; top: number; right: number; bottom: number }
+export type Bounds = {
+  left: number
+  top: number
+  right: number
+  bottom: number
+}
 
 /* Breathing room left between tiles once repulsion has separated them */
 export const TILE_GAP = 6
@@ -24,11 +29,7 @@ const MAX_PUSH_PASSES = 20
  */
 export function resolveOverlaps<
   T extends { id: number; pos: Pos; locked?: boolean },
->(
-  tiles: T[],
-  droppedId: number,
-  bounds: Bounds,
-): T[] {
+>(tiles: T[], droppedId: number, bounds: Bounds): T[] {
   const positions = tiles.map((tile) => ({ ...tile.pos }))
   const settledDist = TILE_FOOTPRINT + TILE_GAP
 
@@ -56,7 +57,8 @@ export function resolveOverlaps<
         const dy = posB.y - posA.y
 
         // Tiles are axis-aligned squares: no overlap unless both axes overlap
-        if (Math.abs(dx) >= TILE_FOOTPRINT || Math.abs(dy) >= TILE_FOOTPRINT) continue
+        if (Math.abs(dx) >= TILE_FOOTPRINT || Math.abs(dy) >= TILE_FOOTPRINT)
+          continue
 
         // Separate along the axis that needs the smallest shift
         const pushX = (dx >= 0 ? 1 : -1) * (settledDist - Math.abs(dx))
@@ -80,8 +82,14 @@ export function resolveOverlaps<
         } else if (tiles[j].id === droppedId) {
           positions[i] = clamp({ x: posA.x - push.x, y: posA.y - push.y })
         } else {
-          positions[i] = clamp({ x: posA.x - push.x / 2, y: posA.y - push.y / 2 })
-          positions[j] = clamp({ x: posB.x + push.x / 2, y: posB.y + push.y / 2 })
+          positions[i] = clamp({
+            x: posA.x - push.x / 2,
+            y: posA.y - push.y / 2,
+          })
+          positions[j] = clamp({
+            x: posB.x + push.x / 2,
+            y: posB.y + push.y / 2,
+          })
         }
         anyPushed = true
       }

@@ -24,11 +24,8 @@ body {
  */
 @media (display-mode: standalone) {
   #root {
-    padding:
-      calc(env(safe-area-inset-top) + 20px)
-      env(safe-area-inset-right)
-      env(safe-area-inset-bottom)
-      env(safe-area-inset-left);
+    padding: calc(env(safe-area-inset-top) + 20px) env(safe-area-inset-right)
+      env(safe-area-inset-bottom) env(safe-area-inset-left);
   }
 }
 
@@ -43,7 +40,7 @@ body {
   --middle: #ebebeb;
   --lighter: #f4f4f4;
   --lightest: #f7f7f7;
-  --highlight: #EAB308;
+  --highlight: #eab308;
 
   /*
    * Theme. Components use these, never the palette directly, so the dark
