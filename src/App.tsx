@@ -1,6 +1,13 @@
 import "./App.css"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { TOOL_BUTTONS, type ToolActions } from "./Types/ToolActions"
 import { type Tool } from "./Types/Tool"
 
@@ -129,11 +136,13 @@ function App() {
   // The phone's own keyboard comes up for the clue, so the app's one goes
   // away (and stays away after: they can open it again if they want it)
   function openClueEditor() {
+    notePickerPlace()
     setKeyboardOpen(false)
     setEditingClue(true)
   }
 
   function saveClue(text: string) {
+    notePickerPlace()
     const trimmed = text.trim()
     setEditingClue(false)
     // An emptied clue is no clue. The letters it added stay either way.
@@ -142,10 +151,47 @@ function App() {
   }
 
   function removeClue() {
+    notePickerPlace()
     setEditingClue(false)
     setClue(null)
     setClueWordLetters({})
   }
+
+  // With a clue and the in-app keyboard both taking room, the tool picker
+  // moves up into the header, smaller. It glides between the two places:
+  // where it was is noted before a change that moves it, and it animates
+  // from there.
+  const pickerInHeader = clue !== null && !editingClue && keyboardOpen
+  const pickerFrom = useRef<DOMRect | null>(null)
+  function notePickerPlace() {
+    pickerFrom.current =
+      document.querySelector(".tool-picker")?.getBoundingClientRect() ?? null
+  }
+  function showKeyboard(open: boolean) {
+    notePickerPlace()
+    setKeyboardOpen(open)
+  }
+  useLayoutEffect(() => {
+    const from = pickerFrom.current
+    pickerFrom.current = null
+    const picker = document.querySelector(".tool-picker")
+    if (!from || !picker) return
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+
+    const to = picker.getBoundingClientRect()
+    picker.animate(
+      [
+        {
+          transformOrigin: "top left",
+          transform: `translate(${from.left - to.left}px, ${
+            from.top - to.top
+          }px) scale(${from.width / to.width})`,
+        },
+        { transformOrigin: "top left", transform: "none" },
+      ],
+      { duration: 320, easing: "cubic-bezier(0.2, 0.8, 0.2, 1)" },
+    )
+  }, [pickerInHeader])
 
   // The letter keys type into the clue while it's being edited
   useTypedKeys(!showAboutPage && !editingClue, actions.typeLetter, pressDelete)
@@ -197,6 +243,9 @@ function App() {
     <>
       <div id="header">
         <h1 onClick={() => setShowAboutPage(!showAboutPage)}>anagramic</h1>
+        {!showAboutPage && pickerInHeader && (
+          <ToolPicker compact activeTool={tool} setTool={switchTool} />
+        )}
       </div>
 
       {showAboutPage ? (
@@ -217,7 +266,9 @@ function App() {
                 onRemove={removeClue}
               />
             )}
-            <ToolPicker activeTool={tool} setTool={switchTool} />
+            {!pickerInHeader && (
+              <ToolPicker activeTool={tool} setTool={switchTool} />
+            )}
             {/* A quieter way in than the empty prompt, once there are letters.
                 Only after the tutorial's last hint (trying another tool) is
                 done, so new users learn the basics first; it then takes that
@@ -240,7 +291,7 @@ function App() {
                 </button>
               )}
             {/* Hints about the tool picker, just under it */}
-            {letters.length > 0 && (
+            {letters.length > 0 && !pickerInHeader && (
               <Hint
                 className="toolbar-hint"
                 text={hints.underToolbar(tool)}
@@ -311,7 +362,7 @@ function App() {
 
           <div className="tool-footer">
             {!keyboardOpen && (
-              <button onClick={() => setKeyboardOpen(true)}>
+              <button onClick={() => showKeyboard(true)}>
                 <KeyboardIcon />
                 Keyboard
               </button>
@@ -334,7 +385,7 @@ function App() {
 
           <Keyboard
             open={keyboardOpen}
-            onHide={() => setKeyboardOpen(false)}
+            onHide={() => showKeyboard(false)}
             onLetter={actions.typeLetter}
             onDelete={pressDelete}
           />

@@ -53,3 +53,23 @@
   background-color: var(--surface-selected);
   color: var(--text);
 }
+
+/* In the header, beside the title (with a clue and the keyboard open) */
+.tool-picker-container.compact {
+  /* Above the clue as it glides up past it */
+  position: relative;
+  z-index: 3;
+  margin-left: 8px;
+  font-size: 12.5px;
+}
+
+.tool-picker-container.compact .tool-picker {
+  --gap: 4px;
+
+  margin-bottom: 0;
+  padding: 2px;
+}
+
+.tool-picker-container.compact .tool-picker-tool {
+  padding: 5px 4px;
+}

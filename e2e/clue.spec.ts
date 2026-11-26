@@ -222,6 +222,31 @@ test("the in-app keyboard closes while entering a clue, and stays closed", async
   await expect(footerButton(page, "Keyboard")).toBeVisible()
 })
 
+test("with the keyboard open too, the tool picker moves up into the header", async ({
+  page,
+}) => {
+  await open(page)
+  await addClue(page)
+  await enterClue(page)
+  const picker = page.locator(".tool-picker")
+  await expect(page.locator("#main-navigation .tool-picker")).toBeVisible()
+
+  await showKeyboard(page)
+  await expect(page.locator("#header .tool-picker")).toBeVisible()
+  await expect(picker).toHaveCount(1)
+  // Still there to use
+  await pickTool(page, "Wheel")
+  await expect(page.locator(".tool-picker-tool.active")).toHaveText("Wheel")
+
+  await page.getByRole("button", { name: "Hide keyboard" }).click()
+  await expect(page.locator("#main-navigation .tool-picker")).toBeVisible()
+
+  // And back in its usual place once the clue is gone
+  await showKeyboard(page)
+  await page.getByRole("button", { name: "Remove clue" }).click()
+  await expect(page.locator("#main-navigation .tool-picker")).toBeVisible()
+})
+
 test("a multi-word enumeration counts all the letters", async ({ page }) => {
   await open(page)
   await addClue(page)
