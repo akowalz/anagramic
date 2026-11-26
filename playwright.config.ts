@@ -11,6 +11,10 @@ export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
   reporter: "list",
+  // Fail fast instead of hanging: a whole run takes under a minute, a test a
+  // few seconds, and a tap or drag should find its target almost at once
+  globalTimeout: 5 * 60_000,
+  timeout: 30_000,
   use: {
     baseURL: `http://localhost:${PORT}`,
     channel: "chrome",
@@ -20,6 +24,7 @@ export default defineConfig({
     isMobile: true,
     hasTouch: true,
     trace: "retain-on-failure",
+    actionTimeout: 5_000,
   },
   webServer: {
     command: `npm run dev -- --port ${PORT} --strictPort`,
