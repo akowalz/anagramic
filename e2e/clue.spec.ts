@@ -12,7 +12,7 @@ import {
 
 /*
  * A clue can be entered for reference. Its words can be tapped to add their
- * letters, and while there's a clue the tool picker becomes a dropdown.
+ * letters. The tool picker stays, under the clue.
  */
 
 test.beforeEach(async ({ page }) => {
@@ -88,9 +88,10 @@ test("a clue can be added from the empty prompt", async ({ page }) => {
   await enterClue(page)
 
   await expect(page.locator(".clue-text")).toContainText("a nag mars")
-  // The tool picker moves into a dropdown in the header
-  await expect(page.locator(".tool-picker")).toHaveCount(0)
-  await expect(page.getByLabel("Tool")).toHaveValue("Line")
+  // The tool picker stays, under the clue
+  const card = await boxOf(page.locator(".clue-card"))
+  const picker = await boxOf(page.locator(".tool-picker"))
+  expect(picker.y).toBeGreaterThanOrEqual(card.y + card.height)
   await expect(page.locator(".clue-card")).toBeVisible()
   await expect(
     page.getByText("Tap words in the clue, or type").filter({ visible: true }),
@@ -147,14 +148,14 @@ test("typing the clue doesn't type letters", async ({ page }) => {
   await expect(tiles(page, "Line")).toHaveCount(0)
 })
 
-test("the dropdown switches tools", async ({ page }) => {
+test("the tool picker still switches tools with a clue", async ({ page }) => {
   await open(page)
   await addClue(page)
   await enterClue(page)
   await showKeyboard(page)
   await typeOnKeyboard(page, "cat")
 
-  await page.getByLabel("Tool").selectOption("Wheel")
+  await pickTool(page, "Wheel")
 
   await expect(tiles(page, "Wheel").first()).toBeVisible()
 })
@@ -278,7 +279,7 @@ test.describe("Add a clue and the tutorial", () => {
     await expect(link(page)).toBeVisible()
   })
 
-  test("with a clue added mid-tutorial, the dropdown counts as trying another tool", async ({
+  test("with a clue added mid-tutorial, switching tools still counts", async ({
     page,
   }) => {
     await open(page)
@@ -286,13 +287,12 @@ test.describe("Add a clue and the tutorial", () => {
     await enterClue(page)
     await showKeyboard(page)
     await typeOnKeyboard(page, "cat")
-    // No tool picker with a clue, so no "try another tool" hint either
-    await expect(page.locator(".toolbar-hint")).toHaveCount(0)
+    // No "Add a clue" while there's a clue
+    await pickTool(page, "Wheel")
+    await expect(link(page)).toHaveCount(0)
 
-    await page.getByLabel("Tool").selectOption("Wheel")
     await page.getByRole("button", { name: "Remove clue" }).click()
 
-    await expect(page.locator(".tool-picker")).toBeVisible()
     await expect(link(page)).toBeVisible()
     await expect(page.locator(".toolbar-hint")).not.toHaveText(/./)
   })

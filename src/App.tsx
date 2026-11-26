@@ -5,7 +5,6 @@ import { TOOL_BUTTONS, type ToolActions } from "./Types/ToolActions"
 import { type Tool } from "./Types/Tool"
 
 import ToolPicker from "./ToolPicker/ToolPicker"
-import ToolDropdown from "./ToolPicker/ToolDropdown"
 import ClueCard from "./Clue/ClueCard"
 import Keyboard from "./Keyboard/Keyboard"
 import { useTypedKeys } from "./hooks/useTypedKeys"
@@ -198,10 +197,6 @@ function App() {
     <>
       <div id="header">
         <h1 onClick={() => setShowAboutPage(!showAboutPage)}>anagramic</h1>
-        {/* The clue takes the tool picker's place, so it moves up here */}
-        {!showAboutPage && clueMode && (
-          <ToolDropdown activeTool={tool} setTool={switchTool} />
-        )}
       </div>
 
       {showAboutPage ? (
@@ -209,7 +204,8 @@ function App() {
       ) : (
         <>
           <div id="main-navigation">
-            {clueMode ? (
+            {/* The clue, above the tool picker */}
+            {clueMode && (
               <ClueCard
                 clue={clue ?? ""}
                 editing={editingClue}
@@ -220,9 +216,8 @@ function App() {
                 onEdit={openClueEditor}
                 onRemove={removeClue}
               />
-            ) : (
-              <ToolPicker activeTool={tool} setTool={switchTool} />
             )}
+            <ToolPicker activeTool={tool} setTool={switchTool} />
             {/* A quieter way in than the empty prompt, once there are letters.
                 Only after the tutorial's last hint (trying another tool) is
                 done, so new users learn the basics first; it then takes that
@@ -244,9 +239,8 @@ function App() {
                   <span aria-hidden>✎</span> Add a clue
                 </button>
               )}
-            {/* Hints about the tool picker, just under it (with a clue, the
-                picker is the dropdown in the header) */}
-            {!clueMode && letters.length > 0 && (
+            {/* Hints about the tool picker, just under it */}
+            {letters.length > 0 && (
               <Hint
                 className="toolbar-hint"
                 text={hints.underToolbar(tool)}
