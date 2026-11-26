@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test"
 import {
   boxOf,
+  footerButton,
   lettersIn,
   open,
   pickTool,
@@ -27,6 +28,18 @@ function clueWord(page: Page, word: string) {
 /* Open the clue box from the empty prompt */
 async function addClue(page: Page) {
   await page.getByRole("button", { name: "or add a clue" }).click()
+}
+
+/* Entering a clue closes the in-app keyboard; open it again to type */
+async function showKeyboard(page: Page) {
+  await footerButton(page, "Keyboard").click()
+}
+
+/* The keys' wrapper collapses to nothing when the keyboard's closed */
+function keyboardHeight(page: Page) {
+  return page
+    .locator(".keyboard-keys-wrapper")
+    .evaluate((el) => el.getBoundingClientRect().height)
 }
 
 async function enterClue(page: Page, clue = CLUE) {
@@ -114,6 +127,7 @@ test("a word stays used only while its letters are there", async ({ page }) => {
   await clueWord(page, "a").click()
 
   // Delete selects the letter, then deletes it
+  await showKeyboard(page)
   await page.getByRole("button", { name: "Delete" }).click()
   await page.getByRole("button", { name: "Delete" }).click()
 
@@ -137,6 +151,7 @@ test("the dropdown switches tools", async ({ page }) => {
   await open(page)
   await addClue(page)
   await enterClue(page)
+  await showKeyboard(page)
   await typeOnKeyboard(page, "cat")
 
   await page.getByLabel("Tool").selectOption("Wheel")
@@ -178,6 +193,7 @@ test("the count turns yellow at the answer's length, and red past it", async ({
   await enterClue(page, "A short clue (3)")
   const count = page.locator(".clue-count")
 
+  await showKeyboard(page)
   await typeOnKeyboard(page, "ab")
   await expect(count).toHaveText("2/3")
   await expect(count).not.toHaveClass(/\b(exact|over)\b/)
@@ -189,6 +205,30 @@ test("the count turns yellow at the answer's length, and red past it", async ({
   await typeOnKeyboard(page, "d")
   await expect(count).toHaveText("4/3")
   await expect(count).toHaveClass(/\bover\b/)
+})
+
+test("the in-app keyboard closes while entering a clue, and stays closed", async ({
+  page,
+}) => {
+  await open(page)
+  await expect.poll(() => keyboardHeight(page)).toBeGreaterThan(100)
+
+  await addClue(page)
+  await expect.poll(() => keyboardHeight(page)).toBe(0)
+
+  await enterClue(page)
+  await expect.poll(() => keyboardHeight(page)).toBe(0)
+  await expect(footerButton(page, "Keyboard")).toBeVisible()
+})
+
+test("a multi-word enumeration counts all the letters", async ({ page }) => {
+  await open(page)
+  await addClue(page)
+  await enterClue(page, "Festive dessert, with a nag (6, 4)")
+
+  await expect(page.locator(".clue-count")).toHaveText("0/10")
+  await expect(page.locator(".clue-enumeration")).toHaveText("(6, 4)")
+  await expect(page.locator(".clue-word")).toHaveCount(5)
 })
 
 test("the clue is kept in the link, so it survives a reload", async ({
@@ -214,6 +254,7 @@ test("letters can still be typed with a clue", async ({ page }) => {
   await addClue(page)
   await enterClue(page)
 
+  await showKeyboard(page)
   await typeOnKeyboard(page, "xy")
 
   expect(await lettersIn(page, "Line")).toBe("XY")
@@ -243,6 +284,7 @@ test.describe("Add a clue and the tutorial", () => {
     await open(page)
     await addClue(page)
     await enterClue(page)
+    await showKeyboard(page)
     await typeOnKeyboard(page, "cat")
     // No tool picker with a clue, so no "try another tool" hint either
     await expect(page.locator(".toolbar-hint")).toHaveCount(0)

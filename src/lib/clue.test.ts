@@ -36,6 +36,25 @@ describe("parseClue", () => {
     ])
   })
 
+  it("reads enumerations for answers of several words", () => {
+    for (const clue of [
+      "Clue here (6,4)",
+      "Clue here (6, 4)",
+      "Clue here (6 4)",
+      "Clue here (6-4)",
+      "Clue here(6,4)",
+      "Clue here (6,4).",
+    ]) {
+      const tokens = parseClue(clue)
+      expect(answerLength(tokens), clue).toBe(10)
+      expect(
+        tokens.filter((token) => token.kind === "word").map((t) => t.text),
+        clue,
+      ).toEqual(["Clue", "here"])
+    }
+    expect(answerLength(parseClue("Clue (3-4,2)"))).toBe(9)
+  })
+
   it("has no length without an enumeration", () => {
     expect(answerLength(parseClue("No enumeration here"))).toBeNull()
   })

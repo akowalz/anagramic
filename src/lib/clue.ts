@@ -15,24 +15,32 @@ export type ClueToken =
   | { kind: "enumeration"; text: string; length: number }
   | { kind: "other"; text: string }
 
-const ENUMERATION = /^\((\d+(?:[,\-–\s]+\d+)*)\)$/
+// "(8)", "(6,4)", "(6, 4)", "(4-4)", "(3 4)": the lengths of the answer's
+// words, which can have spaces in it, so it's found before splitting words
+const ENUMERATION = /(\(\s*\d+(?:\s*[,\-–‐\s]\s*\d+)*\s*\))/
 
 export function parseClue(clue: string): ClueToken[] {
   return clue
     .trim()
-    .split(/\s+/)
-    .filter((text) => text.length > 0)
-    .map((text): ClueToken => {
-      const enumeration = text.match(ENUMERATION)
-      if (enumeration) {
-        const length = (enumeration[1].match(/\d+/g) ?? [])
+    .split(ENUMERATION)
+    .flatMap((part, index): ClueToken[] => {
+      // Split's odd parts are the enumerations it matched
+      if (index % 2 === 1) {
+        const length = (part.match(/\d+/g) ?? [])
           .map(Number)
           .reduce((sum, n) => sum + n, 0)
-        return { kind: "enumeration", text, length }
+        return [{ kind: "enumeration", text: part, length }]
       }
 
-      const letters = text.replace(/[^a-z]/gi, "").toUpperCase()
-      return letters ? { kind: "word", text, letters } : { kind: "other", text }
+      return part
+        .split(/\s+/)
+        .filter((text) => text.length > 0)
+        .map((text): ClueToken => {
+          const letters = text.replace(/[^a-z]/gi, "").toUpperCase()
+          return letters
+            ? { kind: "word", text, letters }
+            : { kind: "other", text }
+        })
     })
 }
 
